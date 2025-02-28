@@ -4,118 +4,118 @@ import { useState, useEffect } from "react";
 import DataTable from "react-data-table-component";
 import { FaEllipsisV } from "react-icons/fa";
 import { showToast } from "@/components/toast";
-interface Status {
+
+interface Location {
   id: number;
   name: string;
 }
 
-export default function StatusPage() {
-  const [status, setStatus] = useState<Status[]>([]);
-  const [filteredStatus, setFilteredStatus] = useState<Status[]>([]);
+export default function LocationPage() {
+  const [locations, setLocations] = useState<Location[]>([]);
+  const [filteredLocations, setFilteredLocations] = useState<Location[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
-  const [newStatus, setNewStatus] = useState("");
-  const [editingStatus, setEditingStatus] = useState<Status | null>(null);
+  const [newLocation, setNewLocation] = useState("");
+  const [editingLocation, setEditingLocation] = useState<Location | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [openMenu, setOpenMenu] = useState<number | null>(null);
 
   const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
-  const fetchStatus = async () => {
+  const fetchLocations = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/status`);
+      const response = await fetch(`${API_BASE_URL}/api/location`);
       const data = await response.json();
-      setStatus(data);
-      setFilteredStatus(data);
+      setLocations(data);
+      setFilteredLocations(data);
     } catch (error) {
-      console.error("Error fetching status:", error);
+      console.error("Error fetching locations:", error);
     }
   };
 
   useEffect(() => {
-    fetchStatus();
+    fetchLocations();
   }, []);
 
   // Handle modal open/close
-  const openModal = (status?: Status) => {
-    setEditingStatus(status || null);
-    setNewStatus(status?.name || "");
+  const openModal = (location?: Location) => {
+    setEditingLocation(location || null);
+    setNewLocation(location?.name || "");
     setModalOpen(true);
   };
 
   const closeModal = () => {
     setModalOpen(false);
-    setNewStatus("");
-    setEditingStatus(null);
+    setNewLocation("");
+    setEditingLocation(null);
   };
 
-  // Add or Update status
-  const handleSaveStatus = async () => {
-    if (!newStatus.trim()) return;
+  // Add or Update location
+  const handleSaveLocation = async () => {
+    if (!newLocation.trim()) return;
 
-    const url = editingStatus
-      ? `${API_BASE_URL}/api/status/${editingStatus.id}`
-      : `${API_BASE_URL}/api/status`;
+    const url = editingLocation
+      ? `${API_BASE_URL}/api/location/${editingLocation.id}`
+      : `${API_BASE_URL}/api/location`;
 
-    const method = editingStatus ? "PUT" : "POST";
+    const method = editingLocation ? "PUT" : "POST";
 
     try {
       const response = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: newStatus }),
+        body: JSON.stringify({ name: newLocation }),
       });
 
       if (response.ok) {
-        if (method==="PUT"){
-   showToast("Status updated successfully", "success")
-        } else if (method==="POST"){
-   showToast("Status added successfully", "success")
+        if (method === "PUT") {
+          showToast("Location updated successfully", "success");
+        } else if (method === "POST") {
+          showToast("Location added successfully", "success");
         }
-    
+
         closeModal();
-        fetchStatus();
+        fetchLocations();
       }
     } catch (error) {
-      console.error("Error saving status:", error);
+      console.error("Error saving location:", error);
     }
   };
 
-  // Delete status
-  const deleteStatus = async (id: number) => {
+  // Delete location
+  const deleteLocation = async (id: number) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/status/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/location/${id}`, {
         method: "DELETE",
       });
 
       if (response.ok) {
-        fetchStatus();
-        showToast("Status deleted successfully", "success")
+        fetchLocations();
+        showToast("Location deleted successfully", "success");
       }
     } catch (error) {
-      console.error("Error deleting status:", error);
+      console.error("Error deleting location:", error);
     }
   };
 
   // Search filter logic
   useEffect(() => {
-    const filtered = status.filter((s) =>
-      s.name.toLowerCase().includes(searchTerm.toLowerCase())
+    const filtered = locations.filter((loc) =>
+      loc.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
-    setFilteredStatus(filtered);
-  }, [searchTerm, status]);
+    setFilteredLocations(filtered);
+  }, [searchTerm, locations]);
 
   // Define DataTable columns
   const columns = [
-
     {
-      name: "Status",
-      selector: (row: Status) => row.name,
+      name: "Location",
+      selector: (row: Location) => row.name,
       sortable: true,
     },
     {
       name: "Actions",
       right: true,
-      cell: (row: Status) => (
+      cell: (row: Location) => (
         <div className="relative">
           <button
             onClick={() =>
@@ -139,7 +139,7 @@ export default function StatusPage() {
               </button>
               <button
                 onClick={() => {
-                  deleteStatus(row.id);
+                  deleteLocation(row.id);
                   setOpenMenu(null);
                 }}
                 className="block w-full text-left px-4 py-2 text-red-500 hover:bg-gray-100"
@@ -154,16 +154,16 @@ export default function StatusPage() {
   ];
 
   return (
-   <div className="w-full mx-auto p-6 bg-white shadow-md rounded-lg overflow-visible">
+    <div className="w-full mx-auto p-6 bg-white shadow-md rounded-lg overflow-visible">
 
       {/* Header */}
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-semibold">Status Management</h1>
+        <h1 className="text-2xl font-semibold">Location Management</h1>
         <button
           onClick={() => openModal()}
           className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
         >
-          Add Status
+          Add Location
         </button>
       </div>
 
@@ -171,7 +171,7 @@ export default function StatusPage() {
       <div className="mb-4">
         <input
           type="text"
-          placeholder="Search status..."
+          placeholder="Search location..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="w-1/3 border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500"
@@ -179,28 +179,26 @@ export default function StatusPage() {
       </div>
 
       {/* Data Table */}
-<DataTable
-  columns={columns}
-  data={filteredStatus}
-  pagination
-  highlightOnHover
-  striped
+      <DataTable
+        columns={columns}
+        data={filteredLocations}
+        pagination
+        highlightOnHover
+        striped
+      />
 
-/>
-
-
-      {/* Status Modal */}
+      {/* Location Modal */}
       {modalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
           <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
             <h2 className="text-xl font-semibold mb-4">
-              {editingStatus ? "Edit Status" : "Add Status"}
+              {editingLocation ? "Edit Location" : "Add Location"}
             </h2>
             <input
               type="text"
-              placeholder="Enter status"
-              value={newStatus}
-              onChange={(e) => setNewStatus(e.target.value)}
+              placeholder="Enter location"
+              value={newLocation}
+              onChange={(e) => setNewLocation(e.target.value)}
               className="w-full border rounded-md px-3 py-2 mb-4 focus:ring-2 focus:ring-blue-500"
             />
             <div className="flex justify-end gap-2">
@@ -211,7 +209,7 @@ export default function StatusPage() {
                 Cancel
               </button>
               <button
-                onClick={handleSaveStatus}
+                onClick={handleSaveLocation}
                 className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
               >
                 Save

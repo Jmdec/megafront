@@ -19,7 +19,7 @@ const navItems: { title: string;  submenu: (string | SubmenuItem)[] }[] = [
   { title: "OFFICES",  submenu: [] },
   { title: "AGENT", submenu: [] },
   { title: "CUSTOM SERVICES", submenu: ["Careers","Testimonials"] },
-   { title: "WHAT'S NEW",  submenu: ["Seminars", "Meeting", "Events", "Closed Deals", "Real Estate News", "Real Estate Tips", "On-Going Infrastructure", "Watch Videos"] },
+   { title: "WHAT'S NEW",  submenu: ["Seminars", "Meetings", "Events", "Closed Deals", "Real Estate News", "Real Estate Tips", "On-Going Infrastructure", "Watch Videos"] },
    { title: "FORM FILLER", submenu: ["Status","Development Type","Location"] },
 ];
 

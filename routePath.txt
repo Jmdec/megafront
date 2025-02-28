@@ -8,8 +8,12 @@ import Footer from "@/components/user/components/footer/footer"; // ✅ Only imp
 
 
 ----------------------- REDUX COMPONENTS --------------------
+// Dispatch/connect to its data
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '@/app/redux/store'; // Adjust path as needed
+ const dispatch = useDispatch();
+   const projects = useSelector((state: RootState) => state.featuredData);
+
 
 // Encapsulate your page 
 import { Provider } from 'react-redux'; // Import Provider

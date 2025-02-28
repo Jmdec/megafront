@@ -14,7 +14,7 @@ import { RootState } from '@/app/redux/store'; // Adjust path as needed
 const PropertyParent = () => {
    const dispatch = useDispatch();
   const properties = useSelector((state: RootState) => state.propertyData.properties);
-  const property = properties.filter(prop => prop.division != "Under Construction"   );
+  const property = properties.filter(prop => prop.status != "Under Construction"   );
 console.log(properties)
   return (
     <>

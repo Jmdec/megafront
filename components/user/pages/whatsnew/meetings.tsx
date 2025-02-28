@@ -22,7 +22,7 @@ export default function Meetings() {
 
   // Fetch meetings from Redux state
   const meetings = useSelector((state: RootState) => state.meetingsData);
-console.log(meetings)
+
   return (
     <div className="container mx-auto px-6 py-12">
       {/* Breadcrumb Navigation */}

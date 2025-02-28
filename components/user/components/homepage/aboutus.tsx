@@ -1,8 +1,7 @@
 import React from "react";
-import { Montserrat, Cardo } from "next/font/google";
+import { montserrat,cardo } from "@/utils/fonts";
 
-const montserrat = Montserrat({ subsets: ["latin"], weight: ["200", "300", "500"] });
-const cardo = Cardo({ subsets: ["latin"], weight: ["400", "700"] });
+
 const AboutUs = () => {
   return (
      <section className="min-h-screen flex flex-col justify-center max-w-4xl mx-auto p-6 text-center top-1/2">
