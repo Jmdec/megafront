@@ -4,13 +4,8 @@ import { useParams } from "next/navigation";
 
 import Link from "next/link";
 
-import Properties from "@/components/user/pages/properties";
 import Header from "@/components/user/components/header/page";
 import Footer from "@/components/user/components/footer/footer";
-import WatchVideos from "@/components/user/pages/whatsnew/watchVideos"
-
-import { Provider } from 'react-redux'; // Import Provider
-import store from "@/app/redux/store"; // Default import for store
 
 import ContactUs from "@/components/user/pages/customServices/contactus"
 import Careers from "@/components/user/pages/customServices/career"
@@ -39,7 +34,7 @@ export default function DynamicUserPage() {
   return (
     <>
       <Header />
-      <div className="mx-auto  mt-16 bg-[#F9FAF1] w-full">
+      <div className="mx-auto  mt-16 bg-[#595a53] w-full">
             {slug === "contact-us" ? (
           <ContactUs />
             ): slug === "careers" ? (

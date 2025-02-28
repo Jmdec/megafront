@@ -6,7 +6,7 @@ interface RealEstateProperty {
   location: string;
   description: string;
   image: string;
-  division: string;
+  status: string;
   buttonText: string;
   price: string;
   details: string;
@@ -28,7 +28,7 @@ const initialState: RealEstateState = {
       description: "Location is everything for Uptown Arts Residence, offering premium lifestyle and modern conveniences.",
       buttonText: "Discover Uptown",
       image: "/featuredbuilding/UptownArtsResidence.webp",
-      division: "New",
+      status: "New",
       price: "12500000 - 14500000",
       details: "Fully furnished units available with flexible payment terms.",
       featured: "home",
@@ -39,7 +39,7 @@ const initialState: RealEstateState = {
       description: "Experience luxury living with breathtaking city views and world-class amenities.",
       buttonText: "Explore More",
       image: "/featuredbuilding/SkylinePremierSuites.webp",
-      division: "Under Construction",
+      status: "Under Construction",
       price: "9800000 - 11500000",
       details: "Exclusive penthouse units now available.",
       featured: "home",
@@ -51,7 +51,7 @@ const initialState: RealEstateState = {
       description: "No Downpayment, 0% Interest, 38 months to pay",
       buttonText: "View Details",
       image: "/featuredbuilding/CentralPark.webp",
-      division: "Pre-Selling",
+      status: "Pre-Selling",
       price: "8000000 - 12000000",
       details: "Prime location near shopping centers and transportation hubs.",
       featured: "home",
@@ -62,7 +62,7 @@ const initialState: RealEstateState = {
       description: "No Downpayment, 0% Interest, 72 months to pay",
       buttonText: "Learn More",
       image: "/featuredbuilding/UptownModern.webp",
-      division: "Pre-Selling",
+      status: "Pre-Selling",
       price: "11000000 - 12000000",
       details: "Smart home features and eco-friendly design.",
       featured: "home",
@@ -75,7 +75,7 @@ const initialState: RealEstateState = {
       description: "An eco-friendly community with smart technology and pedestrian-friendly spaces.",
       buttonText: "Schedule a Visit",
       image: "/residence/GreenfieldDistrict.jpg",
-      division: "Ready for Occupancy",
+      status: "Ready for Occupancy",
       price: "7500000 - 9000000",
       details: "Walking distance to business districts and malls.",
       featured: "home",
@@ -86,7 +86,7 @@ const initialState: RealEstateState = {
       description: "A vibrant community with modern amenities, green spaces, and well-designed homes.",
       buttonText: "Reserve Now",
       image: "/residence/Arden.jpg",
-      division: "Pre-Selling",
+      status: "Pre-Selling",
       price: "3900000 - 5000000",
       details: "Various lot sizes available.",
       featured: "home",
@@ -97,7 +97,7 @@ const initialState: RealEstateState = {
       description: "A mixed-use development featuring commercial hubs, landscaped streets, and world-class amenities.",
       buttonText: "Invest Today",
       image: "/residence/CapitalTown.jpg",
-      division: "Ready for Occupancy",
+      status: "Ready for Occupancy",
       price: "8200000 - 10000000",
       details: "Business-friendly area with great investment potential.",
       featured: "home",
@@ -108,7 +108,7 @@ const initialState: RealEstateState = {
       description: "A cutting-edge residential tower for urban professionals near Makati’s CBD.",
       buttonText: "Get More Info",
       image: "/residence/TheRiseMakati.jpg",
-      division: "New",
+      status: "New",
       price: "11500000 - 13500000",
       details: "Exclusive launch discounts available.",
       featured: "home",
@@ -119,7 +119,7 @@ const initialState: RealEstateState = {
       description: "A world-class waterfront development featuring casinos, shopping malls, and entertainment centers.",
       buttonText: "Luxury Awaits",
       image: "/residence/Westside.jpg",
-      division: "Under Construction",
+      status: "Under Construction",
       price: "14000000 - 16000000",
       details: "Resort-style living with ocean views.",
       featured: "home",

@@ -32,7 +32,7 @@ export default function Seminars() {
       </nav>
 
       {/* Header Section */}
-      <div className="text-center">
+      <div className="text-start">
         <h1 className="text-3xl font-bold text-gray-900 mb-4">Seminars</h1>
         <p className="text-lg text-gray-700 mb-6">
           Explore our engaging seminars designed to inspire, educate, and empower individuals in real estate and beyond.

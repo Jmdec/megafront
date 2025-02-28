@@ -11,7 +11,7 @@ interface PropertyProps {
 const Property = ({ property }: PropertyProps) => {
   const [search, setSearch] = useState("");
   const [locationFilter, setLocationFilter] = useState("");
-  const [divisionFilter, setDivisionFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
   const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
   const properties = useSelector((state: RootState) => state.propertyData.properties);
@@ -22,7 +22,7 @@ const Property = ({ property }: PropertyProps) => {
       setLoading(false);
     }, 500);
     return () => clearTimeout(timer);
-  }, [search, locationFilter, divisionFilter]);
+  }, [search, locationFilter, statusFilter]);
 
   useEffect(() => {
     if (property) {
@@ -31,12 +31,12 @@ const Property = ({ property }: PropertyProps) => {
       } else if (property === "all-schedule-a-visit" || property === "all-inquire-a-property") {
         property = "all";
       }
-      setDivisionFilter(property);
+      setStatusFilter(property);
     }
   }, [property]);
 
   const uniqueLocations = [...new Set(properties.map((item) => item.location))];
-  const uniqueDivisions = [...new Set(properties.map((item) => item.division))];
+  const uniqueStatuss = [...new Set(properties.map((item) => item.status))];
 
   const filteredProperties = properties.filter((property) => {
     const matchesSearch = `${property.name} ${property.location}`
@@ -48,14 +48,14 @@ const Property = ({ property }: PropertyProps) => {
       locationFilter.toLowerCase() === "all" ||
       property.location.toLowerCase() === locationFilter.toLowerCase();
 
-    const matchesDivision =
-      !divisionFilter ||
-      divisionFilter.toLowerCase().replace(/-/g, " ").trim() === "all" ||
-      (divisionFilter.toLowerCase().replace(/-/g, " ").trim() === "new" &&
-        (property.division.toLowerCase().trim() === "new" || property.division.toLowerCase().trim() === "new project")) ||
-      divisionFilter.toLowerCase().replace(/-/g, " ").trim() === property.division.toLowerCase().replace(/-/g, " ").trim();
+    const matchesStatus =
+      !statusFilter ||
+      statusFilter.toLowerCase().replace(/-/g, " ").trim() === "all" ||
+      (statusFilter.toLowerCase().replace(/-/g, " ").trim() === "new" &&
+        (property.status.toLowerCase().trim() === "new" || property.status.toLowerCase().trim() === "new project")) ||
+      statusFilter.toLowerCase().replace(/-/g, " ").trim() === property.status.toLowerCase().replace(/-/g, " ").trim();
 
-    return matchesSearch && matchesLocation && matchesDivision;
+    return matchesSearch && matchesLocation && matchesStatus;
   });
 
   return (
@@ -94,13 +94,13 @@ const Property = ({ property }: PropertyProps) => {
           </select>
           <select
             className="px-4 py-2 w-full sm:w-auto border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#B8986E] transition"
-            value={divisionFilter}
-            onChange={(e) => setDivisionFilter(e.target.value)}
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
           >
-            <option value="">All Divisions</option>
-            {uniqueDivisions.map((division, index) => (
-              <option key={index} value={division}>
-                {division}
+            <option value="">All Status</option>
+            {uniqueStatuss.map((status, index) => (
+              <option key={index} value={status}>
+                {status}
               </option>
             ))}
           </select>
@@ -115,20 +115,20 @@ const Property = ({ property }: PropertyProps) => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8">
           {filteredProperties.length > 0 ? (
             filteredProperties.map((residence, index) => {
-              const divisionColors: Record<string, string> = {
+              const statusColors: Record<string, string> = {
                 "New": "bg-blue-500",
                 "Ready for Occupancy": "bg-green-500",
                 "Pre-Selling": "bg-yellow-500",
                 "Under Construction": "bg-red-500",
               };
-              const divisionLabel = residence.division ?? "Unknown";
-              const badgeColor = divisionColors[divisionLabel] || "bg-gray-500";
+              const statusLabel = residence.status ?? "Unknown";
+              const badgeColor = statusColors[statusLabel] || "bg-gray-500";
 
               return (
                 <Card key={index} className="relative  rounded-xl shadow-lg border border-gray-200 hover:shadow-2xl transition duration-300">
                   <CardHeader className="p-0 relative">
                     <span className={`absolute top-3 right-3 text-white text-xs font-semibold px-3 py-1 rounded-md shadow-md ${badgeColor}`}>
-                      {residence.division}
+                      {residence.status}
                     </span>
                     <img src={residence.image} alt={residence.name} className="w-full h-64 object-cover rounded-lg p-4" />
                   </CardHeader>

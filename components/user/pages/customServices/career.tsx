@@ -18,8 +18,9 @@ export default function Career() {
   };
 
   return (
-    <div className="container mx-auto px-6 py-12 bg-white w-[60%] border-x-2 ">
-      {/* Page Title */}
+    <div className="bg-gray-50 py-10 px-6">
+      <div className="w-[60%] py-16 mx-auto bg-white shadow-lg rounded-lg overflow-hidden border border-gray-200">
+       
       <h1 className="text-3xl font-bold text-gray-900 text-center mb-6">Careers</h1>
       <p className="text-lg text-gray-700 text-center mb-6 w-7/12 mx-auto">
         Experience exceptional real estate services, tailored to meet your needs and exceed expectations.
@@ -79,7 +80,7 @@ export default function Career() {
 
       
    
-    
+    </div>
     </div>
   );
 }
