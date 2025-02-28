@@ -19,6 +19,7 @@ import ClosedDeals from "@/components/user/pages/whatsnew/closedDeals"
 import RealEstateNews from "@/components/user/pages/whatsnew/realEstateNews"
 import RealEstateTips from "@/components/user/pages/whatsnew/realEstateTips"
 import Infastructure from "@/components/user/pages/whatsnew/onGoingInfastucture"
+import ServiceWorker from "@/app/Serviceworkerregister"
 
 export default function DynamicUserPage() {
   const [slug, setSlug] = useState<string | null>(null);
@@ -42,6 +43,7 @@ export default function DynamicUserPage() {
 
   return (
     <>
+          <ServiceWorker />  
       <Header />
       <Provider store={store}>
       <div className="mx-auto px-6 py-16 bg-[#F9FAF1] w-full">

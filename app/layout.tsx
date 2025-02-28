@@ -2,7 +2,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import ToastProvider from "@/components/toast";
 import type { Metadata, Viewport } from "next";
-
+import ServiceWorkerRegister from "@/app/Serviceworkerregister";
 const APP_NAME = "MegaWorld Corporation";
 const APP_DEFAULT_TITLE = "MegaWorld";
 const APP_TITLE_TEMPLATE = "%s - PWA App";
@@ -70,6 +70,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+         <ServiceWorkerRegister />  
         {children}
       </body>
     </html>
