@@ -9,7 +9,7 @@ const Form: React.FC = () => {
   const [showMinDropdown, setShowMinDropdown] = useState(false);
   const [showMaxDropdown, setShowMaxDropdown] = useState(false);
  const dispatch = useDispatch();
-   const properties = useSelector((state: RootState) => state.heroParentData.properties);
+   const properties = useSelector((state: RootState) => state.propertyData.properties);
 
   const priceSuggestions = [
     "1,000,000",
@@ -36,10 +36,10 @@ const Form: React.FC = () => {
   return (
     <div className="flex flex-col sm:flex-row items-center justify-center w-full min-h-screen mx-auto p-4 sm:p-6">
       {/* Left Section: Property Display */}
-<div className=" flex items-center justify-center w-full sm:w-7/12 min-h-[450px] sm:min-h-[500px] text-center sm:text-end p-6 sm:p-12 sm:bg-black/50 rounded-lg shadow-lg transition-opacity duration-500 ease-in-out">
-  <div>
-    <h1 className="text-3xl sm:text-5xl font-extrabold text-neutral-100">
-      {properties[currentIndex].title}
+<div className="flex items-center justify-end w-full sm:w-7/12 min-h-[450px] sm:min-h-[500px] text-center sm:text-end p-6 sm:p-12 sm:bg-black/50 rounded-lg shadow-lg transition-opacity duration-500 ease-in-out">
+  <div className="w-full max-w-full"> 
+    <h1 className="text-3xl sm:text-7xl font-extrabold text-neutral-100">
+      {properties[currentIndex].name}
     </h1>
     <h3 className="text-lg sm:text-xl font-extrabold text-neutral-100">
       at {properties[currentIndex].location}
@@ -52,6 +52,7 @@ const Form: React.FC = () => {
     </button>
   </div>
 </div>
+
 
 
       {/* Right Section: Form */}
