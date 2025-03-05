@@ -68,7 +68,7 @@ const EditModal: React.FC<EditModalProps> = ({ modalOpen, closeModal, fetchData,
     showToast("Name, Location, Status, and Price are required.", "error");
     return;
   }
-console.log(office?.id)
+
   const formData = new FormData();
   formData.append("name", updatedOffice.name);
   formData.append("description", updatedOffice.description);

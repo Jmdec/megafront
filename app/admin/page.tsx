@@ -5,6 +5,7 @@ import Header from "@/components/admin/components/header";
 
 import Agent from "@/components/admin/pages/agent/page";
 import Office from "@/components/admin/pages/office/page";
+import Property from "@/components/admin/pages/properties/page";
 
 //Custom Services
 import Careers from "@/components/admin/pages/customservices/careers";
@@ -54,6 +55,7 @@ export default function AdminPage() {
           {activeTab === "Testimonials" && <Testimonial/>} 
           {activeTab === "AGENT" && <Agent/>} 
           {activeTab === "OFFICES" && <Office/>} 
+          {activeTab === "PROPERTIES" && <Property/>} 
       </div>
       </div>
     </div>
