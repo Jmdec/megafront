@@ -3,10 +3,22 @@ import { useState,useEffect } from "react";
 import Sidebar from "@/components/admin/components/sidebar";
 import Header from "@/components/admin/components/header";
 
+import Agent from "@/components/admin/pages/agent/page";
+import Office from "@/components/admin/pages/office/page";
+
+//Custom Services
+import Careers from "@/components/admin/pages/customservices/careers";
+import Testimonial from "@/components/admin/pages/customservices/testimonial";
+
 //Whats New
 import Seminar from "@/components/admin/pages/whatsnew/seminar";
 import Meeting from "@/components/admin/pages/whatsnew/meeting";
 import Event from "@/components/admin/pages/whatsnew/event";
+import ClosedDeals from "@/components/admin/pages/whatsnew/closedDeals";
+import RealEstateNews from "@/components/admin/pages/whatsnew/realEstateNews";
+import RealEstateTips from "@/components/admin/pages/whatsnew/realEstateTips";
+import OnGoingInfrastructure from "@/components/admin/pages/whatsnew/onGoingInfrastructure";
+import Video from "@/components/admin/pages/whatsnew/video";
 
 // Form Filler
 import Status from "@/components/admin/pages/formfiller/status";
@@ -30,9 +42,18 @@ export default function AdminPage() {
           {activeTab === "Seminars" && <Seminar />} 
           {activeTab === "Meetings" && <Meeting />} 
           {activeTab === "Events" && <Event />} 
-            {activeTab === "Status" && <Status />} 
-             {activeTab === "Location" && <Location />} 
-              {activeTab === "Development Type" && <DevelopmentType />} 
+          {activeTab === "Status" && <Status />} 
+          {activeTab === "Location" && <Location />} 
+          {activeTab === "Development Type" && <DevelopmentType />} 
+          {activeTab === "Closed Deals" && <ClosedDeals />} 
+          {activeTab === "Real Estate News" && <RealEstateNews />} 
+          {activeTab === "Real Estate Tips" && <RealEstateTips />} 
+          {activeTab === "On-Going Infrastructure" && <OnGoingInfrastructure />} 
+          {activeTab === "Watch Videos" && <Video/>} 
+          {activeTab === "Careers" && <Careers/>} 
+          {activeTab === "Testimonials" && <Testimonial/>} 
+          {activeTab === "AGENT" && <Agent/>} 
+          {activeTab === "OFFICES" && <Office/>} 
       </div>
       </div>
     </div>

@@ -164,7 +164,7 @@ export default function SeminarPage() {
         modalOpen={isAddModalOpen}
         closeModal={() => setIsAddModalOpen(false)}
         fetchData={fetchSeminars}
-        itemType="meeting" // Set itemType to "meeting"
+        itemType="seminar" // Set itemType to "meeting"
       />
       {editingSeminar && (
         <EditModal

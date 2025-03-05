@@ -8,8 +8,8 @@ interface ImageWithLoaderProps {
   width: number;
   height: number;
   className?: string;
-  loaderText?: string; // Optional custom loader text
-  loaderBg?: string; // Optional custom background color
+  loaderText?: string;
+  loaderBg?: string;
 }
 
 const ImageWithLoader: React.FC<ImageWithLoaderProps> = ({
@@ -34,7 +34,6 @@ const ImageWithLoader: React.FC<ImageWithLoaderProps> = ({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0, transition: { duration: 0.5 } }}
           >
-            {/* Animated Loading Text */}
             <motion.span
               className="text-lg font-bold text-gray-700"
               initial={{ opacity: 0, scale: 0.8 }}
@@ -48,7 +47,7 @@ const ImageWithLoader: React.FC<ImageWithLoaderProps> = ({
         )}
       </AnimatePresence>
 
-      {/* Rotating Loading Animation Overlay */}
+      {/* Rotating Loading Animation */}
       <AnimatePresence>
         {isLoading && (
           <motion.div
@@ -68,7 +67,7 @@ const ImageWithLoader: React.FC<ImageWithLoaderProps> = ({
         width={width}
         height={height}
         className={`${className} transition-opacity duration-700 ${isLoading ? "opacity-0 scale-95" : "opacity-100 scale-100"}`}
-        onLoadingComplete={() => setIsLoading(false)}
+        onLoad={() => setIsLoading(false)} // ✅ Changed from onLoadingComplete to onLoad
       />
     </div>
   );

@@ -66,11 +66,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-       <ToastProvider />
+       
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-         <ServiceWorkerRegister />  
+   <ToastProvider />
         {children}
       </body>
     </html>
