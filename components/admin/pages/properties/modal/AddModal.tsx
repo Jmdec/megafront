@@ -352,8 +352,11 @@ formData.append("specificLocation", newProperty.specificLocation);  // Ensure it
         className="w-full border rounded-md px-3 py-2"
       >
         <option value="">Select status</option>
-        <option value="Available">Available</option>
-        <option value="Sold">Sold</option>
+        <option value="New">New</option>
+        <option value="Ready for occupancy">Ready for occupancy</option>
+        <option value="Pre-selling">Pre-selling</option>
+        <option value="Sold-out">Sold-out</option>
+        <option value="Under Construction">Under Construction</option>
       </select>
     </div>
 
@@ -367,9 +370,9 @@ formData.append("specificLocation", newProperty.specificLocation);  // Ensure it
         className="w-full border rounded-md px-3 py-2"
       >
         <option value="">Select development type</option>
-        <option value="Highrise">Highrise</option>
-        <option value="Midrise">Midrise</option>
-        <option value="Lowrise Condominium">Lowrise Condominium</option>
+        <option value="High Rise Condominium">High Rise Condominium</option>
+        <option value="Mid Rise Condominium">Mid Rise Condominium</option>
+        <option value="Low Rise Condominium">Low Rise Condominium</option>
       </select>
     </div>
 

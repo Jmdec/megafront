@@ -23,45 +23,62 @@ const EditItemModal: React.FC<EditItemModalProps> = ({
     setEditedItem(item);
   }, [item]);
 
-  const handleSave = async () => {
-    if (!editedItem?.title.trim() || !editedItem?.date.trim()) {
-      showToast("Title and Date are required.", "error");
-      return;
+const handleSave = async () => {
+  if (!editedItem?.title.trim() || !editedItem?.date.trim()) {
+    showToast("Title and Date are required.", "error");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("title", editedItem.title);
+  formData.append("date", editedItem.date);
+
+  if (itemType === "video") {
+    formData.append("location", editedItem.location || "");
+    formData.append("views", String(parseInt(editedItem.views || "0", 10)));
+    if (editedItem.url) formData.append("url", editedItem.url);
+    if (editedItem.file) formData.append("file", editedItem.file);
+    if (editedItem.thumbnail) formData.append("thumbnail", editedItem.thumbnail);
+  } else if (itemType === "event") {
+    formData.append("description", editedItem.description || "");
+    formData.append("media_type", editedItem.mediaType || ""); // Append media_type for events
+
+    // Only append the image field if media_type is "image"
+    if (editedItem.mediaType === "image" && editedItem.image) {
+      formData.append("image", editedItem.image); // For event, attach image only if media_type is image
+    } else if (editedItem.file) {
+      formData.append("file", editedItem.file); // If media_type is video, append the file
     }
+  } else {
+    formData.append("description", editedItem.description || "");
+    if (editedItem.image) formData.append("image", editedItem.image);
+  }
 
-    const formData = new FormData();
-    formData.append("title", editedItem.title);
-    formData.append("date", editedItem.date);
+  // Log FormData contents before sending it
+  console.log("Sending FormData:");
+  for (const pair of formData.entries()) {
+    console.log(pair[0], pair[1]);
+  }
 
-    if (itemType === "video") {
-      formData.append("location", editedItem.location || "");
-      formData.append("views", String(parseInt(editedItem.views || "0", 10)));
-      if (editedItem.url) formData.append("url", editedItem.url);
-      if (editedItem.file) formData.append("file", editedItem.file);
-      if (editedItem.thumbnail) formData.append("thumbnail", editedItem.thumbnail);
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/${itemType}/${editedItem.id}`, {
+      method: "POST",
+      body: formData,
+    });
+
+    if (response.ok) {
+      showToast(`${itemType.charAt(0).toUpperCase() + itemType.slice(1)} updated successfully`, "success");
+      fetchData();
+      closeModal();
     } else {
-      formData.append("description", editedItem.description || "");
-      if (editedItem.image) formData.append("image", editedItem.image);
+      showToast("Failed to update item.", "error");
     }
+  } catch (error) {
+    console.error("Error:", error);
+    showToast("Error updating item.", "error");
+  }
+};
 
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/${itemType}/${editedItem.id}`, {
-        method: "POST",
-        body: formData,
-      });
-
-      if (response.ok) {
-        showToast(`${itemType.charAt(0).toUpperCase() + itemType.slice(1)} updated successfully`, "success");
-        fetchData();
-        closeModal();
-      } else {
-        showToast("Failed to update item.", "error");
-      }
-    } catch (error) {
-      console.error("Error:", error);
-      showToast("Error updating item.", "error");
-    }
-  };
 
   return modalOpen && editedItem ? (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
@@ -82,8 +99,57 @@ const EditItemModal: React.FC<EditItemModalProps> = ({
           onChange={(e) => setEditedItem({ ...editedItem, date: e.target.value })}
           className="w-full border rounded-md px-3 py-2 mb-4 focus:ring-2 focus:ring-blue-500"
         />
-        
-        {itemType !== "video" && (
+              {itemType === "event" && (
+          <>
+            {/* Event-specific fields */}
+            <textarea
+              placeholder="Enter Description"
+              value={editedItem.description}
+              onChange={(e) => setEditedItem({ ...editedItem, description: e.target.value })}
+              className="w-full border rounded-md px-3 py-2 mb-4 focus:ring-2 focus:ring-blue-500"
+            />
+            
+            {/* Media Type Select */}
+            <label className="block text-gray-700 font-medium mb-1">Media Type</label>
+       <select
+  value={editedItem.mediaType || ""}
+  onChange={(e) => setEditedItem({ ...editedItem, mediaType: e.target.value as "image" | "video" })}
+  className="w-full border rounded-md px-3 py-2 mb-4 focus:ring-2 focus:ring-blue-500"
+>
+  <option value="" disabled>Select</option> {/* Disabled first option */}
+  <option value="image">Image</option>
+  <option value="video">Video</option>
+</select>
+
+            {/* Image upload if mediaType is "image" */}
+            {editedItem.mediaType === "image" && (
+              <>
+                <label className="block text-gray-700 font-medium mb-1">Upload Image</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setEditedItem({ ...editedItem, image: e.target.files?.[0] || null })}
+                  className="w-full mb-4"
+                />
+              </>
+            )}
+
+            {/* Video upload if mediaType is "video" */}
+            {editedItem.mediaType === "video" && (
+              <>
+                <label className="block text-gray-700 font-medium mb-1">Upload Video File</label>
+                <input
+                  type="file"
+                  accept="video/*"
+                  onChange={(e) => setEditedItem({ ...editedItem, file: e.target.files?.[0] || null })}
+                  className="w-full mb-4"
+                />
+              </>
+            )}
+          </>
+        )}
+
+        {itemType !== "video" && itemType !== "event" && (
           <>
             <textarea
               placeholder="Enter Description"

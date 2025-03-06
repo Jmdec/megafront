@@ -19,6 +19,7 @@ const AddModal: React.FC<AddModalProps> = ({ modalOpen, closeModal, fetchData, i
     url?: string;
     file?: File | null;
     thumbnail?: File | null;
+      mediaType?: "image" | "video"; 
   }>({
     title: "",
     date: "",
@@ -29,6 +30,7 @@ const AddModal: React.FC<AddModalProps> = ({ modalOpen, closeModal, fetchData, i
     url: "",
     file: null,
     thumbnail: null,
+      mediaType: "image",
   });
 
   const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
@@ -43,7 +45,10 @@ const AddModal: React.FC<AddModalProps> = ({ modalOpen, closeModal, fetchData, i
     showToast("Please provide a YouTube URL or upload a video file.", "error");
     return;
   }
-
+ if (itemType === "event" && !newItem.description?.trim()) {
+    showToast("Description is required for events.", "error");
+    return;
+  }
   const formData = new FormData();
   formData.append("title", newItem.title);
   formData.append("date", newItem.date);
@@ -54,11 +59,23 @@ const AddModal: React.FC<AddModalProps> = ({ modalOpen, closeModal, fetchData, i
     if (newItem.url) formData.append("url", newItem.url);
     if (newItem.file) formData.append("file", newItem.file);
     if (newItem.thumbnail) formData.append("thumbnail", newItem.thumbnail);
-  } else {
+  }   else if (itemType === "event") {
+  formData.append("description", newItem.description || "");
+  formData.append("media_type", newItem.mediaType || ""); // Append media_type for events
+  
+  // Only append the image field if media_type is "image"
+  if (newItem.mediaType === "image" && newItem.image) {
+    formData.append("image", newItem.image); // For event, attach image only if media_type is image
+  }else{
+    if (newItem.file) formData.append("file", newItem.file);
+  }
+}
+
+  // Fallback for other item types (e.g., generic or another type)
+  else {
     formData.append("description", newItem.description || "");
     if (newItem.image) formData.append("image", newItem.image);
   }
-
   console.log("Sending FormData:");
   for (const pair of formData.entries()) {
     console.log(pair[0], pair[1]);
@@ -92,7 +109,13 @@ const AddModal: React.FC<AddModalProps> = ({ modalOpen, closeModal, fetchData, i
       <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
         <h2 className="text-xl font-semibold mb-4">Add {itemType.charAt(0).toUpperCase() + itemType.slice(1)}</h2>
 
-        {/* Title */}
+          <label className="block text-gray-700 font-medium mb-1">Date</label>
+        <input
+          type="date"
+          value={newItem.date}
+          onChange={(e) => setNewItem({ ...newItem, date: e.target.value })}
+          className="w-full border rounded-md px-3 py-2 mb-4 focus:ring-2 focus:ring-blue-500"
+        />
         <label className="block text-gray-700 font-medium mb-1">Title</label>
         <input
           type="text"
@@ -102,17 +125,56 @@ const AddModal: React.FC<AddModalProps> = ({ modalOpen, closeModal, fetchData, i
           className="w-full border rounded-md px-3 py-2 mb-4 focus:ring-2 focus:ring-blue-500"
         />
 
-        {/* Date */}
-        <label className="block text-gray-700 font-medium mb-1">Date</label>
-        <input
-          type="date"
-          value={newItem.date}
-          onChange={(e) => setNewItem({ ...newItem, date: e.target.value })}
-          className="w-full border rounded-md px-3 py-2 mb-4 focus:ring-2 focus:ring-blue-500"
-        />
+     
+{itemType === "event" && (
+          <>
+            <label className="block text-gray-700 font-medium mb-1">Description</label>
+            <textarea
+              placeholder="Enter Description"
+              value={newItem.description}
+              onChange={(e) => setNewItem({ ...newItem, description: e.target.value })}
+              className="w-full border rounded-md px-3 py-2 mb-4 focus:ring-2 focus:ring-blue-500"
+            />
+            <label className="block text-gray-700 font-medium mb-1">Media Type</label>
+            <select
+              value={newItem.mediaType}
+              onChange={(e) => setNewItem({ ...newItem, mediaType: e.target.value as "image" | "video" })}
+              className="w-full border rounded-md px-3 py-2 mb-4 focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="image">Image</option>
+              <option value="video">Video</option>
+            </select>
 
+            {newItem.mediaType === "image" && (
+              <>
+                <label className="block text-gray-700 font-medium mb-1">Upload Image</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setNewItem({ ...newItem, image: e.target.files?.[0] || null })}
+                  className="w-full mb-4"
+                />
+              </>
+            )}
+
+            {newItem.mediaType === "video" && (
+              <>
+              
+                <label className="block text-gray-700 font-medium mb-1">Upload Video File</label>
+                <input
+                  type="file"
+                  accept="video/*"
+                  onChange={(e) => setNewItem({ ...newItem, file: e.target.files?.[0] || null })}
+                  className="w-full mb-4"
+                />
+
+              </>
+            )}
+          </>
+        )}
+          
         {/* Non-video fields */}
-        {itemType !== "video" && (
+        {itemType !== "video" && itemType !== "event" &&(
           <>
             <label className="block text-gray-700 font-medium mb-1">Description</label>
             <textarea

@@ -1,36 +1,40 @@
-import { useState, useEffect, useRef } from "react";
-import DataTable from "react-data-table-component";
+import React, { useState, useEffect, useRef } from "react";
 import { FaEllipsisV } from "react-icons/fa";
+import DataTable from "react-data-table-component";
 import { showToast } from "@/components/toast";
-import AddModal from "./modal/AddModal";  // Reusable AddModal component for both Event and Meeting
-import EditModal from "./modal/EditModal"; // EditModal for editing
+import AddModal from "./modal/AddModal";
+import EditModal from "./modal/EditModal";
 
-interface Event {
+interface EventData {
   id: number;
   title: string;
   description: string;
-  image: File | string | null;
+  image: string;
+  file:string;
   date: string;
+  media_type: "image" | "video";
 }
 
 export default function EventPage() {
-  const [events, setEvents] = useState<Event[]>([]);
-  const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);
+  const [events, setEvents] = useState<EventData[]>([]);
+  const [filteredEvents, setFilteredEvents] = useState<EventData[]>([]);
   const [openMenu, setOpenMenu] = useState<number | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+  const [editingEvent, setEditingEvent] = useState<EventData | null>(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [eventToDelete, setEventToDelete] = useState<Event | null>(null);
+  const [eventToDelete, setEventToDelete] = useState<EventData | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
+  // Defining the ref for the menu
   const menuRef = useRef<HTMLDivElement | null>(null);
 
   const fetchEvents = async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/event`);
       const data = await response.json();
+      console.log(data)
       setEvents(data);
       setFilteredEvents(data);
     } catch (error) {
@@ -73,80 +77,87 @@ export default function EventPage() {
       setDeleteModalOpen(false); // Close the confirmation modal
     }
   };
-
-  const columns = [
-    {
-      name: "Title",
-      selector: (row: Event) => row.title,
-      sortable: true,
+const columns = [
+  {
+    name: "Title",
+    selector: (row: EventData) => row.title,
+    sortable: true,
+  },
+  {
+    name: "Description",
+    selector: (row: EventData) => row.description,
+    sortable: true,
+  },
+  {
+    name: "Date",
+    selector: (row: EventData) => {
+      const date = new Date(row.date);
+      return date.toISOString().split("T")[0];
     },
-    {
-      name: "Description",
-      selector: (row: Event) => row.description,
-      sortable: true,
-    },
-    {
-      name: "Date",
-      selector: (row: Event) => {
-        const date = new Date(row.date);
-        return date.toISOString().split('T')[0];
-      },
-      sortable: true,
-    },
-    {
-      name: "Image",
-      cell: (row: Event) => (
+    sortable: true,
+  },
+  {
+    name: "Media",
+    cell: (row: EventData) => (
+      row.media_type === "video" ? (
+        <video width="50" height="50" controls>
+          <source src={`${API_BASE_URL}${row.file}`} type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
+      ) : (
         <img
           src={`${API_BASE_URL}${row.image}`}
           alt={row.title}
           style={{ width: "50px", height: "50px", objectFit: "cover" }}
         />
-      ),
-      sortable: false,
-    },
-    {
-      name: "Actions",
-      right: true,
-      cell: (row: Event) => (
-        <div className="relative">
-          <button
-            onClick={() => setOpenMenu(openMenu === row.id ? null : row.id)} // Toggle menu visibility
-            className="p-2 rounded-full hover:bg-gray-200"
-          >
-            <FaEllipsisV />
-          </button>
+      )
+    ),
+    sortable: false,
+  },
+  {
+    name: "Actions",
+    right: true,
+    cell: (row: EventData) => (
+      <div className="relative">
+        <button
+          onClick={() => setOpenMenu(openMenu === row.id ? null : row.id)} // Toggle menu visibility
+          className="p-2 rounded-full hover:bg-gray-200"
+        >
+          <FaEllipsisV />
+        </button>
 
-          {openMenu === row.id && (
-            <div
-              ref={menuRef}
-              className="fixed right-0 bg-white shadow-md rounded-md w-24 mr-16 py-1 z-50"
+        {openMenu === row.id && (
+          <div
+            ref={menuRef} // Using the menuRef here
+            className="fixed right-0 bg-white shadow-md rounded-md w-24 mr-16 py-1 z-50"
+          >
+            <button
+              onClick={() => {
+                setEditingEvent(row); // Set event for editing
+                setIsEditModalOpen(true); // Open the Edit Event modal
+                setOpenMenu(null); // Close the menu after action
+              }}
+              className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
             >
-              <button
-                onClick={() => {
-                  setEditingEvent(row); // Set event for editing
-                  setIsEditModalOpen(true); // Open the Edit Event modal
-                  setOpenMenu(null); // Close the menu after action
-                }}
-                className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
-              >
-                Edit
-              </button>
-              <button
-                onClick={() => {
-                  setEventToDelete(row); // Set event for deletion
-                  setDeleteModalOpen(true); // Open the confirmation modal
-                  setOpenMenu(null); // Close the menu after action
-                }}
-                className="block w-full text-left px-4 py-2 text-red-500 hover:bg-gray-100"
-              >
-                Delete
-              </button>
-            </div>
-          )}
-        </div>
-      ),
-    },
-  ];
+              Edit
+            </button>
+            <button
+              onClick={() => {
+                setEventToDelete(row); // Set event for deletion
+                setDeleteModalOpen(true); // Open the confirmation modal
+                setOpenMenu(null); // Close the menu after action
+              }}
+              className="block w-full text-left px-4 py-2 text-red-500 hover:bg-gray-100"
+            >
+              Delete
+            </button>
+          </div>
+        )}
+      </div>
+    ),
+  },
+];
+
 
   return (
     <div className="w-full mx-auto p-6 bg-white shadow-md rounded-lg overflow-visible">

@@ -1,28 +1,37 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { format } from "date-fns";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/app/redux/store"; // Adjust path if needed
+import { fetchEvents } from "@/app/redux/services/eventService"; // Adjust path if needed
+import { AppDispatch } from "@/app/redux/store"; // Import AppDispatch type
 
-// Use the new interface name
+// Define EventData interface
 interface EventData {
   id: number;
   title: string;
   description: string;
   image: string;
   date: string;
-  type: "image" | "video";
+  media_type: "image" | "video";
 }
 
 export default function Events() {
   const [selectedEvent, setSelectedEvent] = useState<EventData | null>(null);
+  const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
-  // Fetch events from Redux state
-  const events = useSelector((state: RootState) => state.eventsData);
+  // Dispatch and selector hooks
+  const dispatch = useDispatch<AppDispatch>(); // Typing dispatch
+  const { events, loading, error } = useSelector((state: RootState) => state.eventsData);
+
+  // Fetch events on component mount
+  useEffect(() => {
+    dispatch(fetchEvents()); // Dispatch fetchEvents action
+  }, [dispatch]);
 
   return (
     <div className="container mx-auto px-6 py-12">
@@ -40,6 +49,17 @@ export default function Events() {
         </p>
       </div>
 
+      {/* Loading State */}
+      {loading && <p>Loading events...</p>}
+
+      {/* Error State */}
+      {error && <p className="text-red-500">Error: {error}</p>}
+
+      {/* No Events Available */}
+      {events.length === 0 && !loading && !error && (
+        <p className="text-center text-gray-500">No Events Available</p>
+      )}
+
       {/* Events Grid */}
       <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {events.map((event) => (
@@ -49,20 +69,21 @@ export default function Events() {
             onClick={() => setSelectedEvent(event)}
           >
             {/* Event Image or Video */}
-            {event.type === "image" ? (
-              <Image
-                src={event.image}
-                width={400}
-                height={250}
-                alt={event.title}
-                className="w-full h-52 object-cover rounded-t-md"
-              />
-            ) : (
-              <video className="w-full h-52 object-cover rounded-t-md" controls>
-                <source src={event.image} type="video/mp4" />
-                Your browser does not support the video tag.
-              </video>
-            )}
+       {event.media_type === "image" ? (
+  <Image
+    src={`${API_BASE_URL}${event.image}`}  // Image path
+    width={400}
+    height={250}
+    alt={event.title}
+    className="w-full h-52 object-cover rounded-t-md"
+  />
+) : (
+  <video className="w-full h-52 object-cover rounded-t-md" controls>
+    <source src={event.image} type="video/mp4" />
+    Your browser does not support the video tag.
+  </video>
+)}
+
 
             {/* Event Details */}
             <CardContent className="p-4">
@@ -84,9 +105,9 @@ export default function Events() {
             </DialogHeader>
 
             {/* Modal Image or Video */}
-            {selectedEvent.type === "image" ? (
+            {selectedEvent.media_type === "image" ? (
               <Image
-                src={selectedEvent.image}
+                src={`${API_BASE_URL}${selectedEvent.image}`}
                 width={600}
                 height={350}
                 alt={selectedEvent.title}

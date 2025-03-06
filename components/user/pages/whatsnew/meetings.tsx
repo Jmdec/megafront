@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { format } from "date-fns";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/app/redux/store"; // Adjust path if needed
+import { fetchMeetings } from "@/app/redux/services/meetingService"; // Adjust path if needed
+import { AppDispatch } from "@/app/redux/store"; // Import AppDispatch type
 
 // Define Meeting interface
 interface Meeting {
@@ -20,9 +22,22 @@ interface Meeting {
 export default function Meetings() {
   const [selectedMeeting, setSelectedMeeting] = useState<Meeting | null>(null);
 
-  // Fetch meetings from Redux state
-  const meetings = useSelector((state: RootState) => state.meetingsData);
+  // Dispatch and selector hooks
+  const dispatch = useDispatch<AppDispatch>(); // Typing dispatch
+  const { meetings, loading, error } = useSelector((state: RootState) => state.meetingsData);
+  const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
+  // Fetch meetings on component mount
+  useEffect(() => {
+    dispatch(fetchMeetings()); // Dispatch fetchMeetings action
+  }, [dispatch]);
+
+  // Log to check the meetings state
+  useEffect(() => {
+ 
+    console.log('Meetings State:', meetings); // Debugging log
+  }, [meetings]);
+ 
   return (
     <div className="container mx-auto px-6 py-12">
       {/* Breadcrumb Navigation */}
@@ -39,32 +54,43 @@ export default function Meetings() {
         </p>
       </div>
 
-      {/* Meetings Grid */}
-      <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {meetings.map((meeting) => (
-          <Card
-            key={meeting.id}
-            className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition cursor-pointer"
-            onClick={() => setSelectedMeeting(meeting)}
-          >
-            {/* Meeting Image */}
-            <Image
-              src={meeting.image}
-              width={400}
-              height={250}
-              alt={meeting.title}
-              className="w-full h-52 object-cover rounded-t-md"
-            />
+      {/* Loading State */}
+      {loading && <p>Loading meetings...</p>}
 
-            {/* Meeting Details */}
-            <CardContent className="p-4">
-              <CardTitle className="text-lg font-semibold leading-tight">{meeting.title}</CardTitle>
-              <p className="text-sm text-gray-700 mt-2 line-clamp-2">{meeting.description}</p>
-              <p className="text-sm text-gray-600 mt-1">{format(new Date(meeting.date), "MMMM dd, yyyy")}</p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      {/* Error State */}
+      {error && <p className="text-red-500">Error: {error}</p>}
+
+
+    <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+  {meetings.length > 0 ? (
+    meetings.map((meeting) => (
+      <Card
+        key={meeting.id}
+        className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition cursor-pointer"
+        onClick={() => setSelectedMeeting(meeting)}
+      >
+        {/* Meeting Image */}
+        <Image
+          src={`${API_BASE_URL}${meeting.image}`}
+          width={400}
+          height={250}
+          alt={meeting.title}
+          className="w-full h-52 object-cover rounded-t-md"
+        />
+
+        {/* Meeting Details */}
+        <CardContent className="p-4">
+          <CardTitle className="text-lg font-semibold leading-tight">{meeting.title}</CardTitle>
+          <p className="text-sm text-gray-700 mt-2 line-clamp-2">{meeting.description}</p>
+          <p className="text-sm text-gray-600 mt-1">{format(new Date(meeting.date), "MMMM dd, yyyy")}</p>
+        </CardContent>
+      </Card>
+    ))
+  ) : (
+    <p >No Meetings Available</p> // Fallback if no meetings are found
+  )}
+</div>
+
 
       {/* Popup Modal */}
       <Dialog open={!!selectedMeeting} onOpenChange={() => setSelectedMeeting(null)}>
@@ -77,7 +103,7 @@ export default function Meetings() {
 
             {/* Modal Image */}
             <Image
-              src={selectedMeeting.image}
+              src={`${API_BASE_URL}${selectedMeeting.image}`}
               width={600}
               height={350}
               alt={selectedMeeting.title}

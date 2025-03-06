@@ -1,6 +1,6 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createSlice } from "@reduxjs/toolkit";
+import { fetchSeminars, addSeminar, updateSeminar, deleteSeminar } from "../services/seminarService";
 
-// Define the interface for a seminar
 interface Seminar {
   id: number;
   title: string;
@@ -9,48 +9,51 @@ interface Seminar {
   date: string;
 }
 
-// Define the initial state with some seminars
-const initialState: Seminar[] = [
-  {
-    id: 1,
-    title: "Smart Investing",
-    description:
-      "Grow your wealth confidently with Smart Investing at Security Bank. Whether you're a beginner or a seasoned investor, our expert-managed portfolios, diverse investment options, and personalized financial guidance help you achieve your financial goals.",
-    image: "/seminars/Smart Investing.jpg",
-    date: "2024-12-05",
-  },
-  {
-    id: 2,
-    title: "Facebook Boosting Seminar",
-    description:
-      "Maximize your reach on Facebook! Learn expert strategies on ad targeting, budget optimization, and content creation. Perfect for business owners and marketers looking to turn clicks into customers.",
-    image: "/seminars/Level Up Your Marketing.jpg",
-    date: "2025-01-19",
-  },
-];
+interface SeminarState {
+  seminars: Seminar[];
+  loading: boolean;
+  error: string | null;
+}
 
-// Create the slice
-const seminarsSlice = createSlice({
-  name: "seminars",
+const initialState: SeminarState = {
+  seminars: [],
+  loading: false,
+  error: null,
+};
+const seminarSlice = createSlice({
+  name: "seminarData",
   initialState,
-  reducers: {
-    addSeminar: (state, action: PayloadAction<Seminar>) => {
-      state.push(action.payload);
-    },
-    removeSeminar: (state, action: PayloadAction<number>) => {
-      return state.filter((seminar) => seminar.id !== action.payload);
-    },
-    updateSeminar: (state, action: PayloadAction<Seminar>) => {
-      const index = state.findIndex((seminar) => seminar.id === action.payload.id);
+  reducers: {},
+  extraReducers: (builder) => {
+    // 🔹 Fetch Seminars
+    builder.addCase(fetchSeminars.fulfilled, (state, action) => {
+      state.loading = false;
+      state.seminars = Array.isArray(action.payload) ? action.payload : []; // Ensure the payload is an array
+    });
+    builder.addCase(fetchSeminars.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.error.message || "Failed to fetch seminars";
+    });
+
+    // 🔹 Add Seminar
+    builder.addCase(addSeminar.fulfilled, (state, action) => {
+      state.seminars.push(action.payload); // Append the new seminar
+    });
+
+    // 🔹 Update Seminar
+    builder.addCase(updateSeminar.fulfilled, (state, action) => {
+      const index = state.seminars.findIndex((s) => s.id === action.payload.id);
       if (index !== -1) {
-        state[index] = action.payload;
+        state.seminars[index] = action.payload; // Replace the updated seminar
       }
-    },
+    });
+
+    // 🔹 Delete Seminar
+    builder.addCase(deleteSeminar.fulfilled, (state, action) => {
+      state.seminars = state.seminars.filter((s) => s.id !== action.payload);
+    });
   },
 });
 
-// Export actions
-export const { addSeminar, removeSeminar, updateSeminar } = seminarsSlice.actions;
 
-// Export reducer
-export default seminarsSlice.reducer;
+export default seminarSlice.reducer;

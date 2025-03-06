@@ -1,6 +1,6 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createSlice } from "@reduxjs/toolkit";
+import { fetchMeetings, addMeeting, updateMeeting, deleteMeeting } from "../services/meetingService";
 
-// Define the interface for a meeting
 interface Meeting {
   id: number;
   title: string;
@@ -9,40 +9,51 @@ interface Meeting {
   date: string;
 }
 
-// Define the initial state with some meetings
-const initialState: Meeting[] = [
-  {
-    id: 1,
-    title: "Sales Strat Planning",
-    description:
-      "ABIC Realty & Consultancy Corporation conducted a dynamic and insightful sales meeting focused on enhancing strategies, performance, and market engagement. The meeting served as a platform for the sales team to discuss updates on current property listings, review sales performance, and align goals for the upcoming period.",
-    image: "/meetings/Sales Strat Planning.jpg",
-    date: "2024-12-02",
-  },
-];
+interface MeetingState {
+  meetings: Meeting[];
+  loading: boolean;
+  error: string | null;
+}
 
-// Create the slice
+const initialState: MeetingState = {
+  meetings: [],
+  loading: false,
+  error: null,
+};
+
 const meetingSlice = createSlice({
-  name: "meetings",
+  name: "meetingData",
   initialState,
-  reducers: {
-    addMeeting: (state, action: PayloadAction<Meeting>) => {
-      state.push(action.payload);
-    },
-    removeMeeting: (state, action: PayloadAction<number>) => {
-      return state.filter((meeting) => meeting.id !== action.payload);
-    },
-    updateMeeting: (state, action: PayloadAction<Meeting>) => {
-      const index = state.findIndex((meeting) => meeting.id === action.payload.id);
+  reducers: {},
+  extraReducers: (builder) => {
+    // 🔹 Fetch Meetings
+    builder.addCase(fetchMeetings.fulfilled, (state, action) => {
+      state.loading = false;
+      state.meetings = Array.isArray(action.payload) ? action.payload : []; // Ensure the payload is an array
+    });
+    builder.addCase(fetchMeetings.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.error.message || "Failed to fetch meetings";
+    });
+
+    // 🔹 Add Meeting
+    builder.addCase(addMeeting.fulfilled, (state, action) => {
+      state.meetings.push(action.payload); // Append the new meeting
+    });
+
+    // 🔹 Update Meeting
+    builder.addCase(updateMeeting.fulfilled, (state, action) => {
+      const index = state.meetings.findIndex((m) => m.id === action.payload.id);
       if (index !== -1) {
-        state[index] = action.payload;
+        state.meetings[index] = action.payload; // Replace the updated meeting
       }
-    },
+    });
+
+    // 🔹 Delete Meeting
+    builder.addCase(deleteMeeting.fulfilled, (state, action) => {
+      state.meetings = state.meetings.filter((m) => m.id !== action.payload);
+    });
   },
 });
 
-// Export actions
-export const { addMeeting, removeMeeting, updateMeeting } = meetingSlice.actions;
-
-// Export reducer
 export default meetingSlice.reducer;
