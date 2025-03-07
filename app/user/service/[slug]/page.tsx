@@ -11,6 +11,9 @@ import ContactUs from "@/components/user/pages/customServices/contactus"
 import Careers from "@/components/user/pages/customServices/career"
 import DataPrivacy from "@/components/user/pages/customServices/dataPrivacy"
 import AboutUs from "@/components/user/pages/customServices/aboutus"
+import { Provider } from 'react-redux'; // Import Provider
+import store from "@/app/redux/store"; // Default import for store
+
 export default function DynamicUserPage() {
   const [slug, setSlug] = useState<string | null>(null);
   const paramsPromise = useParams(); // This is a Promise
@@ -38,7 +41,9 @@ export default function DynamicUserPage() {
             {slug === "contact-us" ? (
           <ContactUs />
             ): slug === "careers" ? (
+              <Provider store={store}>
            <Careers/>
+           </Provider>
             ): slug === "privacy-policy" ? (
            <DataPrivacy/>
             ): slug === "about-us" ? (

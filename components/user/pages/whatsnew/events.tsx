@@ -15,10 +15,13 @@ interface EventData {
   id: number;
   title: string;
   description: string;
-  image: string;
+  image?: string | null; // Optional for videos
+  file?: string | null; // Optional for images, ensures it's not boolean
   date: string;
   media_type: "image" | "video";
 }
+
+
 
 export default function Events() {
   const [selectedEvent, setSelectedEvent] = useState<EventData | null>(null);
@@ -56,44 +59,52 @@ export default function Events() {
       {error && <p className="text-red-500">Error: {error}</p>}
 
       {/* No Events Available */}
-      {events.length === 0 && !loading && !error && (
-        <p className="text-center text-gray-500">No Events Available</p>
-      )}
+    <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+  {events.length > 0 ? (
+    events.map((event) => (
+      <Card
+        key={event.id}
+        className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition cursor-pointer"
+        onClick={() =>
+          setSelectedEvent({
+            ...event,
+            file: typeof event.file === "boolean" ? null : event.file, // Ensure it's a string or null
+          })
+        }
+      >
+        {/* Event Media */}
+        {event.media_type === "image" && event.image ? (
+          <Image
+            src={`${API_BASE_URL}${event.image}`}  
+            width={400}
+            height={250}
+            alt={event.title}
+            className="w-full h-52 object-cover rounded-t-md"
+          />
+        ) : event.media_type === "video" && event.file ? (
+          <video className="w-full h-52 object-cover rounded-t-md" controls>
+            <source src={`${API_BASE_URL}${event.file}`} type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
+        ) : (
+          <div className="w-full h-52 bg-gray-200 flex items-center justify-center text-gray-500">
+            No Media Available
+          </div>
+        )}
 
-      {/* Events Grid */}
-      <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {events.map((event) => (
-          <Card
-            key={event.id}
-            className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition cursor-pointer"
-            onClick={() => setSelectedEvent(event)}
-          >
-            {/* Event Image or Video */}
-       {event.media_type === "image" ? (
-  <Image
-    src={`${API_BASE_URL}${event.image}`}  // Image path
-    width={400}
-    height={250}
-    alt={event.title}
-    className="w-full h-52 object-cover rounded-t-md"
-  />
-) : (
-  <video className="w-full h-52 object-cover rounded-t-md" controls>
-    <source src={event.image} type="video/mp4" />
-    Your browser does not support the video tag.
-  </video>
-)}
+        {/* Event Details */}
+        <CardContent className="p-4">
+          <CardTitle className="text-lg font-semibold leading-tight">{event.title}</CardTitle>
+          <p className="text-sm text-gray-700 mt-2 line-clamp-2">{event.description}</p>
+          <p className="text-sm text-gray-600 mt-1">{format(new Date(event.date), "MMMM dd, yyyy")}</p>
+        </CardContent>
+      </Card>
+    ))
+  ) : (
+    <p className="text-center text-gray-500 col-span-full">No Events Available</p>
+  )}
+</div>
 
-
-            {/* Event Details */}
-            <CardContent className="p-4">
-              <CardTitle className="text-lg font-semibold leading-tight">{event.title}</CardTitle>
-              <p className="text-sm text-gray-700 mt-2 line-clamp-2">{event.description}</p>
-              <p className="text-sm text-gray-600 mt-1">{format(new Date(event.date), "MMMM dd, yyyy")}</p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
 
       {/* Popup Modal */}
       <Dialog open={!!selectedEvent} onOpenChange={() => setSelectedEvent(null)}>
@@ -105,7 +116,7 @@ export default function Events() {
             </DialogHeader>
 
             {/* Modal Image or Video */}
-            {selectedEvent.media_type === "image" ? (
+            {selectedEvent.media_type === "image" && selectedEvent.image ? (
               <Image
                 src={`${API_BASE_URL}${selectedEvent.image}`}
                 width={600}
@@ -113,11 +124,15 @@ export default function Events() {
                 alt={selectedEvent.title}
                 className="w-full h-80 object-cover rounded-md"
               />
-            ) : (
+            ) : selectedEvent.media_type === "video" && selectedEvent.file ? (
               <video className="w-full h-80 object-cover rounded-md" controls>
-                <source src={selectedEvent.image} type="video/mp4" />
+                <source src={`${API_BASE_URL}${selectedEvent.file}`} type="video/mp4" />
                 Your browser does not support the video tag.
               </video>
+            ) : (
+              <div className="w-full h-80 bg-gray-200 flex items-center justify-center text-gray-500">
+                No Media Available
+              </div>
             )}
 
             {/* Event Description */}

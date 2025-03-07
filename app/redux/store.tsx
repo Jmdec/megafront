@@ -12,6 +12,7 @@ import ongoingInfrastructureData from '@/app/redux/slice/ongoingInfrastructureDa
 import realEstateNewsData from '@/app/redux/slice/realestateNewsData';
 import realEstateTipsData from '@/app/redux/slice/realestateTipsData';
 import seminarsData from '@/app/redux/slice/seminarsData';
+import careerData from '@/app/redux/slice/careerData';
 
 const store = configureStore({
   reducer: {
@@ -25,6 +26,7 @@ const store = configureStore({
     realEstateNewsData:realEstateNewsData,
     realEstateTipsData:realEstateTipsData,
     seminarsData:seminarsData,
+     careerData:careerData,
   },
 });
 

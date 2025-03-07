@@ -1,7 +1,19 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createSlice } from "@reduxjs/toolkit";
+import {
+  fetchOffices,
+  addOffice,
+  fetchOfficeById,
+  updateOffice,
+  deleteOffice,
+} from "../services/officeService";
 
-// Define the Unified Data Type
+
 interface Office {
+  price: string;
+  lotArea: number;
+
+  status: any;
+  id: number; 
   name: string;
   description: string;
   image: string;
@@ -9,73 +21,88 @@ interface Office {
   division: string;
 }
 
-// Define the State Structure
 interface OfficeState {
   offices: Office[];
+  selectedOffice: Office | null;
+  loading: boolean;
+  error: string | null;
 }
 
-// Initial State
 const initialState: OfficeState = {
-  offices: [
-    { 
-      name: "One World Place", 
-      location: "Bonifacio Global City, Taguig",
-      description: "A premium-grade office tower located in the heart of Bonifacio Global City, One World Place offers state-of-the-art facilities, flexible office spaces, and sustainable architecture designed for modern businesses.",
-         image: "/residence/property/Property1.jpg", 
-      division: "For Lease" 
-    },
-    { 
-      name: "PBCom Tower", 
-      location: "Makati City",
-      description: "PBCom Tower is one of the tallest office skyscrapers in the Philippines, strategically situated in the Makati Central Business District. It houses multinational companies and offers top-tier office spaces with high-end amenities.", 
-      image: "/residence/property/Property2.jpg", 
-      division: "For Rent" 
-    },
-    { 
-      name: "The Enterprise Center", 
-      location: "Makati City",
-      description: "A twin-tower premium office complex in Makati, The Enterprise Center is home to corporate headquarters and high-profile firms. It boasts modern business facilities, advanced security, and a prime location.",
-      image: "/residence/property/Property3.jpg", 
-      division: "For Sale" 
-    },
-    { 
-      name: "Cyber Sigma", 
-      location: "Taguig City",
-      description: "Cyber Sigma is a modern business hub in Taguig City designed for IT and BPO companies. It features high-speed connectivity, ergonomic workspaces, and cutting-edge security systems.",
-       image: "/residence/property/Property1.jpg", 
-      division: "For Lease" 
-    },
-    { 
-      name: "Rockwell Business Center", 
-      location: "Ortigas, Pasig City",
-      description: "Rockwell Business Center is a premium office complex offering stylish workspaces and high-end commercial establishments. It provides a dynamic and professional environment ideal for growing enterprises.",
-         image: "/residence/property/Property1.jpg", 
-      division: "For Rent" 
-    }
-  ]
+  offices: [],
+  selectedOffice: null,
+  loading: false,
+  error: null,
 };
 
 const officeSlice = createSlice({
-  name: "officeParent",
+  name: "offices",
   initialState,
-  reducers: {
-    addOffice: (state, action: PayloadAction<Office>) => {
-      state.offices.push(action.payload);
-    },
-    removeOffice: (state, action: PayloadAction<string>) => {
-      state.offices = state.offices.filter((office) => office.name !== action.payload);
-    },
-    updateOffice: (state, action: PayloadAction<Office>) => {
-      const index = state.offices.findIndex((o) => o.name === action.payload.name);
-      if (index !== -1) {
-        state.offices[index] = action.payload;
-      }
-    }
-  }
+  reducers: {},
+  extraReducers: (builder) => {
+    builder.addCase(fetchOffices.pending, (state) => {
+      state.loading = true;
+      state.error = null;
+    });
+    builder.addCase(fetchOffices.fulfilled, (state, action) => {
+    
+      state.loading = false;
+      state.offices = Array.isArray(action.payload) ? action.payload : [];
+    });
+    builder.addCase(fetchOffices.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.error.message || "Failed to fetch offices";
+    });
+    builder.addCase(fetchOfficeById.pending, (state) => {
+      state.loading = true;
+    });
+    builder.addCase(fetchOfficeById.fulfilled, (state, action) => {
+      state.loading = false;
+      state.selectedOffice = action.payload;
+    });
+    builder.addCase(fetchOfficeById.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.error.message || "Failed to fetch office";
+    });
+
+    builder.addCase(addOffice.pending, (state) => {
+      state.loading = true;
+    });
+    builder.addCase(addOffice.fulfilled, (state, action) => {
+      state.loading = false;
+      state.offices.push(action.payload); 
+    });
+    builder.addCase(addOffice.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.error.message || "Failed to add office";
+    });
+
+    builder.addCase(updateOffice.pending, (state) => {
+      state.loading = true;
+    });
+    builder.addCase(updateOffice.fulfilled, (state, action) => {
+      state.loading = false;
+      state.offices = state.offices.map((item) =>
+        item.name === action.payload.name ? action.payload : item
+      );
+    });
+    builder.addCase(updateOffice.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.error.message || "Failed to update office";
+    });
+    builder.addCase(deleteOffice.pending, (state) => {
+      state.loading = true;
+    });
+builder.addCase(deleteOffice.fulfilled, (state, action) => {
+  state.loading = false;
+  state.offices = state.offices.filter((item) => item.id !== action.payload); // ✅ Use item.id
 });
 
-// Export actions
-export const { addOffice, removeOffice, updateOffice } = officeSlice.actions;
+    builder.addCase(deleteOffice.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.error.message || "Failed to delete office";
+    });
+  },
+});
 
-// Export reducer
 export default officeSlice.reducer;

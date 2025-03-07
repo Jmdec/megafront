@@ -1,6 +1,13 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createSlice } from "@reduxjs/toolkit";
+import {
+  fetchRealEstateTips,
+  addRealEstateTip,
+  fetchRealEstateTipById,
+  updateRealEstateTip,
+  deleteRealEstateTip,
+} from "../services/realestateTipsService";
 
-// Define the interface for a real estate tip
+// Define the Tip interface
 interface Tip {
   id: number;
   title: string;
@@ -9,48 +16,96 @@ interface Tip {
   date: string;
 }
 
-// Define the initial state with some tips
-const initialState: Tip[] = [
-  {
-    id: 1,
-    title: "Find the best option to pay",
-    description:
-      "If you have the money, by all means, do pay it in full. You’re sure to save a lot of money, which can be used to decorate your condo unit or in other important items. You also have the option to use a Pag-IBIG housing loan, but you must be a contributing member for at least 24 months straight by the time you apply. If you’re borrowing from the bank, on the other hand, do ask how flexible the payment scheme is. Some banks offer rewards for those who pay in advance or never miss a deadline. DMCI Homes also has its own in-house financing option.",
-    image: "/tips/Best Option.jpg",
-    date: "2025-01-31",
-  },
-  {
-    id: 2,
-    title: "Talk to a trusted real estate agent",
-    description:
-      "Before you do any transaction with a real estate agent, you might want to check if he/she is a licensed broker. One way you can ensure that the person you are dealing with is “legit” is to check if their name is listed on the Professional Regulation Commission (PRC) website. Also, make sure that they explain the contract well, including the fine print, payment schemes, and interest rates.",
-    image: "/tips/Trusted Agent.jpg",
-    date: "2025-01-31",
-  },
-];
+// Define the state interface
+interface RealEstateTipsState {
+  tips: Tip[];
+  selectedTip: Tip | null;
+  loading: boolean;
+  error: string | null;
+}
 
-// Create the slice
+// Initial state
+const initialState: RealEstateTipsState = {
+  tips: [],
+  selectedTip: null,
+  loading: false,
+  error: null,
+};
+
 const realEstateTipsSlice = createSlice({
   name: "realEstateTips",
   initialState,
-  reducers: {
-    addTip: (state, action: PayloadAction<Tip>) => {
-      state.push(action.payload);
-    },
-    removeTip: (state, action: PayloadAction<number>) => {
-      return state.filter((tip) => tip.id !== action.payload);
-    },
-    updateTip: (state, action: PayloadAction<Tip>) => {
-      const index = state.findIndex((tip) => tip.id === action.payload.id);
-      if (index !== -1) {
-        state[index] = action.payload;
-      }
-    },
+  reducers: {}, // No extra reducers needed for now
+  extraReducers: (builder) => {
+    // Fetch All Tips
+    builder.addCase(fetchRealEstateTips.pending, (state) => {
+      state.loading = true;
+      state.error = null;
+    });
+    builder.addCase(fetchRealEstateTips.fulfilled, (state, action) => {
+      state.loading = false;
+      state.tips = action.payload;
+    });
+    builder.addCase(fetchRealEstateTips.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.error.message || "Failed to fetch real estate tips";
+    });
+
+    // Fetch Single Tip by ID
+    builder.addCase(fetchRealEstateTipById.pending, (state) => {
+      state.loading = true;
+    });
+    builder.addCase(fetchRealEstateTipById.fulfilled, (state, action) => {
+      state.loading = false;
+      state.selectedTip = action.payload;
+    });
+    builder.addCase(fetchRealEstateTipById.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.error.message || "Failed to fetch tip";
+    });
+
+    // Add Tip
+    builder.addCase(addRealEstateTip.pending, (state) => {
+      state.loading = true;
+    });
+    builder.addCase(addRealEstateTip.fulfilled, (state, action) => {
+      state.loading = false;
+      state.tips.push(action.payload); // Add new tip
+    });
+    builder.addCase(addRealEstateTip.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.error.message || "Failed to add real estate tip";
+    });
+
+    // Update Tip
+    builder.addCase(updateRealEstateTip.pending, (state) => {
+      state.loading = true;
+    });
+    builder.addCase(updateRealEstateTip.fulfilled, (state, action) => {
+      state.loading = false;
+      state.tips = state.tips.map((item) =>
+        item.id === action.payload.id ? action.payload : item
+      );
+    });
+    builder.addCase(updateRealEstateTip.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.error.message || "Failed to update real estate tip";
+    });
+
+    // Delete Tip
+    builder.addCase(deleteRealEstateTip.pending, (state) => {
+      state.loading = true;
+    });
+    builder.addCase(deleteRealEstateTip.fulfilled, (state, action) => {
+      state.loading = false;
+      state.tips = state.tips.filter((item) => item.id !== action.payload);
+    });
+    builder.addCase(deleteRealEstateTip.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.error.message || "Failed to delete real estate tip";
+    });
   },
 });
-
-// Export actions
-export const { addTip, removeTip, updateTip } = realEstateTipsSlice.actions;
 
 // Export reducer
 export default realEstateTipsSlice.reducer;

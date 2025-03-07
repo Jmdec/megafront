@@ -1,6 +1,13 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createSlice } from "@reduxjs/toolkit";
+import {
+  fetchRealEstateNews,
+  addRealEstateNews,
+  fetchRealEstateNewsById,
+  updateRealEstateNews,
+  deleteRealEstateNews,
+} from "../services/realestateNewsService";
 
-// Define the interface for a news article
+// Define the News interface
 interface News {
   id: number;
   title: string;
@@ -9,48 +16,96 @@ interface News {
   date: string;
 }
 
-// Define the initial state with some articles
-const initialState: News[] = [
-  {
-    id: 1,
-    title: "PH showcases pro-business reforms to Dutch investors",
-    description:
-      "The Philippine government engaged Dutch investors in a high-level business dialogue in the Netherlands, highlighting the country’s strong economic growth and investment-friendly reforms. Organized by the Department of Finance (DOF) in partnership with the Department of Trade and Industry (DTI), the Philippine Trade and Investment Center (PTIC), and the Bangko Sentral ng Pilipinas (BSP), the event gathered over 30 Dutch business and financial leaders. It was hosted by ING Bank. Finance Undersecretaries Maria Luwalhati Dorotan-Tiuseco and Domini Velasquez led the Philippine delegation, alongside DTI Undersecretary Ceferino Rodolfo and BSP Monetary Board Member Rosalia de Leon.",
-    image: "/news/PH showcases.jpg",
-    date: "2025-01-30",
-  },
-  {
-    id: 2,
-    title: "Filinvest Land, FILRT eye property-for-share swap agreement",
-    description:
-      "Property developer Filinvest Land Inc. (FLI) and Filinvest REIT Corp. (FILRT) announced plans for a P6.26-billion property-for-share swap deal. In a statement to the Philippine Stock Exchange, FLI said it would sign a property-for-share swap where it will transfer its ownership over Festival Mall-Main Mall to FILRT, in exchange for 1,626,003,316 primary common shares of FILRT at an issue price of P3.85 apiece. Festival Mall-Main Mall, which has a gross leasable area of 121,862 square meters, is located in Filinvest City, Alabang, Muntinlupa City.",
-    image: "/news/Filinvest Land.jpg",
-    date: "2025-01-28",
-  },
-];
+// Define the state interface
+interface RealEstateNewsState {
+  news: News[];
+  selectedNews: News | null;
+  loading: boolean;
+  error: string | null;
+}
 
-// Create the slice
+// Initial state
+const initialState: RealEstateNewsState = {
+  news: [],
+  selectedNews: null,
+  loading: false,
+  error: null,
+};
+
 const realEstateNewsSlice = createSlice({
   name: "realEstateNews",
   initialState,
-  reducers: {
-    addNews: (state, action: PayloadAction<News>) => {
-      state.push(action.payload);
-    },
-    removeNews: (state, action: PayloadAction<number>) => {
-      return state.filter((news) => news.id !== action.payload);
-    },
-    updateNews: (state, action: PayloadAction<News>) => {
-      const index = state.findIndex((news) => news.id === action.payload.id);
-      if (index !== -1) {
-        state[index] = action.payload;
-      }
-    },
+  reducers: {}, // No extra reducers needed for now
+  extraReducers: (builder) => {
+    // Fetch All News
+    builder.addCase(fetchRealEstateNews.pending, (state) => {
+      state.loading = true;
+      state.error = null;
+    });
+    builder.addCase(fetchRealEstateNews.fulfilled, (state, action) => {
+      state.loading = false;
+      state.news = action.payload;
+    });
+    builder.addCase(fetchRealEstateNews.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.error.message || "Failed to fetch real estate news";
+    });
+
+    // Fetch Single News by ID
+    builder.addCase(fetchRealEstateNewsById.pending, (state) => {
+      state.loading = true;
+    });
+    builder.addCase(fetchRealEstateNewsById.fulfilled, (state, action) => {
+      state.loading = false;
+      state.selectedNews = action.payload;
+    });
+    builder.addCase(fetchRealEstateNewsById.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.error.message || "Failed to fetch news item";
+    });
+
+    // Add News
+    builder.addCase(addRealEstateNews.pending, (state) => {
+      state.loading = true;
+    });
+    builder.addCase(addRealEstateNews.fulfilled, (state, action) => {
+      state.loading = false;
+      state.news.push(action.payload); // Add new news item
+    });
+    builder.addCase(addRealEstateNews.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.error.message || "Failed to add real estate news";
+    });
+
+    // Update News
+    builder.addCase(updateRealEstateNews.pending, (state) => {
+      state.loading = true;
+    });
+    builder.addCase(updateRealEstateNews.fulfilled, (state, action) => {
+      state.loading = false;
+      state.news = state.news.map((item) =>
+        item.id === action.payload.id ? action.payload : item
+      );
+    });
+    builder.addCase(updateRealEstateNews.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.error.message || "Failed to update real estate news";
+    });
+
+    // Delete News
+    builder.addCase(deleteRealEstateNews.pending, (state) => {
+      state.loading = true;
+    });
+    builder.addCase(deleteRealEstateNews.fulfilled, (state, action) => {
+      state.loading = false;
+      state.news = state.news.filter((item) => item.id !== action.payload);
+    });
+    builder.addCase(deleteRealEstateNews.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.error.message || "Failed to delete real estate news";
+    });
   },
 });
-
-// Export actions
-export const { addNews, removeNews, updateNews } = realEstateNewsSlice.actions;
 
 // Export reducer
 export default realEstateNewsSlice.reducer;

@@ -1,6 +1,13 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createSlice } from "@reduxjs/toolkit";
+import {
+  fetchOngoingInfrastructure,
+  addOngoingInfrastructure,
+  fetchOngoingInfrastructureById,
+  updateOngoingInfrastructure,
+  deleteOngoingInfrastructure,
+} from "../services/ongoingInfrastructure";
 
-// Define the interface for an infrastructure project
+// Define the Infrastructure interface
 interface Infrastructure {
   id: number;
   title: string;
@@ -9,48 +16,97 @@ interface Infrastructure {
   date: string;
 }
 
-// Define the initial state with some projects
-const initialState: Infrastructure[] = [
-  {
-    id: 1,
-    title: "PH showcases pro-business reforms to Dutch investors",
-    description:
-      "The Philippine government engaged Dutch investors in a high-level business dialogue in the Netherlands, highlighting the country’s strong economic growth and investment-friendly reforms. Organized by the Department of Finance (DOF) in partnership with the Department of Trade and Industry (DTI), the Philippine Trade and Investment Center (PTIC), and the Bangko Sentral ng Pilipinas (BSP), the event gathered over 30 Dutch business and financial leaders. It was hosted by ING Bank. Finance Undersecretaries Maria Luwalhati Dorotan-Tiuseco and Domini Velasquez led the Philippine delegation, alongside DTI Undersecretary Ceferino Rodolfo and BSP Monetary Board Member Rosalia de Leon.",
-    image: "/news/PH showcases.jpg",
-    date: "2025-01-30",
-  },
-  {
-    id: 2,
-    title: "Filinvest Land, FILRT eye property-for-share swap agreement",
-    description:
-      "Property developer Filinvest Land Inc. (FLI) and Filinvest REIT Corp. (FILRT) announced plans for a P6.26-billion property-for-share swap deal. In a statement to the Philippine Stock Exchange, FLI said it would sign a property-for-share swap where it will transfer its ownership over Festival Mall-Main Mall to FILRT, in exchange for 1,626,003,316 primary common shares of FILRT at an issue price of P3.85 apiece. Festival Mall-Main Mall, which has a gross leasable area of 121,862 square meters, is located in Filinvest City, Alabang, Muntinlupa City.",
-    image: "/news/Filinvest Land.jpg",
-    date: "2025-01-28",
-  },
-];
+// Define the state interface
+interface OngoingInfrastructureState {
+  projects: Infrastructure[];
+  selectedProject: Infrastructure | null;
+  loading: boolean;
+  error: string | null;
+}
 
-// Create the slice
+// Initial state
+const initialState: OngoingInfrastructureState = {
+  projects: [],
+  selectedProject: null,
+  loading: false,
+  error: null,
+};
+
 const ongoingInfrastructureSlice = createSlice({
   name: "ongoingInfrastructure",
   initialState,
-  reducers: {
-    addProject: (state, action: PayloadAction<Infrastructure>) => {
-      state.push(action.payload);
-    },
-    removeProject: (state, action: PayloadAction<number>) => {
-      return state.filter((project) => project.id !== action.payload);
-    },
-    updateProject: (state, action: PayloadAction<Infrastructure>) => {
-      const index = state.findIndex((project) => project.id === action.payload.id);
-      if (index !== -1) {
-        state[index] = action.payload;
-      }
-    },
+  reducers: {},
+  extraReducers: (builder) => {
+    // Fetch All Infrastructure Projects
+    builder.addCase(fetchOngoingInfrastructure.pending, (state) => {
+      state.loading = true;
+      state.error = null;
+    });
+    builder.addCase(fetchOngoingInfrastructure.fulfilled, (state, action) => {
+      console.log("🛠 Redux: Updated Infrastructure List:", action.payload);
+      state.loading = false;
+      state.projects = Array.isArray(action.payload) ? action.payload : [];
+    });
+    builder.addCase(fetchOngoingInfrastructure.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.error.message || "Failed to fetch infrastructure projects";
+    });
+
+    // Fetch Single Project by ID
+    builder.addCase(fetchOngoingInfrastructureById.pending, (state) => {
+      state.loading = true;
+    });
+    builder.addCase(fetchOngoingInfrastructureById.fulfilled, (state, action) => {
+      state.loading = false;
+      state.selectedProject = action.payload;
+    });
+    builder.addCase(fetchOngoingInfrastructureById.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.error.message || "Failed to fetch infrastructure project";
+    });
+
+    // Add Project
+    builder.addCase(addOngoingInfrastructure.pending, (state) => {
+      state.loading = true;
+    });
+    builder.addCase(addOngoingInfrastructure.fulfilled, (state, action) => {
+      state.loading = false;
+      state.projects.push(action.payload); // Add new project
+    });
+    builder.addCase(addOngoingInfrastructure.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.error.message || "Failed to add infrastructure project";
+    });
+
+    // Update Project
+    builder.addCase(updateOngoingInfrastructure.pending, (state) => {
+      state.loading = true;
+    });
+    builder.addCase(updateOngoingInfrastructure.fulfilled, (state, action) => {
+      state.loading = false;
+      state.projects = state.projects.map((item) =>
+        item.id === action.payload.id ? action.payload : item
+      );
+    });
+    builder.addCase(updateOngoingInfrastructure.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.error.message || "Failed to update infrastructure project";
+    });
+
+    // Delete Project
+    builder.addCase(deleteOngoingInfrastructure.pending, (state) => {
+      state.loading = true;
+    });
+    builder.addCase(deleteOngoingInfrastructure.fulfilled, (state, action) => {
+      state.loading = false;
+      state.projects = state.projects.filter((item) => item.id !== action.payload);
+    });
+    builder.addCase(deleteOngoingInfrastructure.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.error.message || "Failed to delete infrastructure project";
+    });
   },
 });
-
-// Export actions
-export const { addProject, removeProject, updateProject } = ongoingInfrastructureSlice.actions;
 
 // Export reducer
 export default ongoingInfrastructureSlice.reducer;

@@ -1,6 +1,13 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createSlice } from "@reduxjs/toolkit";
+import {
+  fetchVideos,
+  addVideo,
+  fetchVideoById,
+  updateVideo,
+  deleteVideo,
+} from "../services/videoService";
 
-// Define the video type
+// Define the Video interface
 interface Video {
   id: number;
   title: string;
@@ -11,59 +18,97 @@ interface Video {
   views: string;
 }
 
-// Initial state
-const initialState: Video[] = [
-  {
-    id: 1,
-    title: "Welcome to Uptown Bonifacio!",
-    url: "https://www.youtube.com/watch?v=44IbjON9VuU",
-    thumbnail: "/images/video-thumbnail-1.jpg",
-    location: "Taguig City",
-    date: "June 26, 2017",
-    views: "209,023",
-  },
-  {
-    id: 2,
-    title: "See You at Twin Lakes!",
-    url: "https://www.youtube.com/watch?v=0SkTqtwpj9A",
-    thumbnail: "/images/video-thumbnail-2.jpg",
-    location: "Batangas",
-    date: "February 20, 2017",
-    views: "72,887",
-  },
-  {
-    id: 3,
-    title: "Southwoods City: A Township and a Destination",
-    url: "https://www.youtube.com/watch?v=HBD_uXALssg",
-    thumbnail: "/images/video-thumbnail-3.jpg",
-    location: "Cavite",
-    date: "April 07, 2018",
-    views: "77,174",
-  },
-];
+// Define the state interface
+interface VideoState {
+  videos: Video[];
+  selectedVideo: Video | null;
+  loading: boolean;
+  error: string | null;
+}
 
-// Create Redux slice
-const townshipVideosSlice = createSlice({
-  name: "townshipVideos",
+// Initial state
+const initialState: VideoState = {
+  videos: [],
+  selectedVideo: null,
+  loading: false,
+  error: null,
+};
+
+const videoSlice = createSlice({
+  name: "videos",
   initialState,
-  reducers: {
-    addVideo: (state, action: PayloadAction<Video>) => {
-      state.push(action.payload);
-    },
-    removeVideo: (state, action: PayloadAction<number>) => {
-      return state.filter((video) => video.id !== action.payload);
-    },
-    updateVideo: (state, action: PayloadAction<{ id: number; updatedData: Partial<Video> }>) => {
-      const index = state.findIndex((video) => video.id === action.payload.id);
-      if (index !== -1) {
-        state[index] = { ...state[index], ...action.payload.updatedData };
-      }
-    },
+  reducers: {},
+  extraReducers: (builder) => {
+    // Fetch All Videos
+    builder.addCase(fetchVideos.pending, (state) => {
+      state.loading = true;
+      state.error = null;
+    });
+    builder.addCase(fetchVideos.fulfilled, (state, action) => {
+      console.log("🛠 Redux: Updated Videos List:", action.payload);
+      state.loading = false;
+      state.videos = Array.isArray(action.payload) ? action.payload : [];
+    });
+    builder.addCase(fetchVideos.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.error.message || "Failed to fetch videos";
+    });
+
+    // Fetch Single Video by ID
+    builder.addCase(fetchVideoById.pending, (state) => {
+      state.loading = true;
+    });
+    builder.addCase(fetchVideoById.fulfilled, (state, action) => {
+      state.loading = false;
+      state.selectedVideo = action.payload;
+    });
+    builder.addCase(fetchVideoById.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.error.message || "Failed to fetch video";
+    });
+
+    // Add Video
+    builder.addCase(addVideo.pending, (state) => {
+      state.loading = true;
+    });
+    builder.addCase(addVideo.fulfilled, (state, action) => {
+      state.loading = false;
+      state.videos.push(action.payload); // Add new video
+    });
+    builder.addCase(addVideo.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.error.message || "Failed to add video";
+    });
+
+    // Update Video
+    builder.addCase(updateVideo.pending, (state) => {
+      state.loading = true;
+    });
+    builder.addCase(updateVideo.fulfilled, (state, action) => {
+      state.loading = false;
+      state.videos = state.videos.map((item) =>
+        item.id === action.payload.id ? action.payload : item
+      );
+    });
+    builder.addCase(updateVideo.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.error.message || "Failed to update video";
+    });
+
+    // Delete Video
+    builder.addCase(deleteVideo.pending, (state) => {
+      state.loading = true;
+    });
+    builder.addCase(deleteVideo.fulfilled, (state, action) => {
+      state.loading = false;
+      state.videos = state.videos.filter((item) => item.id !== action.payload);
+    });
+    builder.addCase(deleteVideo.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.error.message || "Failed to delete video";
+    });
   },
 });
 
-// Export actions
-export const { addVideo, removeVideo, updateVideo } = townshipVideosSlice.actions;
-
 // Export reducer
-export default townshipVideosSlice.reducer;
+export default videoSlice.reducer;
