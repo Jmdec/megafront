@@ -7,8 +7,6 @@ export const fetchRealEstateTips = createAsyncThunk("realEstateTips/fetchAll", a
   const response = await fetch(`${API_BASE_URL}/api/realEstateTips`);
   const data = await response.json();
   
-  console.log("🔹 Fetched Real Estate Tips:", data); // ✅ Logs response data
-
   return data || []; // Ensure fallback to an empty array
 });
 

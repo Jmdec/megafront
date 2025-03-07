@@ -2,6 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 import { fetchEvents, addEvent, updateEvent, deleteEvent } from "../services/eventService"; // Adjust the path if necessary
 
 interface EventData {
+  file: boolean;
   id: number;
   title: string;
   description: string;

@@ -108,14 +108,18 @@ const AddModal: React.FC<AddModalProps> = ({ modalOpen, closeModal, fetchData })
               className="w-full border rounded-md px-3 py-2 mb-4"
             />
 
-            <label className="block text-gray-700 font-medium mb-1">Role</label>
-            <input
-              type="text"
-              placeholder="Enter Role"
-              value={newAgent.role}
-              onChange={(e) => setNewAgent({ ...newAgent, role: e.target.value })}
-              className="w-full border rounded-md px-3 py-2 mb-4"
-            />
+    <label className="block text-gray-700 font-medium mb-1">Role</label>
+<select
+  value={newAgent.role}
+  onChange={(e) => setNewAgent({ ...newAgent, role: e.target.value })}
+  className="w-full border rounded-md px-3 py-2 mb-4 bg-white focus:ring-2 focus:ring-[#B8986E]"
+>
+  <option value="">Select Role</option>
+  <option value="Real Estate Agent">Real Estate Agent</option>
+  <option value="Marketing Specialist">Marketing Specialist</option>
+  <option value="Property Manager">Property Manager</option>
+</select>
+
 
             <label className="block text-gray-700 font-medium mb-1">Description</label>
             <textarea

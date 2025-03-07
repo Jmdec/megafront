@@ -22,5 +22,5 @@
   "name": "MegaWorld Corporation",
   "short_name": "MegaWorld",
   "start_url": "/user",
-  "scope": "/"
+  "scope": "/user"
 }

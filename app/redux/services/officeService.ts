@@ -32,7 +32,7 @@ export const fetchOfficeById = createAsyncThunk("offices/fetchById", async (id: 
   if (!response.ok) throw new Error("Failed to fetch office");
 
   const data = await response.json();
-  console.log(`📌 Fetched Office with ID ${id}:`, data);
+ 
   return data;
 });
 
@@ -48,7 +48,7 @@ export const updateOffice = createAsyncThunk(
     if (!response.ok) throw new Error("Failed to update office");
 
     const updatedData = await response.json();
-    console.log(`🔄 Updated Office ID ${id}:`, updatedData);
+
     return updatedData;
   }
 );
@@ -61,6 +61,6 @@ export const deleteOffice = createAsyncThunk("offices/delete", async (id: number
 
   if (!response.ok) throw new Error("Failed to delete office");
 
-  console.log(`❌ Deleted Office ID ${id}`);
+  
   return id; // Return deleted office ID
 });

@@ -2,7 +2,10 @@
 import { useEffect, useState } from "react";
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "@/app/redux/store"; // Adjust path as needed
+import { RootState, AppDispatch } from "@/app/redux/store";
+import { fetchProperties } from "@/app/redux/services/propertyService";
+import { FaMapMarkerAlt, FaRulerCombined, FaCar, FaBuilding,FaMoneyBillWave } from "react-icons/fa"; 
+import { MdOutlineMapsHomeWork } from "react-icons/md";  
 
 interface PropertyProps {
   property?: string;
@@ -13,8 +16,16 @@ const Property = ({ property }: PropertyProps) => {
   const [locationFilter, setLocationFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [loading, setLoading] = useState(false);
-  const dispatch = useDispatch();
+
+  const dispatch = useDispatch<AppDispatch>();
+
+  // ✅ Get properties from Redux
   const properties = useSelector((state: RootState) => state.propertyData.properties);
+  const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+
+  useEffect(() => {
+    dispatch(fetchProperties()); // Fetch properties on mount
+  }, [dispatch]);
 
   useEffect(() => {
     setLoading(true);
@@ -36,7 +47,7 @@ const Property = ({ property }: PropertyProps) => {
   }, [property]);
 
   const uniqueLocations = [...new Set(properties.map((item) => item.location))];
-  const uniqueStatuss = [...new Set(properties.map((item) => item.status))];
+  const uniqueStatuses = [...new Set(properties.map((item) => item.status))];
 
   const filteredProperties = properties.filter((property) => {
     const matchesSearch = `${property.name} ${property.location}`
@@ -98,7 +109,7 @@ const Property = ({ property }: PropertyProps) => {
             onChange={(e) => setStatusFilter(e.target.value)}
           >
             <option value="">All Status</option>
-            {uniqueStatuss.map((status, index) => (
+            {uniqueStatuses.map((status, index) => (
               <option key={index} value={status}>
                 {status}
               </option>
@@ -113,49 +124,93 @@ const Property = ({ property }: PropertyProps) => {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8">
-          {filteredProperties.length > 0 ? (
-            filteredProperties.map((residence, index) => {
-              const statusColors: Record<string, string> = {
-                "New": "bg-blue-500",
-                "Ready for Occupancy": "bg-green-500",
-                "Pre-Selling": "bg-yellow-500",
-                "Under Construction": "bg-red-500",
-              };
-              const statusLabel = residence.status ?? "Unknown";
-              const badgeColor = statusColors[statusLabel] || "bg-gray-500";
+{filteredProperties.length > 0 ? (
+  filteredProperties.map((residence, index) => {
+    // 🔹 Define color coding for status
+    const statusColors: Record<string, string> = {
+      "New": "bg-blue-500",
+      "Ready for Occupancy": "bg-green-500",
+      "Pre-Selling": "bg-yellow-500",
+      "Under Construction": "bg-red-500",
+      "Sold": "bg-gray-500",
+    };
 
-              return (
-                <Card key={index} className="relative  rounded-xl shadow-lg border border-gray-200 hover:shadow-2xl transition duration-300">
-                  <CardHeader className="p-0 relative">
-                    <span className={`absolute top-3 right-3 text-white text-xs font-semibold px-3 py-1 rounded-md shadow-md ${badgeColor}`}>
-                      {residence.status}
-                    </span>
-                    <img src={residence.image} alt={residence.name} className="w-full h-64 object-cover rounded-lg p-4" />
-                  </CardHeader>
-                  <CardContent className="text-center">
-                    <CardTitle className="text-lg font-bold text-black">{residence.name}</CardTitle>
-                    <hr className="my-2 border-gray-300" />
-                    <p className="text-gray-700">{residence.location}</p>
-                   
-                    <p className="text-[#B8986E] font-semibold text-lg mt-2">
-  {residence.price
-    ? residence.price
-        .split(" - ") // Split if it's a range
-        .map((price) => `₱${Number(price).toLocaleString()}`) // Format with ₱ and commas
-        .join(" - ") // Rejoin formatted prices
-    : "Price upon request"}
-</p>
+    const badgeColor = statusColors[residence.status] || "bg-gray-500"; // Default color if status not in list
 
-                    <button className="mt-4 px-4 bg-[#B8986E] text-white rounded-lg hover:bg-[#A07E5A] transition">
-                      View Details
-                    </button>
-                  </CardContent>
-                </Card>
-              );
-            })
-          ) : (
-            <p className="text-center text-gray-700 text-lg col-span-full">No properties found.</p>
-          )}
+    return (
+      <Card key={index} className="relative rounded-xl shadow-lg border border-gray-200 hover:shadow-2xl transition duration-300">
+        <CardHeader className="p-0 relative">
+          {/* ✅ Color-coded status badge */}
+          <span className={`absolute top-4 right-4 text-white text-xs font-semibold px-3 py-1 rounded-md ${badgeColor}`}>
+            {residence.status}
+          </span>
+          <img src={`${API_BASE_URL}${residence.image}`} alt={residence.name} className="w-full h-64 object-cover rounded-lg p-4" />
+        </CardHeader>
+        <CardContent className="text-center">
+
+          {/* 💰 Price at the Top */}
+     
+
+          <CardTitle className="text-lg font-bold text-black">{residence.name}</CardTitle>
+          <hr className="my-2 border-gray-300" />
+          
+          {/* 📍 Location */}
+          <p className="text-gray-700 flex items-center gap-1">
+            <FaMapMarkerAlt /> {residence.location}
+          </p>
+
+          {/* 🏗️ Development Type */}
+          <p className="text-gray-700 flex items-center gap-1">
+            <MdOutlineMapsHomeWork /> {residence.developmentType}
+          </p>
+
+          {/* 📏 Lot Area */}
+          <p className="text-gray-700 flex items-center gap-1">
+            <FaRulerCombined /> Lot Area: {residence.lotArea} sqm
+          </p>
+
+          {/* 🚗 Parking Lots */}
+          <p className="text-gray-700 flex items-center gap-1">
+            <FaCar /> Parking: {residence.parkingLots}
+          </p>
+
+          {/* 🏢 Floors */}
+          <p className="text-gray-700 flex items-center gap-1">
+            <FaBuilding /> Floors: {residence.floors}
+          </p>
+
+          {/* 🏠 Units */}
+          <p className="text-gray-700 flex items-center gap-1">
+            🏠 Units: {(() => {
+              try {
+                const unitsArray = JSON.parse(residence.units);
+                return Array.isArray(unitsArray) ? unitsArray.join(", ") : "N/A";
+              } catch (error) {
+                return "N/A"; // Handle invalid JSON gracefully
+              }
+            })()}
+          </p>
+     <p className="text-gray-700 flex items-center gap-1">
+            <FaMoneyBillWave /> 
+            {residence.priceRange
+              ? residence.priceRange
+                  .split(" - ") 
+                  .map((price: any) => `₱${Number(price).toLocaleString()}`)
+                  .join(" - ")
+              : "Price upon request"}
+          </p>
+          <button className="mt-4 px-4 py-2 bg-[#B8986E] text-white rounded-lg hover:bg-[#A07E5A] transition">
+            View Details
+          </button>
+        </CardContent>
+      </Card>
+    );
+  })
+) : (
+  <p className="text-center text-gray-700 text-lg col-span-full">No properties found.</p>
+)}
+
+
         </div>
       )}
     </div>

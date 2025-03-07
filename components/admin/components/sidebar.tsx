@@ -12,15 +12,15 @@ interface SubmenuItem {
   label: string;
   link: string;
 }
-
-const navItems: { title: string;  submenu: (string | SubmenuItem)[] }[] = [
  
+const navItems: { title: string;  submenu: (string | SubmenuItem)[] }[] = [
+ { title: "DASHBOARD", submenu: [] },
   { title: "PROPERTIES", submenu: [] },
   { title: "OFFICES",  submenu: [] },
   { title: "AGENT", submenu: [] },
   { title: "CUSTOM SERVICES", submenu: ["Careers","Testimonials"] },
    { title: "WHAT'S NEW",  submenu: ["Seminars", "Meetings", "Events", "Closed Deals", "Real Estate News", "Real Estate Tips", "On-Going Infrastructure", "Watch Videos"] },
-   { title: "FORM FILLER", submenu: ["Status","Development Type","Location"] },
+   { title: "FORM FILLER", submenu: ["Status","Location"] },
 ];
 
 export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {

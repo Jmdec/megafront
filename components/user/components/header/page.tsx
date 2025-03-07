@@ -48,7 +48,6 @@ export default function Header() {
             </Link>
           </div>
 
-          {/* ✅ Desktop Navigation */}
           <nav className={`hidden md:flex items-center space-x-6 ${montserrat.className}`}>
             {navItems.map((item, index) => (
               <div

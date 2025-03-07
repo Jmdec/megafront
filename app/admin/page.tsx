@@ -1,7 +1,11 @@
 "use client";
 import { useState,useEffect } from "react";
+
+
+
 import Sidebar from "@/components/admin/components/sidebar";
 import Header from "@/components/admin/components/header";
+import Dashboard from "@/components/admin/pages/dashboard/page";
 
 import Agent from "@/components/admin/pages/agent/page";
 import Office from "@/components/admin/pages/office/page";
@@ -24,10 +28,11 @@ import Video from "@/components/admin/pages/whatsnew/video";
 // Form Filler
 import Status from "@/components/admin/pages/formfiller/status";
 import Location from "@/components/admin/pages/formfiller/location";
-import DevelopmentType from "@/components/admin/pages/formfiller/developmentType";
+import { Provider } from 'react-redux'; // Import Provider
+import store from "@/app/redux/store"; // Default import for store
 
 export default function AdminPage() {
-  const [activeTab, setActiveTab] = useState("Dashboard");
+  const [activeTab, setActiveTab] = useState("DASHBOARD");
   console.log(activeTab);
 
 
@@ -40,12 +45,13 @@ export default function AdminPage() {
         <Header activeTab={activeTab} />
 
         <div className="p-6">
+           <Provider store={store}>    {activeTab === "DASHBOARD" && <Dashboard />} </Provider>
+        
           {activeTab === "Seminars" && <Seminar />} 
           {activeTab === "Meetings" && <Meeting />} 
           {activeTab === "Events" && <Event />} 
           {activeTab === "Status" && <Status />} 
           {activeTab === "Location" && <Location />} 
-          {activeTab === "Development Type" && <DevelopmentType />} 
           {activeTab === "Closed Deals" && <ClosedDeals />} 
           {activeTab === "Real Estate News" && <RealEstateNews />} 
           {activeTab === "Real Estate Tips" && <RealEstateTips />} 

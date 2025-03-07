@@ -2,6 +2,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import ToastProvider from "@/components/toast";
 import type { Metadata, Viewport } from "next";
+import PushNotificationHandler from '../components/Pushnotificationhandler';
 import ServiceWorkerRegister from "@/app/Serviceworkerregister";
 const APP_NAME = "MegaWorld Corporation";
 const APP_DEFAULT_TITLE = "MegaWorld";
@@ -70,6 +71,8 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <ServiceWorkerRegister/>
+          <PushNotificationHandler />
    <ToastProvider />
         {children}
       </body>
