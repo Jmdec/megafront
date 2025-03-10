@@ -1,6 +1,11 @@
 "use client";
 import { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux"; // Use these for dispatch and selector
+import { AppDispatch } from "@/app/redux/store"; // Import AppDispatch
 import { showToast } from "@/components/toast";
+import { fetchLocations } from "@/app/redux/services/locationService"; 
+import { updateProperty } from "@/app/redux/services/propertyService"; // Import the fetchLocations action
+import { RootState } from "@/app/redux/store"; // Import RootState for type safety
 
 interface EditPropertyModalProps {
   modalOpen: boolean;
@@ -11,8 +16,8 @@ interface EditPropertyModalProps {
 
 export default function EditPropertyModal({ modalOpen, closeModal, property, fetchData }: EditPropertyModalProps) {
   const [newProperty, setNewProperty] = useState(property);
-  const [locations, setLocations] = useState<{ id: number; name: string }[]>([]);
-  const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+  const dispatch = useDispatch<AppDispatch>(); // Dispatch from Redux store
+  const locations = useSelector((state: RootState) => state.locationData.locations); // Get locations from the Redux store
 
   useEffect(() => {
     if (property) {
@@ -21,19 +26,9 @@ export default function EditPropertyModal({ modalOpen, closeModal, property, fet
   }, [property]);
 
   useEffect(() => {
-    const fetchLocations = async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/api/location`);
-        const data = await response.json();
-        if (Array.isArray(data)) {
-          setLocations(data);
-        }
-      } catch (error) {
-        console.error("Error fetching locations:", error);
-      }
-    };
-    fetchLocations();
-  }, []);
+    // Fetch locations from the Redux store when the modal is opened
+    dispatch(fetchLocations());
+  }, [dispatch]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setNewProperty({ ...newProperty, [e.target.name]: e.target.value });
@@ -50,41 +45,40 @@ export default function EditPropertyModal({ modalOpen, closeModal, property, fet
   const handleMasterPlanChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNewProperty({ ...newProperty, masterPlan: e.target.files?.[0] || null });
   };
-const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
-  try {
-    const formData = new FormData();
 
-    Object.entries(newProperty).forEach(([key, value]) => {
-      if (key !== "amenities" && key !== "features") { // Ignore amenities and features
-        if (typeof value === "string" || value instanceof Blob) {
-          formData.append(key, value);
-        } else if (Array.isArray(value)) {
-          formData.append(key, JSON.stringify(value)); // Convert arrays to JSON
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    try {
+      const formData = new FormData();
+
+      Object.entries(newProperty).forEach(([key, value]) => {
+        if (key !== "amenities" && key !== "features") { // Ignore amenities and features
+          if (typeof value === "string" || value instanceof Blob) {
+            formData.append(key, value);
+          } else if (Array.isArray(value)) {
+            formData.append(key, JSON.stringify(value)); // Convert arrays to JSON
+          }
         }
+      });
+
+      for (let [key, value] of formData.entries()) {
+        console.log(`${key}:`, value);
       }
-    });
 
-    for (let [key, value] of formData.entries()) {
-      console.log(`${key}:`, value);
+      // Dispatch Redux action to update property
+      const responseAction = await dispatch(updateProperty({
+        id: newProperty.id, // Assuming newProperty.id exists
+        updatedProperty: formData, // Send the updated property data
+      }));
+
+      if (updateProperty.fulfilled.match(responseAction)) {
+        fetchData();
+        closeModal();
+      }
+    } catch (error) {
+
     }
-
-    const response = await fetch(`${API_BASE_URL}/api/property/updateProperty/${newProperty.id}`, {
-      method: "POST", // Use POST as per your preference
-      body: formData,
-    });
-
-    if (response.ok) {
-      showToast("Property updated successfully", "success");
-      fetchData();
-      closeModal();
-    } else {
-      showToast("Failed to update property", "error");
-    }
-  } catch (error) {
-    showToast("Error updating property: " + error, "error");
-  }
-};
+  };
 
 
 return (

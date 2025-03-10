@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
@@ -7,7 +9,7 @@ const Loading = () => {
 
   useEffect(() => {
     // Hide loader after 3 seconds
-    const timeout = setTimeout(() => setIsVisible(false), 5000);
+    const timeout = setTimeout(() => setIsVisible(false), 3000);
     return () => clearTimeout(timeout);
   }, []);
 
@@ -15,7 +17,7 @@ const Loading = () => {
     <AnimatePresence>
       {isVisible && (
         <motion.div
-          className="fixed inset-0 flex items-center justify-center bg-black z-50"
+          className="flex items-center justify-center bg-black p-4 rounded-md w-14 mx-auto" // Added padding and background
           initial={{ opacity: 1 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0, transition: { duration: 0.5 } }} // Smooth fade out

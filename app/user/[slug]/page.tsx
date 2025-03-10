@@ -20,7 +20,8 @@ import RealEstateNews from "@/components/user/pages/whatsnew/realEstateNews"
 import RealEstateTips from "@/components/user/pages/whatsnew/realEstateTips"
 import Infastructure from "@/components/user/pages/whatsnew/onGoingInfastucture"
 import ServiceWorker from "@/app/Serviceworkerregister"
-
+import SearchResult from "@/components/user/pages/searchResult/page"
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 export default function DynamicUserPage() {
   const [slug, setSlug] = useState<string | null>(null);
   const paramsPromise = useParams(); // This is a Promise
@@ -55,6 +56,8 @@ export default function DynamicUserPage() {
           <Agent/>
         ): slug ==="seminars"? (
           <Seminars/>
+        ): slug ==="search"? (
+          <SearchResult/>
         ): slug ==="meeting"? (
           <Meetings/>
         ): slug ==="events"? (

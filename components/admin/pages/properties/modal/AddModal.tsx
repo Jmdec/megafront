@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
+import { useDispatch } from "react-redux"; // Import useDispatch
 import { showToast } from "@/components/toast";
+import { addProperty } from "@/app/redux/services/propertyService"; // Import addProperty action
+import { AppDispatch } from "@/app/redux/store"; // Import AppDispatch to type dispatch correctly
 
 interface AddModalProps {
   modalOpen: boolean;
@@ -8,28 +11,28 @@ interface AddModalProps {
 }
 
 const AddModal: React.FC<AddModalProps> = ({ modalOpen, closeModal, fetchData }) => {
+  const dispatch = useDispatch<AppDispatch>(); // Correctly type dispatch using AppDispatch
+
   const [locations, setLocations] = useState<{ id: number; name: string }[]>([]);
   const [activeTab, setActiveTab] = useState("Property");
 
-const [newProperty, setNewProperty] = useState({
-  name: "",
-  description: "",
-  priceRange: "",
-  lotArea: "",
-  image: null as File | null,
-  masterPlan: null as File | null,
-  location: "",
-  specificLocation: "", 
-  status: "",
-  developmentType: "", 
-  units: [] as string[], // to store selected units
-  features: [{ name: "" }] as { name: string }[], // to store dynamic features
-  amenities: [{ name: "", image: null as File | null }] as { name: string; image: File | null }[], // amenities with name and image
-  floors: "",  // Stores number of floors
-  parkingLots: "",  // Stores number of parking lots
-});
-
-
+  const [newProperty, setNewProperty] = useState({
+    name: "",
+    description: "",
+    priceRange: "",
+    lotArea: "",
+    image: null as File | null,
+    masterPlan: null as File | null,
+    location: "",
+    specificLocation: "", 
+    status: "",
+    developmentType: "", 
+    units: [] as string[], // to store selected units
+    features: [{ name: "" }] as { name: string }[], // to store dynamic features
+    amenities: [{ name: "", image: null as File | null }] as { name: string; image: File | null }[], // amenities with name and image
+    floors: "",  // Stores number of floors
+    parkingLots: "",  // Stores number of parking lots
+  });
 
   const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
@@ -129,85 +132,69 @@ const [newProperty, setNewProperty] = useState({
     setNewProperty({ ...newProperty, amenities: updatedAmenities });
   };
 
-const handleAmenityImageChange = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
-  const file = e.target.files ? e.target.files[0] : null;
-  if (file) {
-    // Ensure we're updating the right amenity's image
-    const updatedAmenities = [...newProperty.amenities];
-    updatedAmenities[index].image = file;
-    setNewProperty({ ...newProperty, amenities: updatedAmenities });
-  }
-};
-const handleAddProperty = async () => {
-  const formData = new FormData();
-
-  // Append property details
-  formData.append("name", newProperty.name);
-  formData.append("description", newProperty.description);
-  formData.append("priceRange", newProperty.priceRange);
-  formData.append("lotArea", newProperty.lotArea);
-  formData.append("location", newProperty.location);
-formData.append("specificLocation", newProperty.specificLocation);  // Ensure it's sent
-
-  formData.append("status", newProperty.status);
-  formData.append("developmentType", newProperty.developmentType);
-
-  // Append units (as JSON string)
-  formData.append("units", JSON.stringify(newProperty.units));
-
-  // Append floors and parking lots
-  formData.append("floors", newProperty.floors); // Append floors
-  formData.append("parkingLots", newProperty.parkingLots); // Append parking lots
-
-  // Log the files being added to FormData (image and masterPlan)
-  if (newProperty.image) {
-    console.log("Image File:", newProperty.image);  // Log full file object
-    formData.append("image", newProperty.image);
-  }
-  if (newProperty.masterPlan) {
-    console.log("Master Plan File:", newProperty.masterPlan);  // Log full file object
-    formData.append("masterPlan", newProperty.masterPlan);
-  }
-
-  // Handle amenities data
-  newProperty.amenities.forEach((amenity, index) => {
-    formData.append(`amenities[${index}][name]`, amenity.name);
-    if (amenity.image) {
-      console.log(`Amenity Image File ${index}:`, amenity.image); // Log full file object
-      formData.append(`amenities[${index}][image]`, amenity.image);
+  const handleAmenityImageChange = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files ? e.target.files[0] : null;
+    if (file) {
+      // Ensure we're updating the right amenity's image
+      const updatedAmenities = [...newProperty.amenities];
+      updatedAmenities[index].image = file;
+      setNewProperty({ ...newProperty, amenities: updatedAmenities });
     }
-  });
+  };
 
-  // Handle features data
-  newProperty.features.forEach((feature, index) => {
-    formData.append(`features[${index}][name]`, feature.name); // Assuming each feature has a name
-  });
+  const handleAddProperty = async () => {
+    const formData = new FormData();
 
-  // Log FormData for debugging
-  for (let pair of formData.entries()) {
-    console.log(pair[0] + ": ", pair[1] instanceof File ? pair[1].name : pair[1]);  // If it's a file, log its name
-  }
+    // Append property details
+    formData.append("name", newProperty.name);
+    formData.append("description", newProperty.description);
+    formData.append("priceRange", newProperty.priceRange);
+    formData.append("lotArea", newProperty.lotArea);
+    formData.append("location", newProperty.location);
+    formData.append("specificLocation", newProperty.specificLocation);  // Ensure it's sent
 
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/property`, {
-      method: "POST",
-      body: formData,
+    formData.append("status", newProperty.status);
+    formData.append("developmentType", newProperty.developmentType);
+
+    // Append units (as JSON string)
+    formData.append("units", JSON.stringify(newProperty.units));
+
+    // Append floors and parking lots
+    formData.append("floors", newProperty.floors); // Append floors
+    formData.append("parkingLots", newProperty.parkingLots); // Append parking lots
+
+    // Handle files
+    if (newProperty.image) {
+      formData.append("image", newProperty.image);
+    }
+    if (newProperty.masterPlan) {
+      formData.append("masterPlan", newProperty.masterPlan);
+    }
+
+    // Handle amenities data
+    newProperty.amenities.forEach((amenity, index) => {
+      formData.append(`amenities[${index}][name]`, amenity.name);
+      if (amenity.image) {
+        formData.append(`amenities[${index}][image]`, amenity.image);
+      }
     });
 
-    if (response.ok) {
-      showToast("Property added successfully", "success");
+    // Handle features data
+    newProperty.features.forEach((feature, index) => {
+      formData.append(`features[${index}][name]`, feature.name);
+    });
+
+    try {
+      // Dispatch Redux action to add the property
+      await dispatch(addProperty(formData)); // Dispatch the action
+
+      // Refresh the property data after successful addition
       fetchData();
       closeModal();
-    } else {
-      showToast("Failed to add property.", "error");
+    } catch (error) {
+      showToast("Error adding property.", "error");
     }
-  } catch (error) {
-    console.error("Error adding property:", error);
-    showToast("Error adding property.", "error");
-  }
-};
-
-
+  };
 
 
   return modalOpen ? (

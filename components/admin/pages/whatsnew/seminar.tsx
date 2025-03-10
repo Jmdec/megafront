@@ -1,10 +1,14 @@
+"use client";
+
 import { useState, useEffect, useRef } from "react";
 import DataTable from "react-data-table-component";
 import { FaEllipsisV } from "react-icons/fa";
 import { showToast } from "@/components/toast";
-import EditModal from "./modal/EditModal"; // Reusable EditModal component
-import AddModal from "./modal/AddModal"; // Modal for adding seminar
-
+import EditModal from "./modal/EditModal"; 
+import AddModal from "./modal/AddModal";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/app/redux/store";
+import { fetchSeminars, deleteSeminar } from "@/app/redux/services/seminarService";
 interface Seminar {
   id: number;
   title: string;
@@ -14,48 +18,32 @@ interface Seminar {
 }
 
 export default function SeminarPage() {
-  const [seminars, setSeminars] = useState<Seminar[]>([]);
-  const [filteredSeminars, setFilteredSeminars] = useState<Seminar[]>([]);
+  const dispatch = useDispatch<AppDispatch>();
+  const { seminars, loading } = useSelector((state: RootState) => state.seminarsData);
+
   const [openMenu, setOpenMenu] = useState<number | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingSeminar, setEditingSeminar] = useState<Seminar | null>(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [seminarToDelete, setSeminarToDelete] = useState<Seminar | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
-
   const menuRef = useRef<HTMLDivElement | null>(null);
 
-  const fetchSeminars = async () => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/seminar`);
-      const data = await response.json();
-      setSeminars(data);
-      setFilteredSeminars(data);
-    } catch (error) {
-      console.error("Error fetching seminars:", error);
-    }
-  };
-
+  // ✅ Fetch seminars using Redux
   useEffect(() => {
-    fetchSeminars();
-  }, []);
+    dispatch(fetchSeminars());
+  }, [dispatch]);
 
+  // ✅ Filter seminars based on search input
+  const filteredSeminars = seminars.filter((seminar) =>
+    seminar.title.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // ✅ Handle seminar deletion
   const handleDeleteSeminar = async () => {
     if (seminarToDelete) {
-      try {
-        const response = await fetch(`${API_BASE_URL}/api/seminar/${seminarToDelete.id}`, {
-          method: "DELETE",
-        });
-
-        if (response.ok) {
-          fetchSeminars();
-          showToast("Seminar deleted successfully", "success");
-        }
-      } catch (error) {
-        console.error("Error deleting seminar:", error);
-      }
-      setDeleteModalOpen(false); // Close the confirmation modal
+      await dispatch(deleteSeminar(seminarToDelete.id));
+      setDeleteModalOpen(false);
     }
   };
 
@@ -72,17 +60,14 @@ export default function SeminarPage() {
     },
     {
       name: "Date",
-      selector: (row: Seminar) => {
-        const date = new Date(row.date);
-        return date.toISOString().split('T')[0];
-      },
+      selector: (row: Seminar) => new Date(row.date).toISOString().split("T")[0],
       sortable: true,
     },
     {
       name: "Image",
       cell: (row: Seminar) => (
         <img
-          src={`${API_BASE_URL}${row.image}`}
+          src={row.image ? `${process.env.NEXT_PUBLIC_BACKEND_URL}${row.image}` : "/placeholder.png"}
           alt={row.title}
           style={{ width: "50px", height: "50px", objectFit: "cover" }}
         />
@@ -107,9 +92,7 @@ export default function SeminarPage() {
               className="fixed right-0 bg-white shadow-md rounded-md w-24 mr-16 py-1 z-50"
             >
               <button
-                onClick={() => {
-                  setEditingSeminar(row);
-                }}
+                onClick={() => setEditingSeminar(row)}
                 className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
               >
                 Edit
@@ -152,26 +135,25 @@ export default function SeminarPage() {
         />
       </div>
 
-      <DataTable
-        columns={columns}
-        data={filteredSeminars}
-        pagination
-        highlightOnHover
-        striped
-      />
+      {loading ? (
+        <p>Loading seminars...</p>
+      ) : (
+        <DataTable columns={columns} data={filteredSeminars} pagination highlightOnHover striped />
+      )}
 
-  <AddModal
+      <AddModal
         modalOpen={isAddModalOpen}
         closeModal={() => setIsAddModalOpen(false)}
-        fetchData={fetchSeminars}
-        itemType="seminar" // Set itemType to "meeting"
+        fetchData={() => dispatch(fetchSeminars())}
+        itemType="seminar"
       />
+
       {editingSeminar && (
         <EditModal
           modalOpen={true}
           closeModal={() => setEditingSeminar(null)}
           item={editingSeminar}
-          fetchData={fetchSeminars}
+          fetchData={() => dispatch(fetchSeminars())}
           itemType="seminar"
         />
       )}

@@ -1,47 +1,81 @@
+import Cookies from "js-cookie";
 import { createAsyncThunk } from "@reduxjs/toolkit";
+import { showToast } from "@/components/toast";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+const getAuthToken = () => Cookies.get("auth_token");
 
-// 🔹 Fetch all seminars
-export const fetchSeminars = createAsyncThunk("seminars/fetchAll", async () => {
-  const response = await fetch(`${API_BASE_URL}/api/seminar`);
-  const data = await response.json();
-  return data || []; // Make sure it's always an array (fallback to empty array)
-});
-;
-
-
-// 🔹 Add a new seminar
-export const addSeminar = createAsyncThunk("seminars/add", async (newSeminar: FormData) => {
-  const response = await fetch(`${API_BASE_URL}/api/seminar`, {
-    method: "POST",
-    body: newSeminar,
-  });
-
-  if (!response.ok) throw new Error("Failed to add seminar");
-  return response.json(); // Returns the newly added seminar
-});
-
-// 🔹 Update seminar
-export const updateSeminar = createAsyncThunk(
-  "seminars/update",
-  async ({ id, updatedSeminar }: { id: number; updatedSeminar: FormData }) => {
-    const response = await fetch(`${API_BASE_URL}/api/seminar/${id}`, {
-      method: "POST",
-      body: updatedSeminar,
+// 🔹 Fetch Seminars (No authentication required)
+export const fetchSeminars = createAsyncThunk("seminars/fetchAll", async (_, { rejectWithValue }) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/seminar`, {
+      headers: { "Content-Type": "application/json" },
     });
 
-    if (!response.ok) throw new Error("Failed to update seminar");
-    return response.json(); // Returns updated seminar data
+    if (!response.ok) throw new Error("Failed to fetch seminars");
+
+    return response.json();
+  } catch (error: any) {
+    showToast(error.message, "error");
+    return rejectWithValue(error.message);
+  }
+});
+
+// 🔹 Add Seminar (Requires authentication)
+export const addSeminar = createAsyncThunk("seminars/add", async (seminarData: FormData, { rejectWithValue }) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/seminar`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${getAuthToken()}` },
+      body: seminarData,
+    });
+
+    if (!response.ok) throw new Error("Failed to add seminar");
+
+    showToast("Seminar added successfully", "success");
+    return response.json();
+  } catch (error: any) {
+    showToast(error.message, "error");
+    return rejectWithValue(error.message);
+  }
+});
+
+// 🔹 Update Seminar (Requires authentication)
+export const updateSeminar = createAsyncThunk(
+  "seminars/update",
+  async ({ id, updatedSeminar }: { id: number; updatedSeminar: FormData }, { rejectWithValue }) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/seminar/${id}`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${getAuthToken()}` },
+        body: updatedSeminar,
+      });
+
+      if (!response.ok) throw new Error("Failed to update seminar");
+
+      showToast("Seminar updated successfully", "success");
+      return response.json();
+    } catch (error: any) {
+      showToast(error.message, "error");
+      return rejectWithValue(error.message);
+    }
   }
 );
 
-// 🔹 Delete seminar
-export const deleteSeminar = createAsyncThunk("seminars/delete", async (id: number) => {
-  const response = await fetch(`${API_BASE_URL}/api/seminar/${id}`, {
-    method: "DELETE",
-  });
+// 🔹 Delete Seminar (Requires authentication)
+export const deleteSeminar = createAsyncThunk("seminars/delete", async (id: number, { rejectWithValue }) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/seminar/${id}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${getAuthToken()}` },
+    });
 
-  if (!response.ok) throw new Error("Failed to delete seminar");
-  return id; // Return deleted seminar ID
+    if (!response.ok) throw new Error("Failed to delete seminar");
+
+    showToast("Seminar deleted successfully", "success");
+    return id; // Return deleted seminar ID
+  } catch (error: any) {
+    showToast(error.message, "error");
+    return rejectWithValue(error.message);
+  }
 });

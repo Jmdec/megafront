@@ -1,30 +1,43 @@
+"use client";
+
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState, AppDispatch } from "@/app/redux/store"; // Adjust path as needed
 import { fetchProperties } from "@/app/redux/services/propertyService";
+import { fetchLocations } from "@/app/redux/services/locationService"; // Import fetchLocations action
+
+import { useRouter } from "next/navigation"; // Use next/navigation for navigation
+import { setSearchResults } from "@/app/redux/slice/propertyData";
 
 const Form: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
+  const router = useRouter(); // Initialize the router from next/navigation
 
-  // ✅ Fetch properties from Redux store
+  // ✅ Fetch properties and locations from Redux store
   const properties = useSelector((state: RootState) => state.propertyData.properties);
+  const locations = useSelector((state: RootState) => state.locationData.locations); // Add location data here
   const loading = useSelector((state: RootState) => state.propertyData.loading);
   const error = useSelector((state: RootState) => state.propertyData.error);
+  const locationLoading = useSelector((state: RootState) => state.locationData.loading); // Loading for locations
+  const locationError = useSelector((state: RootState) => state.locationData.error); // Error for locations
 
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
   const [showMinDropdown, setShowMinDropdown] = useState(false);
   const [showMaxDropdown, setShowMaxDropdown] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [selectedLocation, setSelectedLocation] = useState(""); // For storing selected location
+  const [selectedType, setSelectedType] = useState(""); // For storing selected property type
+  const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
   // ✅ Fetch properties on mount
   useEffect(() => {
     dispatch(fetchProperties());
+    dispatch(fetchLocations()); // Fetch locations when component mounts
   }, [dispatch]);
 
   // ✅ Handle property rotation
   useEffect(() => {
-   
     if (properties.length > 0) {
       const interval = setInterval(() => {
         setCurrentIndex((prevIndex) => (prevIndex + 1) % properties.length);
@@ -37,16 +50,43 @@ const Form: React.FC = () => {
   const priceSuggestions = [
     "1,000,000",
     "5,000,000",
-    "10,000,000",
+    "8,000,000",
+    "12,000,000",
     "20,000,000",
     "30,000,000",
-    "40,000,000",
   ];
 
   // ✅ Format price with comma
   const formatPrice = (value: string) => {
     return value.replace(/[^\d]/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   };
+
+const handleSearchClick = () => {
+  // Filter properties based on search criteria
+  const filteredProperties = properties.filter((property) => {
+    // Filter by location
+    const isLocationMatch = selectedLocation ? property.location === selectedLocation : true;
+
+    // Filter by minPrice and maxPrice
+    const [min, max] = property.priceRange.split(" - ").map((price) => parseInt(price.replace(/[^\d]/g, "")));
+    const isMinPriceMatch = minPrice ? min >= parseInt(minPrice.replace(/[^\d]/g, "")) : true;
+    const isMaxPriceMatch = maxPrice ? max <= parseInt(maxPrice.replace(/[^\d]/g, "")) : true;
+
+    // Filter by selected property type
+    const isTypeMatch = selectedType ? property.developmentType === selectedType : true;
+
+    return isLocationMatch && isMinPriceMatch && isMaxPriceMatch && isTypeMatch;
+  });
+
+  // Dispatch the filtered properties to Redux state
+  dispatch(setSearchResults(filteredProperties));
+
+  // Navigate to search results page
+  router.push("/user/search");
+};
+
+
+
 
   return (
     <div className="flex flex-col sm:flex-row items-center justify-center w-full min-h-screen mx-auto p-4 sm:p-6">
@@ -68,7 +108,7 @@ const Form: React.FC = () => {
               {properties[currentIndex].description}
             </p>
             <button className="mt-6 px-4 sm:px-6 py-3 bg-white text-black font-bold rounded-lg shadow-md hover:bg-gray-200 transition-all duration-300">
-             View {properties[currentIndex].name}
+              View {properties[currentIndex].name}
             </button>
           </div>
         ) : (
@@ -83,24 +123,38 @@ const Form: React.FC = () => {
 
         {/* ✅ Dropdowns */}
         <div className="flex flex-col sm:flex-row gap-4">
-          <select className="flex-1 p-4 bg-white/90 border border-gray-300 rounded-lg text-gray-700 focus:ring-2 focus:ring-[#B8986E] focus:outline-none transition">
+          <select
+            className="flex-1 p-4 bg-white/90 border border-gray-300 rounded-lg text-gray-700 focus:ring-2 focus:ring-[#B8986E] focus:outline-none transition"
+            value={selectedLocation}
+            onChange={(e) => setSelectedLocation(e.target.value)} // Handle location change
+          >
             <option value="">Select Location</option>
-            <option value="metro-manila">Metro Manila</option>
-            <option value="luzon">Luzon</option>
-            <option value="visayas">Visayas</option>
-            <option value="mindanao">Mindanao</option>
+            {locationLoading ? (
+              <option>Loading...</option>
+            ) : locationError ? (
+              <option>Error loading locations</option>
+            ) : (
+              locations.map((location: { id: number; name: string }) => (
+                <option key={location.id} value={location.name}>
+                  {location.name}
+                </option>
+              ))
+            )}
           </select>
 
-          <select className="flex-1 p-4 bg-white/90 border border-gray-300 rounded-lg text-gray-700 focus:ring-2 focus:ring-[#B8986E] focus:outline-none transition">
+          <select
+            className="flex-1 p-4 bg-white/90 border border-gray-300 rounded-lg text-gray-700 focus:ring-2 focus:ring-[#B8986E] focus:outline-none transition"
+            value={selectedType} // Bind value to selectedType state
+            onChange={(e) => setSelectedType(e.target.value)} // Handle property type change
+          >
             <option value="">Select Type</option>
-            <option value="high-rise-condo">High Rise Condominium</option>
-            <option value="mid-rise-condo">Mid Rise Condominium</option>
-            <option value="low-rise-condo">Low Rise Condominium</option>
-            <option value="office">Office</option>
+            <option value="High Rise Condominium">High Rise Condominium</option>
+            <option value="Mid Rise Condominium">Mid Rise Condominium</option>
+            <option value="Low Rise Condominium">Low Rise Condominium</option>
+            <option value="Office">Office</option>
           </select>
         </div>
 
-        {/* ✅ Price Range Inputs */}
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1">
             <span className="absolute left-3 top-4 text-gray-500">₱</span>
@@ -155,7 +209,11 @@ const Form: React.FC = () => {
           </div>
         </div>
 
-        <button className="w-full bg-black text-white font-bold py-4 rounded-lg hover:bg-gray-800 transition-all duration-300 shadow-lg">
+        {/* ✅ Search Button */}
+        <button
+          className="w-full bg-black text-white font-bold py-4 rounded-lg hover:bg-gray-800 transition-all duration-300 shadow-lg"
+          onClick={handleSearchClick} // Call the log function when clicked
+        >
           Search
         </button>
       </div>

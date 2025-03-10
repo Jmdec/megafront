@@ -7,18 +7,16 @@ import {
   deleteOffice,
 } from "../services/officeService";
 
-
 interface Office {
-  price: string;
-  lotArea: number;
-
-  status: any;
-  id: number; 
+  id: number;
   name: string;
   description: string;
   image: string;
   location: string;
-  division: string;
+  status: string;
+  price: string;
+  lotArea: string;
+  amenities: string[];
 }
 
 interface OfficeState {
@@ -45,7 +43,6 @@ const officeSlice = createSlice({
       state.error = null;
     });
     builder.addCase(fetchOffices.fulfilled, (state, action) => {
-    
       state.loading = false;
       state.offices = Array.isArray(action.payload) ? action.payload : [];
     });
@@ -53,6 +50,7 @@ const officeSlice = createSlice({
       state.loading = false;
       state.error = action.error.message || "Failed to fetch offices";
     });
+
     builder.addCase(fetchOfficeById.pending, (state) => {
       state.loading = true;
     });
@@ -70,7 +68,7 @@ const officeSlice = createSlice({
     });
     builder.addCase(addOffice.fulfilled, (state, action) => {
       state.loading = false;
-      state.offices.push(action.payload); 
+      state.offices.push(action.payload);
     });
     builder.addCase(addOffice.rejected, (state, action) => {
       state.loading = false;
@@ -82,22 +80,27 @@ const officeSlice = createSlice({
     });
     builder.addCase(updateOffice.fulfilled, (state, action) => {
       state.loading = false;
-      state.offices = state.offices.map((item) =>
-        item.name === action.payload.name ? action.payload : item
+      // Update the office in the list by matching the id
+      state.offices = state.offices.map((office) =>
+        office.id === action.payload.id ? action.payload : office
       );
+      // Optionally, if you want to update selectedOffice:
+      if (state.selectedOffice?.id === action.payload.id) {
+        state.selectedOffice = action.payload;
+      }
     });
     builder.addCase(updateOffice.rejected, (state, action) => {
       state.loading = false;
       state.error = action.error.message || "Failed to update office";
     });
+
     builder.addCase(deleteOffice.pending, (state) => {
       state.loading = true;
     });
-builder.addCase(deleteOffice.fulfilled, (state, action) => {
-  state.loading = false;
-  state.offices = state.offices.filter((item) => item.id !== action.payload); // ✅ Use item.id
-});
-
+    builder.addCase(deleteOffice.fulfilled, (state, action) => {
+      state.loading = false;
+      state.offices = state.offices.filter((item) => item.id !== action.payload); // ✅ Use item.id
+    });
     builder.addCase(deleteOffice.rejected, (state, action) => {
       state.loading = false;
       state.error = action.error.message || "Failed to delete office";

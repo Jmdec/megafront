@@ -2,7 +2,8 @@
 import Image from "next/image";
 import { useState } from "react";
 import { FaUser, FaHome, FaCog, FaSignOutAlt, FaChevronDown } from "react-icons/fa";
-
+import { useRouter } from "next/navigation";
+import Cookies from "js-cookie"; // Import js-cookie
 interface SidebarProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
@@ -20,14 +21,19 @@ const navItems: { title: string;  submenu: (string | SubmenuItem)[] }[] = [
   { title: "AGENT", submenu: [] },
   { title: "CUSTOM SERVICES", submenu: ["Careers","Testimonials"] },
    { title: "WHAT'S NEW",  submenu: ["Seminars", "Meetings", "Events", "Closed Deals", "Real Estate News", "Real Estate Tips", "On-Going Infrastructure", "Watch Videos"] },
-   { title: "FORM FILLER", submenu: ["Status","Location"] },
+   { title: "FORM FILLER", submenu: ["Location"] },
 ];
 
 export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
   const [openMenu, setOpenMenu] = useState<string | null>(null);
+  const router = useRouter(); // Next.js router for navigation
 
   const toggleMenu = (title: string) => {
     setOpenMenu(openMenu === title ? null : title);
+  };
+  const handleLogout = () => {
+    Cookies.remove("auth_token"); // Remove the authentication token
+    router.push("/auth"); // Redirect to login page
   };
 
   return (
@@ -68,7 +74,7 @@ export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
           </div>
         ))}
       </nav>
-      <button className="mt-auto flex items-center p-2 rounded-md w-full hover:bg-red-600">
+      <button className="mt-auto flex items-center p-2 rounded-md w-full hover:bg-red-600"   onClick={handleLogout}>
         <FaSignOutAlt className="mr-2" /> Logout
       </button>
     </div>

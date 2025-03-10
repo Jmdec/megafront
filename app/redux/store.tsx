@@ -14,6 +14,9 @@ import realEstateTipsData from '@/app/redux/slice/realestateTipsData';
 import seminarsData from '@/app/redux/slice/seminarsData';
 import careerData from '@/app/redux/slice/careerData';
 import dashboardData from '@/app/redux/slice/dashboardData';
+import locationData from '@/app/redux/slice/locationData';
+import testimonialData from '@/app/redux/slice/testimonialData';
+import agentData from '@/app/redux/slice/agentData';
 
 const store = configureStore({
   reducer: {
@@ -29,6 +32,9 @@ const store = configureStore({
     seminarsData:seminarsData,
      careerData:careerData,
      dashboardData:dashboardData,
+     locationData:locationData,
+     testimonialData:testimonialData,
+     agentData:agentData,
   },
 });
 

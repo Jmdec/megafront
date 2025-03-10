@@ -9,37 +9,36 @@ import {
   deleteProperty,
 } from "../services/propertyService";
 
-// 🔹 Define property type
 interface Property {
-  floors: number;
-  units: string;  // ✅ Fix: Change units to a string type
-  parkingLots: number;
-  lotArea: number;
-  developmentType: string;
-  priceRange: string;  // ✅ Fix: Ensure priceRange is a string (not any)
-  buttonText: string;
+  features: string;
   id: number;
   name: string;
   location: string;
   description: string;
   image: string;
   status: string;
-  price: string;
-  details: string;
-  featured: string;
+  priceRange: string;
+  lotArea: string;
+  masterPlan: string;
+  floors: number;
+  parkingLots: number;
+  amenities: string; // JSON string
+  units: string; // JSON string
+  developmentType: string;
+  specificLocation: string | null;
 }
 
-// 🔹 Define the state
 interface PropertyState {
-  properties: Property[];
+  properties: Property[]; // All properties
+  searchResults: Property[]; // Search-specific results
   selectedProperty: Property | null;
   loading: boolean;
   error: string | null;
 }
 
-// 🔹 Initial state
 const initialState: PropertyState = {
   properties: [],
+  searchResults: [], // Initialize an empty array for search results
   selectedProperty: null,
   loading: false,
   error: null,
@@ -48,7 +47,11 @@ const initialState: PropertyState = {
 const propertySlice = createSlice({
   name: "properties",
   initialState,
-  reducers: {},
+  reducers: {
+    setSearchResults: (state, action) => {
+      state.searchResults = action.payload; // Store filtered properties in searchResults
+    },
+  },
   extraReducers: (builder) => {
     // ✅ Fetch All Properties
     builder.addCase(fetchProperties.pending, (state) => {
@@ -146,5 +149,5 @@ const propertySlice = createSlice({
   },
 });
 
-// ✅ Export Reducer
+export const { setSearchResults } = propertySlice.actions; // Export the action to set search results
 export default propertySlice.reducer;

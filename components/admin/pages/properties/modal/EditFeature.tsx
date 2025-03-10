@@ -1,8 +1,11 @@
 import { useState } from "react";
+import { useDispatch } from "react-redux"; // Add this import to use dispatch
+import { AppDispatch } from "@/app/redux/store"; // Make sure to import AppDispatch
 import { showToast } from "@/components/toast";
+import { updatePropertyFeatures,fetchProperties } from "@/app/redux/services/propertyService"; // Import the Redux action
 
 interface Feature {
-  id: number;  // Ensure ID exists
+  id: number;
   name: string;
 }
 
@@ -11,13 +14,18 @@ interface EditFeaturesModalProps {
   features: Feature[];
   setFeatures: (features: Feature[]) => void;
   closeModal: () => void;
-  fetchProperties: () => void; // ✅ Ensure it's included
+// Ensure it's included
 }
 
-
-export default function EditFeaturesModal({ features, setFeatures, closeModal,propertyId,fetchProperties }: EditFeaturesModalProps) {
+export default function EditFeaturesModal({
+  features,
+  setFeatures,
+  closeModal,
+  propertyId,
+  
+}: EditFeaturesModalProps) {
+  const dispatch = useDispatch<AppDispatch>(); // Use the correct type for dispatch
   const [newFeature, setNewFeature] = useState("");
-  const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
   const handleFeatureChange = (index: number, value: string) => {
     const updatedFeatures = [...features];
@@ -25,61 +33,49 @@ export default function EditFeaturesModal({ features, setFeatures, closeModal,pr
     setFeatures(updatedFeatures);
   };
 
-const handleAddFeature = () => {
-  if (newFeature.trim() !== "") {
-    const newFeatureObject: Feature = {
-      id: features.length > 0 ? Math.max(...features.map(f => f.id)) + 1 : 1, // Assign unique ID
-      name: newFeature,
-    };
-    setFeatures([...features, newFeatureObject]); // Ensure ID is always included
-    setNewFeature("");
-  }
-};
-
+  const handleAddFeature = () => {
+    if (newFeature.trim() !== "") {
+      const newFeatureObject: Feature = {
+        id: features.length > 0 ? Math.max(...features.map(f => f.id)) + 1 : 1, // Assign unique ID
+        name: newFeature,
+      };
+      setFeatures([...features, newFeatureObject]); // Update local state immediately
+      setNewFeature(""); // Clear the input field
+    }
+  };
 
   const handleRemoveFeature = (index: number) => {
-    setFeatures(features.filter((_, i) => i !== index));
+    const updatedFeatures = features.filter((_, i) => i !== index);
+    setFeatures(updatedFeatures); // Update local state immediately
   };
-const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
 
-  // Ensure all features have only `name`
-  const updatedFeatures = features.map((feature) => ({
-    name: feature.name, // Remove `id`
-  }));
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
 
-  const formData = new FormData();
-  formData.append("propertyId", propertyId.toString());
-  formData.append("features", JSON.stringify(updatedFeatures));
+    // Prepare the data
+    const updatedFeatures = features.map((feature) => ({
+      name: feature.name, // Remove ID
+    }));
 
-  console.log("Submitting FormData:", Object.fromEntries(formData.entries()));
+    const formData = new FormData();
+    formData.append("propertyId", propertyId.toString());
+    formData.append("features", JSON.stringify(updatedFeatures));
 
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/property/updateFeature/${propertyId}`, {
-      method: "POST",
-      headers: { "Accept": "application/json" }, // Ensure correct response type
-      body: formData,
-    });
+    // Log the FormData for debugging
+    console.log("Submitting FormData:", Object.fromEntries(formData.entries()));
 
-    if (response.ok) {
-      showToast("✅ Features updated successfully","success");
+    try {
+      // Dispatch Redux action to update features
+      await dispatch(updatePropertyFeatures({ id: propertyId, updatedFeatures: formData }));
 
-      // 🔹 Fetch latest properties to update UI immediately
-      fetchProperties();
-
-      // 🔹 Close modal after update
-      closeModal();
-    } else {
-      const errorText = await response.text();
-      console.error("❌ Failed to update features:", errorText);
+     
+      dispatch(fetchProperties()); // Fetch properties to ensure data is refreshed from the server
+      closeModal(); // Close the modal
+    } catch (error) {
+      console.error("Error updating features:", error);
+      showToast("Error updating features", "error");
     }
-  } catch (error) {
-    showToast("✅ Failed updating features"+ error,"error");
-
-  }
-};
-
-
+  };
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-50 z-50">
@@ -124,7 +120,11 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
             <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">
               Save
             </button>
-            <button type="button" onClick={closeModal} className="bg-gray-400 text-white px-4 py-2 rounded-md hover:bg-gray-500 ml-2">
+            <button
+              type="button"
+              onClick={closeModal}
+              className="bg-gray-400 text-white px-4 py-2 rounded-md hover:bg-gray-500 ml-2"
+            >
               Close
             </button>
           </div>

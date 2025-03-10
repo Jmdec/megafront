@@ -1,5 +1,8 @@
 import { useState } from "react";
+import { useDispatch } from "react-redux"; // Use dispatch from Redux
+import { AppDispatch } from "@/app/redux/store"; // Ensure this is imported correctly
 import { showToast } from "@/components/toast";
+import { updatePropertyAmenities,fetchProperties } from "@/app/redux/services/propertyService"; // Your action
 
 interface Amenity {
   name: string;
@@ -12,7 +15,7 @@ interface EditAmenitiesModalProps {
   amenities: Amenity[];
   setAmenities: (amenities: Amenity[]) => void;
   closeModal: () => void;
-  fetchProperties: () => void; // Refresh after update
+
 }
 
 export default function EditAmenitiesModal({
@@ -20,10 +23,10 @@ export default function EditAmenitiesModal({
   amenities,
   setAmenities,
   closeModal,
-  fetchProperties,
+
 }: EditAmenitiesModalProps) {
+  const dispatch = useDispatch<AppDispatch>(); // Use the correct type for dispatch
   const [newAmenity, setNewAmenity] = useState<Amenity>({ name: "", image: undefined });
-  const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
   // Handle name change for existing amenities
   const handleAmenityChange = (index: number, value: string) => {
@@ -32,23 +35,23 @@ export default function EditAmenitiesModal({
     setAmenities(updatedAmenities);
   };
 
-  // Handle image change
-const handleAmenityImageChange = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
-  if (e.target.files && e.target.files.length > 0) {
-    const updatedAmenities = [...amenities];
+  // Handle image change for amenities
+  const handleAmenityImageChange = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const updatedAmenities = [...amenities];
 
-    updatedAmenities[index] = {
-      ...updatedAmenities[index],
-      image: e.target.files[0], // ✅ Store new file
-      originalImage:
-        typeof updatedAmenities[index].image === "string"
-          ? updatedAmenities[index].image // ✅ Ensure only a string (old URL) is stored
-          : updatedAmenities[index].originalImage,
-    };
+      updatedAmenities[index] = {
+        ...updatedAmenities[index],
+        image: e.target.files[0], // Store new file
+        originalImage:
+          typeof updatedAmenities[index].image === "string"
+            ? updatedAmenities[index].image // Ensure only a string (old URL) is stored
+            : updatedAmenities[index].originalImage,
+      };
 
-    setAmenities(updatedAmenities);
-  }
-};
+      setAmenities(updatedAmenities);
+    }
+  };
 
   // Add new amenity
   const handleAddAmenity = () => {
@@ -64,52 +67,41 @@ const handleAmenityImageChange = (index: number, e: React.ChangeEvent<HTMLInputE
   };
 
   // Handle form submission
- const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
-  const formData = new FormData();
-  formData.append("propertyId", propertyId.toString());
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData();
+    formData.append("propertyId", propertyId.toString());
 
-  amenities.forEach((amenity, index) => {
-    formData.append(`amenities[${index}][name]`, amenity.name);
+    amenities.forEach((amenity, index) => {
+      formData.append(`amenities[${index}][name]`, amenity.name);
 
-    if (amenity.image instanceof File) {
-      formData.append(`amenities[${index}][image]`, amenity.image); // ✅ Upload new image
-    } 
-    
-    // ✅ Ensure original image is sent when no new file is chosen
-    if (typeof amenity.image === "string") {
-      formData.append(`amenities[${index}][originalImage]`, amenity.image); // ✅ Keep old image URL
-    } else if (amenity.originalImage) {
-      formData.append(`amenities[${index}][originalImage]`, amenity.originalImage); // ✅ Backup old image
-    }
-  });
+      if (amenity.image instanceof File) {
+        formData.append(`amenities[${index}][image]`, amenity.image); // Upload new image
+      }
 
-  // 🔹 Log FormData before sending
-  console.log("🔹 Submitting FormData:");
-  for (const [key, value] of formData.entries()) {
-    console.log(`${key}:`, value);
-  }
-
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/property/updateAmenities/${propertyId}`, {
-      method: "POST",
-      headers: { Accept: "application/json" }, // ✅ Ensure proper response handling
-      body: formData,
+      if (typeof amenity.image === "string") {
+        formData.append(`amenities[${index}][originalImage]`, amenity.image); // Keep old image URL
+      } else if (amenity.originalImage) {
+        formData.append(`amenities[${index}][originalImage]`, amenity.originalImage); // Backup old image
+      }
     });
 
-    if (response.ok) {
-      showToast("Amenities updated successfully", "success");
-      fetchProperties(); // ✅ Refresh property data
-      closeModal(); // ✅ Close modal
-    } else {
-      const errorText = await response.text();
-      console.error("❌ Failed to update amenities:", errorText);
-    }
-  } catch (error) {
-    showToast("Error updating amenities: " + error, "error");
-  }
-};
+    try {
+      // Dispatch the action to update the amenities in the Redux store
+      const resultAction = await dispatch(updatePropertyAmenities({ id: propertyId, updatedAmenities: formData }));
 
+      // Ensure that the action was successful
+      if (updatePropertyAmenities.fulfilled.match(resultAction)) {
+
+        dispatch(fetchProperties()); // Refresh property data
+        closeModal(); // Close modal
+      } else {
+
+      }
+    } catch (error) {
+
+    }
+  };
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-50 z-50">
@@ -148,8 +140,8 @@ const handleAmenityImageChange = (index: number, e: React.ChangeEvent<HTMLInputE
                   <img
                     src={
                       amenity.image instanceof File
-                        ? URL.createObjectURL(amenity.image) // ✅ Preview new image
-                        : `${API_BASE_URL}${amenity.originalImage || amenity.image}` // ✅ Keep old image
+                        ? URL.createObjectURL(amenity.image) // Preview new image
+                        : `${process.env.NEXT_PUBLIC_BACKEND_URL}${amenity.originalImage || amenity.image}` // Keep old image
                     }
                     alt={amenity.name}
                     className="w-20 h-20 rounded-md object-cover border border-gray-300"

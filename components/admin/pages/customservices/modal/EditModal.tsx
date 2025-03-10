@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from "react";
+import { useDispatch } from "react-redux";
 import { showToast } from "@/components/toast";
+import { updateCareer } from "@/app/redux/services/careerService";
+import { updateTestimonial } from "@/app/redux/services/testimonialService";
 
 interface EditModalProps {
   modalOpen: boolean;
@@ -10,14 +13,13 @@ interface EditModalProps {
 }
 
 const EditModal: React.FC<EditModalProps> = ({ modalOpen, closeModal, fetchData, item, itemType }) => {
-  const [updatedItem, setUpdatedItem] = useState<{ roleName?: string; quantity?: number; name?: string; message?: string }>(
-    {
-      roleName: "",
-      quantity: 1,
-      name: "",
-      message: "",
-    }
-  );
+  const dispatch = useDispatch<any>();
+  const [updatedItem, setUpdatedItem] = useState<{ roleName?: string; quantity?: number; name?: string; message?: string }>({
+    roleName: "",
+    quantity: 1,
+    name: "",
+    message: "",
+  });
 
   useEffect(() => {
     if (item) {
@@ -30,7 +32,6 @@ const EditModal: React.FC<EditModalProps> = ({ modalOpen, closeModal, fetchData,
     }
   }, [item]);
 
-  const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
   const handleUpdateItem = async () => {
     if (itemType === "career" && !updatedItem.roleName?.trim()) {
       showToast("Role Name is required.", "error");
@@ -41,26 +42,16 @@ const EditModal: React.FC<EditModalProps> = ({ modalOpen, closeModal, fetchData,
       return;
     }
 
-    const updatedData = itemType === "career"
-      ? { roleName: updatedItem.roleName, quantity: updatedItem.quantity }
-      : { name: updatedItem.name, message: updatedItem.message };
-
     try {
-      const response = await fetch(`${API_BASE_URL}/api/${itemType}/${item.id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(updatedData),
-      });
-
-      if (response.ok) {
-        showToast(`${itemType.charAt(0).toUpperCase() + itemType.slice(1)} updated successfully`, "success");
-        fetchData();
-        closeModal();
-      } else {
-        showToast(`Failed to update ${itemType}.`, "error");
+      if (itemType === "career") {
+        await dispatch(updateCareer({ id: item.id, updatedCareer: { roleName: updatedItem.roleName!, quantity: updatedItem.quantity! } })).unwrap();
+      } else if (itemType === "testimonial") {
+        await dispatch(updateTestimonial({ id: item.id, updatedTestimonial: { name: updatedItem.name!, message: updatedItem.message! } })).unwrap();
       }
+
+      showToast(`${itemType.charAt(0).toUpperCase() + itemType.slice(1)} updated successfully`, "success");
+      fetchData();
+      closeModal();
     } catch (error) {
       console.error("Error:", error);
       showToast(`Error updating ${itemType}.`, "error");

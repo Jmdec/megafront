@@ -4,6 +4,12 @@ import { showToast } from "@/components/toast";
 import AddModal from "./modal/AddModal";
 import EditModal from "./modal/EditModal";
 import { FaEllipsisV } from "react-icons/fa";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "@/app/redux/store";
+import {
+  fetchOffices,
+  deleteOffice,
+} from "@/app/redux/services/officeService";
 
 interface Office {
   id: number;
@@ -11,14 +17,16 @@ interface Office {
   description: string;
   image: string;
   location: string;
-  status: string; 
+  status: string;
   price: string;
   lotArea: string;
   amenities: string[];
 }
 
 export default function OfficePage() {
-  const [offices, setOffices] = useState<Office[]>([]);
+  const dispatch = useDispatch<any>();
+  const { offices, loading } = useSelector((state: RootState) => state.officeData);
+
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingOffice, setEditingOffice] = useState<Office | null>(null);
@@ -26,57 +34,33 @@ export default function OfficePage() {
   const [officeToDelete, setOfficeToDelete] = useState<Office | null>(null);
   const [openMenu, setOpenMenu] = useState<number | null>(null);
   const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
-const [expandedRows, setExpandedRows] = useState<{ [key: number]: boolean }>({});
+  const [expandedRows, setExpandedRows] = useState<{ [key: number]: boolean }>({});
 
-const toggleExpand = (id: number) => {
-  setExpandedRows((prev) => ({
-    ...prev,
-    [id]: !prev[id], // Toggle the specific row
-  }));
-};
-const fetchOffices = async () => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/office`);
-    const data = await response.json();
+  const toggleExpand = (id: number) => {
+    setExpandedRows((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
+  };
 
-    if (Array.isArray(data)) {
-      const formattedData = data.map((office) => ({
-        ...office,
-        amenities: typeof office.amenities === "string" ? JSON.parse(office.amenities) : office.amenities || [],
-      }));
-
-      setOffices(formattedData);
-    } else {
-      console.error("Invalid data format:", data);
-    }
-  } catch (error) {
-    console.error("Error fetching offices:", error);
-  }
-};
-
-
+  // ✅ Fetch offices when component mounts
   useEffect(() => {
-    fetchOffices();
-  }, []);
+    dispatch(fetchOffices());
+  }, [dispatch]);
 
+  // ✅ Delete office using Redux
   const handleDeleteOffice = async () => {
     if (officeToDelete) {
       try {
-        const response = await fetch(`${API_BASE_URL}/api/office/${officeToDelete.id}`, {
-          method: "DELETE",
-        });
-
-        if (response.ok) {
-          fetchOffices();
-          showToast("Office deleted successfully", "success");
-        }
+        await dispatch(deleteOffice(officeToDelete.id)).unwrap();
+  
       } catch (error) {
         console.error("Error deleting office:", error);
+      
       }
       setDeleteModalOpen(false);
     }
   };
-
   const columns = [
     { name: "Name", selector: (row: Office) => row.name || "N/A", sortable: true },
     { name: "Location", selector: (row: Office) => row.location || "N/A", sortable: true },
@@ -89,35 +73,39 @@ const fetchOffices = async () => {
         row.image ? <img src={`${API_BASE_URL}${row.image}`} alt={row.name} className="w-12 h-12 rounded-md" /> : "No Image",
       sortable: false,
     },
- {
-    name: "Amenities",
-    cell: (row: Office) => {
-      const isExpanded = expandedRows[row.id] || false;
-      const displayedAmenities = isExpanded ? row.amenities : row.amenities.slice(0, 2);
+{
+  name: "Amenities",
+  cell: (row: Office) => {
+    const isExpanded = expandedRows[row.id] || false;
+    
+    // Ensure displayedAmenities is always an array
+    const displayedAmenities = Array.isArray(row.amenities) 
+      ? (isExpanded ? row.amenities : row.amenities.slice(0, 2)) 
+      : [];
 
-      return (
-        <div>
-          <ul className="list-disc pl-4 text-gray-600">
-            {displayedAmenities.length > 0 ? (
-              displayedAmenities.map((amenity, index) => <li key={index}>{amenity}</li>)
-            ) : (
-              <p>No Amenities</p>
-            )}
-          </ul>
-
-          {row.amenities.length > 2 && (
-            <button
-              onClick={() => toggleExpand(row.id)}
-              className="text-blue-500 hover:underline text-sm mt-1"
-            >
-              {isExpanded ? "See Less" : "See More"}
-            </button>
+    return (
+      <div>
+        <ul className="list-disc pl-4 text-gray-600">
+          {displayedAmenities.length > 0 ? (
+            displayedAmenities.map((amenity, index) => <li key={index}>{amenity}</li>)
+          ) : (
+            <p>No Amenities</p>
           )}
-        </div>
-      );
-    },
-    sortable: false,
+        </ul>
+
+        {row.amenities && Array.isArray(row.amenities) && row.amenities.length > 2 && (
+          <button
+            onClick={() => toggleExpand(row.id)}
+            className="text-blue-500 hover:underline text-sm mt-1"
+          >
+            {isExpanded ? "See Less" : "See More"}
+          </button>
+        )}
+      </div>
+    );
   },
+  sortable: false,
+},
 {
   name: "Actions",
   right: true,

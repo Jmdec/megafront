@@ -1,5 +1,11 @@
+"use client";
+
 import { useState, useEffect } from "react";
 import { showToast } from "@/components/toast";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState, AppDispatch } from "@/app/redux/store"; // Correct import for RootState and AppDispatch
+import { fetchLocations } from "@/app/redux/services/locationService"; // Fetch locations action
+import { addOffice } from "@/app/redux/services/officeService"; // Correct import for the addOffice function
 
 interface AddModalProps {
   modalOpen: boolean;
@@ -8,7 +14,9 @@ interface AddModalProps {
 }
 
 const AddModal: React.FC<AddModalProps> = ({ modalOpen, closeModal, fetchData }) => {
-const [locations, setLocations] = useState<{ id: number; name: string }[]>([]);
+  const dispatch = useDispatch<AppDispatch>(); // Correctly type dispatch here
+  const locations = useSelector((state: RootState) => state.locationData.locations); // Get locations from Redux
+  const { loading, error } = useSelector((state: RootState) => state.officeData); // Get office loading and error states
 
   const [newOffice, setNewOffice] = useState<{
     name: string;
@@ -19,7 +27,7 @@ const [locations, setLocations] = useState<{ id: number; name: string }[]>([]);
     price: string;
     lotArea: string;
     amenities: string[];
-  }>({
+  }>( {
     name: "",
     description: "",
     image: null,
@@ -32,65 +40,53 @@ const [locations, setLocations] = useState<{ id: number; name: string }[]>([]);
 
   const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
-  // ✅ Fetch locations from API
+  // Fetch locations on component mount
   useEffect(() => {
-    const fetchLocations = async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/api/location`);
-        const data = await response.json();
-        console.log(data)
-        setLocations(data);
-      } catch (error) {
-        console.error("Error fetching locations:", error);
-      }
-    };
+    dispatch(fetchLocations()); // Dispatch fetch locations action
+  }, [dispatch]);
 
-    fetchLocations();
-  }, []);
-const handleAddOffice = async () => {
-  if (!newOffice.name.trim() || !newOffice.location || !newOffice.status || !newOffice.price.trim()) {
-    showToast("Name, Location, Status, and Price are required.", "error");
-    return;
-  }
+  const handleAddOffice = () => {
+    if (!newOffice.name.trim() || !newOffice.location || !newOffice.status || !newOffice.price.trim()) {
+      showToast("Name, Location, Status, and Price are required.", "error");
+      return;
+    }
 
-  const formData = new FormData();
-  formData.append("name", newOffice.name);
-  formData.append("description", newOffice.description);
-  formData.append("location", newOffice.location);
-  formData.append("status", newOffice.status);
-  formData.append("price", newOffice.price);
-  formData.append("lotArea", newOffice.lotArea);
-  formData.append("amenities", JSON.stringify(newOffice.amenities.filter(Boolean)));
+    const formData = new FormData();
+    formData.append("name", newOffice.name);
+    formData.append("description", newOffice.description);  
+    formData.append("location", newOffice.location);
+    formData.append("status", newOffice.status);
+    formData.append("price", newOffice.price);
+    formData.append("lotArea", newOffice.lotArea);
+    formData.append("amenities", JSON.stringify(newOffice.amenities.filter(Boolean)));
 
-  if (newOffice.image) {
-    formData.append("image", newOffice.image);
-  }
+    if (newOffice.image) {
+      formData.append("image", newOffice.image);
+    }
 
-  // ✅ Debug: Log FormData before sending
-  console.log("🔹 FormData being sent:");
-  for (const pair of formData.entries()) {
-    console.log(pair[0], pair[1]);
-  }
+    // Dispatch the add office action (dispatching the thunk)
+    dispatch(addOffice(formData)); // This line triggers the action correctly
 
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/office`, {
-      method: "POST",
-      body: formData,
+    // Reset form after submission (optional)
+    setNewOffice({
+      name: "",
+      description: "",
+      image: null,
+      location: "",
+      status: "",
+      price: "",
+      lotArea: "",
+      amenities: [""],
     });
 
-    if (response.ok) {
-      showToast("Office added successfully", "success");
-      fetchData();
-      closeModal();
-    } else {
-      showToast("Failed to add office.", "error");
-    }
-  } catch (error) {
-    console.error("Error adding office:", error);
-    showToast("Error adding office.", "error");
-  }
-};
+    closeModal()
+  };
 
+  useEffect(() => {
+    if (error) {
+      showToast(error, "error");
+    }
+  }, [error]);
 
   return modalOpen ? (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
@@ -110,19 +106,18 @@ const handleAddOffice = async () => {
             />
 
             <label className="block font-medium mb-1">Location</label>
-        <select
-  value={newOffice.location}
-  onChange={(e) => setNewOffice({ ...newOffice, location: e.target.value })}
-  className="w-full border rounded-md px-3 py-2 mb-4"
->
-  <option value="">Select Location</option>
-  {locations.map((loc, index) => (
-    <option key={index} value={loc.name}>
-      {loc.name} {/* ✅ Render location name correctly */}
-    </option>
-  ))}
-</select>
-
+            <select
+              value={newOffice.location}
+              onChange={(e) => setNewOffice({ ...newOffice, location: e.target.value })}
+              className="w-full border rounded-md px-3 py-2 mb-4"
+            >
+              <option value="">Select Location</option>
+              {locations.map((loc, index) => (
+                <option key={index} value={loc.name}>
+                  {loc.name}
+                </option>
+              ))}
+            </select>
 
             <label className="block font-medium mb-1">Status</label>
             <select

@@ -1,5 +1,9 @@
 import { useState, useEffect } from "react";
 import { showToast } from "@/components/toast";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState, AppDispatch } from "@/app/redux/store"; // Correctly type dispatch here
+import { fetchLocations } from "@/app/redux/services/locationService"; // Fetch locations action
+import { fetchOffices,updateOffice } from "@/app/redux/services/officeService"; // Correct import for the updateOffice function
 
 interface EditModalProps {
   modalOpen: boolean;
@@ -19,7 +23,10 @@ interface EditModalProps {
 }
 
 const EditModal: React.FC<EditModalProps> = ({ modalOpen, closeModal, fetchData, office }) => {
-  const [locations, setLocations] = useState<{ id: number; name: string }[]>([]);
+  const dispatch = useDispatch<AppDispatch>(); // Correctly type dispatch here
+  const locations = useSelector((state: RootState) => state.locationData.locations); // Get locations from Redux
+  const { loading, error } = useSelector((state: RootState) => state.officeData); // Get office loading and error states
+
   const [updatedOffice, setUpdatedOffice] = useState({
     name: "",
     description: "",
@@ -33,6 +40,7 @@ const EditModal: React.FC<EditModalProps> = ({ modalOpen, closeModal, fetchData,
 
   const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
+  // Use Effect to set the office data when the office prop changes
   useEffect(() => {
     if (office) {
       setUpdatedOffice({
@@ -48,22 +56,14 @@ const EditModal: React.FC<EditModalProps> = ({ modalOpen, closeModal, fetchData,
     }
   }, [office]);
 
-  // ✅ Fetch locations from API
+  // Fetch locations from API
   useEffect(() => {
-    const fetchLocations = async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/api/location`);
-        const data = await response.json();
-        setLocations(data);
-      } catch (error) {
-        console.error("Error fetching locations:", error);
-      }
-    };
+ 
 
     fetchLocations();
   }, []);
 
-  const handleUpdateOffice = async () => {
+const handleUpdateOffice = () => {
   if (!updatedOffice.name.trim() || !updatedOffice.location || !updatedOffice.status || !updatedOffice.price.trim()) {
     showToast("Name, Location, Status, and Price are required.", "error");
     return;
@@ -81,34 +81,36 @@ const EditModal: React.FC<EditModalProps> = ({ modalOpen, closeModal, fetchData,
   if (updatedOffice.image) {
     formData.append("image", updatedOffice.image);
   } else {
-    formData.append("image", office?.image || ""); // ✅ Keep the existing image
+    formData.append("image", office?.image || "");  // Keep the existing image if no new image is uploaded
   }
 
-  // ✅ Debug: Log FormData before sending
-  console.log("🔹 Updating Office with FormData:");
-  for (const pair of formData.entries()) {
-    console.log(pair[0], pair[1]);
+  // Log FormData before dispatching
+  console.log("🔹 Form Data to be submitted:");
+  for (let pair of formData.entries()) {
+    console.log(pair[0] + ": " + pair[1]);
   }
 
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/office/${office?.id}`, {
-      method: "POST", // ✅ Using POST directly
-      body: formData,
-    });
-
-    if (response.ok) {
-      showToast("Office updated successfully", "success");
-      fetchData();
-      closeModal();
-    } else {
-      showToast("Failed to update office.", "error");
-    }
-  } catch (error) {
-    console.error("Error updating office:", error);
-    showToast("Error updating office.", "error");
+  // Dispatch the update action using Redux
+  if (office?.id) {
+    dispatch(updateOffice({ id: office.id, updatedOffice: formData }))
+      .unwrap() // Wait for the promise to resolve or reject
+      .then(() => {
+        dispatch(fetchOffices()); // Ensure the latest data is fetched immediately after update
+      })
+    
   }
+
+
+  closeModal();
 };
 
+
+  // Handle error
+  useEffect(() => {
+    if (error) {
+      showToast(error, "error");
+    }
+  }, [error]);
 
 
   return modalOpen && office ? (

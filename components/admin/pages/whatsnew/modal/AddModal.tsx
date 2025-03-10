@@ -1,6 +1,17 @@
 import React, { useState } from "react";
 import { showToast } from "@/components/toast";
 
+import { useDispatch } from "react-redux"; // ✅ Import Redux hooks
+
+import { addSeminar } from "@/app/redux/services/seminarService";
+import { addMeeting } from "@/app/redux/services/meetingService";
+import { addEvent } from "@/app/redux/services/eventService";
+import { addClosedDeal } from "@/app/redux/services/closedDealService";
+import { addRealEstateNews } from "@/app/redux/services/realestateNewsService";
+import { addRealEstateTip } from "@/app/redux/services/realestateTipsService";
+import { addOngoingInfrastructure } from "@/app/redux/services/ongoingInfrastructure";
+import { addVideo } from "@/app/redux/services/videoService";
+
 interface AddModalProps {
   modalOpen: boolean;
   closeModal: () => void;
@@ -34,8 +45,31 @@ const AddModal: React.FC<AddModalProps> = ({ modalOpen, closeModal, fetchData, i
   });
 
   const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+const dispatch = useDispatch();
 
- const handleAddItem = async () => {
+const getReduxAction = () => {
+  switch (itemType) {
+    case "seminar":
+      return addSeminar;
+    case "meeting":
+      return addMeeting;
+    case "event":
+      return addEvent;
+    case "closedDeal":
+      return addClosedDeal;
+    case "realEstateNews":
+      return addRealEstateNews;
+    case "realEstateTips":
+      return addRealEstateTip;
+    case "ongoingInfrastructure":
+      return addOngoingInfrastructure;
+    case "video":
+      return addVideo;
+    default:
+      return null;
+  }
+};
+const handleAddItem = async () => {
   if (!newItem.title.trim() || !newItem.date.trim()) {
     showToast("Title and Date are required.", "error");
     return;
@@ -45,63 +79,52 @@ const AddModal: React.FC<AddModalProps> = ({ modalOpen, closeModal, fetchData, i
     showToast("Please provide a YouTube URL or upload a video file.", "error");
     return;
   }
- if (itemType === "event" && !newItem.description?.trim()) {
+
+  if (itemType === "event" && !newItem.description?.trim()) {
     showToast("Description is required for events.", "error");
     return;
   }
+
   const formData = new FormData();
   formData.append("title", newItem.title);
   formData.append("date", newItem.date);
-
+  
+  // Handle specific cases
   if (itemType === "video") {
     formData.append("location", newItem.location || "");
-    formData.append("views", String(parseInt(newItem.views || "0", 10))); // ✅ Convert to integer
+    formData.append("views", String(parseInt(newItem.views || "0", 10)));
     if (newItem.url) formData.append("url", newItem.url);
     if (newItem.file) formData.append("file", newItem.file);
     if (newItem.thumbnail) formData.append("thumbnail", newItem.thumbnail);
-  }   else if (itemType === "event") {
-  formData.append("description", newItem.description || "");
-  formData.append("media_type", newItem.mediaType || ""); // Append media_type for events
-  
-  // Only append the image field if media_type is "image"
-  if (newItem.mediaType === "image" && newItem.image) {
-    formData.append("image", newItem.image); // For event, attach image only if media_type is image
-  }else{
-    if (newItem.file) formData.append("file", newItem.file);
-  }
-}
-
-  // Fallback for other item types (e.g., generic or another type)
-  else {
+  } else if (itemType === "event") {
+    formData.append("description", newItem.description || "");
+    formData.append("media_type", newItem.mediaType || "");
+    if (newItem.mediaType === "image" && newItem.image) {
+      formData.append("image", newItem.image);
+    } else if (newItem.file) {
+      formData.append("file", newItem.file);
+    }
+  } else {
     formData.append("description", newItem.description || "");
     if (newItem.image) formData.append("image", newItem.image);
   }
-  console.log("Sending FormData:");
-  for (const pair of formData.entries()) {
-    console.log(pair[0], pair[1]);
-  }
 
   try {
-    const response = await fetch(`${API_BASE_URL}/api/${itemType}`, {
-      method: "POST",
-      body: formData,
-    });
-
-    const result = await response.json();
-    console.log("API Response:", result);
-
-    if (response.ok) {
-      showToast(`${itemType.charAt(0).toUpperCase() + itemType.slice(1)} added successfully`, "success");
+    const reduxAction = getReduxAction();
+    if (reduxAction) {
+      await dispatch(reduxAction(formData) as any).unwrap(); // ✅ Fix: Ensure proper typing
+    
       fetchData();
       closeModal();
     } else {
-      showToast("Failed to add item.", "error");
+      showToast("Invalid item type.", "error");
     }
   } catch (error) {
     console.error("Error:", error);
     showToast("Error adding item.", "error");
   }
 };
+
 
 
   return modalOpen ? (

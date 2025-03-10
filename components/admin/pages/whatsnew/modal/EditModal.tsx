@@ -1,6 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { showToast } from "@/components/toast";
+import { useDispatch } from "react-redux";
 
+
+import { updateSeminar } from "@/app/redux/services/seminarService";
+import { updateMeeting } from "@/app/redux/services/meetingService";
+import { updateEvent } from "@/app/redux/services/eventService";
+import { updateClosedDeal } from "@/app/redux/services/closedDealService";
+import { updateRealEstateNews } from "@/app/redux/services/realestateNewsService";
+import { updateRealEstateTip } from "@/app/redux/services/realestateTipsService";
+import { updateOngoingInfrastructure } from "@/app/redux/services/ongoingInfrastructure";
+import { updateVideo } from "@/app/redux/services/videoService";
 interface EditItemModalProps {
   modalOpen: boolean;
   closeModal: () => void;
@@ -16,6 +26,7 @@ const EditItemModal: React.FC<EditItemModalProps> = ({
   fetchData,
   itemType,
 }) => {
+  const dispatch = useDispatch();
   const [editedItem, setEditedItem] = useState<any | null>(item);
   const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
@@ -23,61 +34,78 @@ const EditItemModal: React.FC<EditItemModalProps> = ({
     setEditedItem(item);
   }, [item]);
 
-const handleSave = async () => {
-  if (!editedItem?.title.trim() || !editedItem?.date.trim()) {
-    showToast("Title and Date are required.", "error");
-    return;
-  }
-
-  const formData = new FormData();
-  formData.append("title", editedItem.title);
-  formData.append("date", editedItem.date);
-
-  if (itemType === "video") {
-    formData.append("location", editedItem.location || "");
-    formData.append("views", String(parseInt(editedItem.views || "0", 10)));
-    if (editedItem.url) formData.append("url", editedItem.url);
-    if (editedItem.file) formData.append("file", editedItem.file);
-    if (editedItem.thumbnail) formData.append("thumbnail", editedItem.thumbnail);
-  } else if (itemType === "event") {
-    formData.append("description", editedItem.description || "");
-    formData.append("media_type", editedItem.mediaType || ""); // Append media_type for events
-
-    // Only append the image field if media_type is "image"
-    if (editedItem.mediaType === "image" && editedItem.image) {
-      formData.append("image", editedItem.image); // For event, attach image only if media_type is image
-    } else if (editedItem.file) {
-      formData.append("file", editedItem.file); // If media_type is video, append the file
+  const handleSave = async () => {
+    if (!editedItem?.title.trim() || !editedItem?.date.trim()) {
+      showToast("Title and Date are required.", "error");
+      return;
     }
-  } else {
-    formData.append("description", editedItem.description || "");
-    if (editedItem.image) formData.append("image", editedItem.image);
-  }
 
-  // Log FormData contents before sending it
-  console.log("Sending FormData:");
-  for (const pair of formData.entries()) {
-    console.log(pair[0], pair[1]);
-  }
+    const formData = new FormData();
+    formData.append("title", editedItem.title);
+    formData.append("date", editedItem.date);
 
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/${itemType}/${editedItem.id}`, {
-      method: "POST",
-      body: formData,
-    });
+    if (itemType === "video") {
+      formData.append("location", editedItem.location || "");
+      formData.append("views", String(parseInt(editedItem.views || "0", 10)));
+      if (editedItem.url) formData.append("url", editedItem.url);
+      if (editedItem.file) formData.append("file", editedItem.file);
+      if (editedItem.thumbnail) formData.append("thumbnail", editedItem.thumbnail);
+    } else if (itemType === "event") {
+      formData.append("description", editedItem.description || "");
+      formData.append("media_type", editedItem.mediaType || "");
+      if (editedItem.mediaType === "image" && editedItem.image) {
+        formData.append("image", editedItem.image);
+      } else if (editedItem.file) {
+        formData.append("file", editedItem.file);
+      }
+    } else {
+      formData.append("description", editedItem.description || "");
+      if (editedItem.image) formData.append("image", editedItem.image);
+    }
 
-    if (response.ok) {
-      showToast(`${itemType.charAt(0).toUpperCase() + itemType.slice(1)} updated successfully`, "success");
+    console.log("Sending FormData:", Object.fromEntries(formData.entries()));
+
+    try {
+      let updateAction;
+      switch (itemType) {
+        case "seminar":
+          updateAction = updateSeminar({ id: editedItem.id, updatedSeminar: formData });
+          break;
+        case "meeting":
+          updateAction = updateMeeting({ id: editedItem.id, updatedMeeting: formData });
+          break;
+        case "event":
+          updateAction = updateEvent({ id: editedItem.id, updatedEvent: formData });
+          break;
+        case "closedDeal":
+          updateAction = updateClosedDeal({ id: editedItem.id, updatedClosedDeal: formData });
+          break;
+        case "realEstateNews":
+          updateAction = updateRealEstateNews({ id: editedItem.id, updatedNews: formData });
+          break;
+        case "realEstateTips":
+          updateAction = updateRealEstateTip({ id: editedItem.id, updatedTip: formData });
+          break;
+        case "ongoingInfrastructure":
+          updateAction = updateOngoingInfrastructure({ id: editedItem.id, updatedProject: formData });
+          break;
+        case "video":
+          updateAction = updateVideo({ id: editedItem.id, updatedVideo: formData });
+          break;
+        default:
+          showToast("Invalid item type.", "error");
+          return;
+      }
+
+      await dispatch(updateAction as any).unwrap();
+
       fetchData();
       closeModal();
-    } else {
-      showToast("Failed to update item.", "error");
+    } catch (error) {
+      console.error("Error updating:", error);
+ 
     }
-  } catch (error) {
-    console.error("Error:", error);
-    showToast("Error updating item.", "error");
-  }
-};
+  };
 
 
   return modalOpen && editedItem ? (

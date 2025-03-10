@@ -1,68 +1,111 @@
+import Cookies from "js-cookie";
 import { createAsyncThunk } from "@reduxjs/toolkit";
+import { showToast } from "@/components/toast";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+const getAuthToken = () => Cookies.get("auth_token");
 
-// 🔹 Fetch all real estate tips
-export const fetchRealEstateTips = createAsyncThunk("realEstateTips/fetchAll", async () => {
-  const response = await fetch(`${API_BASE_URL}/api/realEstateTips`);
-  const data = await response.json();
-  
-  return data || []; // Ensure fallback to an empty array
-});
+// 🔹 Fetch all real estate tips (No authentication required)
+export const fetchRealEstateTips = createAsyncThunk(
+  "realEstateTips/fetchAll",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/realEstateTips`, {
+        headers: { "Content-Type": "application/json" },
+      });
 
-// 🔹 Add a new real estate tip
+      if (!response.ok) throw new Error("Failed to fetch real estate tips");
+
+      const data = await response.json();
+      console.log("📌 Fetched Real Estate Tips:", data);
+      return data || []; // Ensure fallback to an empty array
+    } catch (error: any) {
+      showToast(error.message, "error");
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
+// 🔹 Add a new real estate tip (Requires authentication)
 export const addRealEstateTip = createAsyncThunk(
   "realEstateTips/add",
-  async (newTip: FormData) => {
-    const response = await fetch(`${API_BASE_URL}/api/realEstateTips`, {
-      method: "POST",
-      body: newTip,
-    });
+  async (newTip: FormData, { rejectWithValue }) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/realEstateTips`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${getAuthToken()}` },
+        body: newTip,
+      });
 
-    if (!response.ok) throw new Error("Failed to add real estate tip");
+      if (!response.ok) throw new Error("Failed to add real estate tip");
 
-    const result = await response.json();
-    console.log("✅ Added Real Estate Tip:", result); // ✅ Logs added tip
-    return result;
+      showToast("Real estate tip added successfully", "success");
+      return response.json();
+    } catch (error: any) {
+      showToast(error.message, "error");
+      return rejectWithValue(error.message);
+    }
   }
 );
 
-// 🔹 Fetch a single real estate tip by ID
-export const fetchRealEstateTipById = createAsyncThunk("realEstateTips/fetchById", async (id: number) => {
-  const response = await fetch(`${API_BASE_URL}/api/realEstateTips/${id}`);
+// 🔹 Fetch a single real estate tip by ID (No authentication required)
+export const fetchRealEstateTipById = createAsyncThunk(
+  "realEstateTips/fetchById",
+  async (id: number, { rejectWithValue }) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/realEstateTips/${id}`);
 
-  if (!response.ok) throw new Error("Failed to fetch real estate tip");
+      if (!response.ok) throw new Error("Failed to fetch real estate tip");
 
-  const data = await response.json();
-  console.log(`📌 Fetched Tip with ID ${id}:`, data); // ✅ Logs fetched tip
-  return data;
-});
+      const data = await response.json();
+      console.log(`📌 Fetched Real Estate Tip with ID ${id}:`, data);
+      return data;
+    } catch (error: any) {
+      showToast(error.message, "error");
+      return rejectWithValue(error.message);
+    }
+  }
+);
 
-// 🔹 Update real estate tip
+// 🔹 Update a real estate tip (Requires authentication)
 export const updateRealEstateTip = createAsyncThunk(
   "realEstateTips/update",
-  async ({ id, updatedTip }: { id: number; updatedTip: FormData }) => {
-    const response = await fetch(`${API_BASE_URL}/api/realEstateTips/${id}`, {
-      method: "POST", // or "PUT" if backend requires
-      body: updatedTip,
-    });
+  async ({ id, updatedTip }: { id: number; updatedTip: FormData }, { rejectWithValue }) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/realEstateTips/${id}`, {
+        method: "POST", // or "PUT" if backend requires
+        headers: { Authorization: `Bearer ${getAuthToken()}` },
+        body: updatedTip,
+      });
 
-    if (!response.ok) throw new Error("Failed to update real estate tip");
+      if (!response.ok) throw new Error("Failed to update real estate tip");
 
-    const updatedData = await response.json();
-    console.log(`🔄 Updated Tip ID ${id}:`, updatedData); // ✅ Logs updated tip
-    return updatedData;
+      showToast("Real estate tip updated successfully", "success");
+      return response.json();
+    } catch (error: any) {
+      showToast(error.message, "error");
+      return rejectWithValue(error.message);
+    }
   }
 );
 
-// 🔹 Delete real estate tip
-export const deleteRealEstateTip = createAsyncThunk("realEstateTips/delete", async (id: number) => {
-  const response = await fetch(`${API_BASE_URL}/api/realEstateTips/${id}`, {
-    method: "DELETE",
-  });
+// 🔹 Delete a real estate tip (Requires authentication)
+export const deleteRealEstateTip = createAsyncThunk(
+  "realEstateTips/delete",
+  async (id: number, { rejectWithValue }) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/realEstateTips/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${getAuthToken()}` },
+      });
 
-  if (!response.ok) throw new Error("Failed to delete real estate tip");
+      if (!response.ok) throw new Error("Failed to delete real estate tip");
 
-  console.log(`❌ Deleted Tip ID ${id}`); // ✅ Logs deleted tip ID
-  return id; // Return deleted tip ID
-});
+      showToast("Real estate tip deleted successfully", "success");
+      return id; // Return deleted tip ID
+    } catch (error: any) {
+      showToast(error.message, "error");
+      return rejectWithValue(error.message);
+    }
+  }
+);

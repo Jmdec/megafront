@@ -14,7 +14,7 @@ import {
   fetchRealEstateTipsStatistics,
   fetchOngoingInfrastructureStatistics,
 } from "@/app/redux/services/dashboardService";
-
+import Loading from "@/components/loading/loadingAdmin"; 
 const Dashboard = () => {
   const dispatch = useDispatch<AppDispatch>();
 

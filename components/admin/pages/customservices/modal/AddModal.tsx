@@ -1,5 +1,8 @@
 import React, { useState } from "react";
+import { useDispatch } from "react-redux";
 import { showToast } from "@/components/toast";
+import { addCareer } from "@/app/redux/services/careerService";
+import { addTestimonial } from "@/app/redux/services/testimonialService";
 
 interface AddModalProps {
   modalOpen: boolean;
@@ -9,14 +12,14 @@ interface AddModalProps {
 }
 
 const AddModal: React.FC<AddModalProps> = ({ modalOpen, closeModal, fetchData, itemType }) => {
+  const dispatch = useDispatch<any>();
+
   const [newItem, setNewItem] = useState<{ roleName?: string; quantity?: number; name?: string; message?: string }>({
     roleName: "",
     quantity: 1,
     name: "",
     message: "",
   });
-
-  const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
   const handleAddItem = async () => {
     if (itemType === "career" && !newItem.roleName?.trim()) {
@@ -28,28 +31,16 @@ const AddModal: React.FC<AddModalProps> = ({ modalOpen, closeModal, fetchData, i
       return;
     }
 
-    const formData = new FormData();
-    if (itemType === "career") {
-      formData.append("roleName", newItem.roleName || "");
-      formData.append("quantity", newItem.quantity?.toString() || "1");
-    } else if (itemType === "testimonial") {
-      formData.append("name", newItem.name || "");
-      formData.append("message", newItem.message || "");
-    }
-
     try {
-      const response = await fetch(`${API_BASE_URL}/api/${itemType}`, {
-        method: "POST",
-        body: formData,
-      });
-
-      if (response.ok) {
-        showToast(`${itemType.charAt(0).toUpperCase() + itemType.slice(1)} added successfully`, "success");
-        fetchData();
-        closeModal();
-      } else {
-        showToast(`Failed to add ${itemType}.`, "error");
+      if (itemType === "career") {
+        await dispatch(addCareer({ roleName: newItem.roleName!, quantity: newItem.quantity! })).unwrap();
+      } else if (itemType === "testimonial") {
+        await dispatch(addTestimonial({ name: newItem.name!, message: newItem.message! })).unwrap();
       }
+
+      showToast(`${itemType.charAt(0).toUpperCase() + itemType.slice(1)} added successfully`, "success");
+      fetchData();
+      closeModal();
     } catch (error) {
       console.error("Error:", error);
       showToast(`Error adding ${itemType}.`, "error");

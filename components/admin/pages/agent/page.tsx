@@ -1,4 +1,10 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "@/app/redux/store";
+import {
+  fetchAgents,
+  deleteAgent,
+} from "@/app/redux/services/agentService";
 import DataTable from "react-data-table-component";
 import { showToast } from "@/components/toast";
 import AddModal from "./modal/AddModal";
@@ -26,7 +32,9 @@ interface Agent {
 }
 
 export default function AgentPage() {
-  const [agents, setAgents] = useState<Agent[]>([]);
+  const dispatch = useDispatch<any>();
+  const { agents, loading } = useSelector((state: RootState) => state.agentData);
+
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingAgent, setEditingAgent] = useState<Agent | null>(null);
@@ -35,45 +43,15 @@ export default function AgentPage() {
   const [openMenu, setOpenMenu] = useState<number | null>(null);
   const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
-const fetchAgents = async () => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/agent`);
-      const data = await response.json();
-
-      if (Array.isArray(data)) {
-        const formattedData = data.map((agent) => ({
-          ...agent,
-          sociallinks: {
-            facebook: agent.facebook || null,
-            instagram: agent.instagram || null,
-          },
-          certificates: typeof agent.certificates === "string" ? JSON.parse(agent.certificates) : [],
-          gallery: typeof agent.gallery === "string" ? JSON.parse(agent.gallery) : [],
-        }));
-
-        setAgents(formattedData);
-      } else {
-        console.error("Invalid data format:", data);
-      }
-    } catch (error) {
-      console.error("Error fetching agents:", error);
-    }
-  };
   useEffect(() => {
-    fetchAgents();
-  }, []);
+    dispatch(fetchAgents());
+  }, [dispatch]);
 
   const handleDeleteAgent = async () => {
     if (agentToDelete) {
       try {
-        const response = await fetch(`${API_BASE_URL}/api/agent/${agentToDelete.id}`, {
-          method: "DELETE",
-        });
+        await dispatch(deleteAgent(agentToDelete.id)).unwrap();
 
-        if (response.ok) {
-          fetchAgents();
-          showToast("Agent deleted successfully", "success");
-        }
       } catch (error) {
         console.error("Error deleting agent:", error);
       }
@@ -91,17 +69,16 @@ const fetchAgents = async () => {
       sortable: false,
     },
     { name: "Description", selector: (row: Agent) => row.description || "N/A", sortable: false },
- {
-  name: "Contacts",
-  cell: (row: Agent) => (
-    <div>
-      <p>Email: {row.email || "N/A"}</p>
-      <p>Phone: {row.phone || "N/A"}</p>
-    </div>
-  ),
-  sortable: false,
-},
-
+    {
+      name: "Contacts",
+      cell: (row: Agent) => (
+        <div>
+          <p>Email: {row.email || "N/A"}</p>
+          <p>Phone: {row.phone || "N/A"}</p>
+        </div>
+      ),
+      sortable: false,
+    },
     {
       name: "Social Links",
       cell: (row: Agent) => (
@@ -120,10 +97,15 @@ const fetchAgents = async () => {
       ),
       sortable: false,
     },
-   {
+  {
   name: "Certificates",
   cell: (row: Agent) => {
-    const certificates = typeof row.certificates === "string" ? JSON.parse(row.certificates) : [];
+    const certificates = Array.isArray(row.certificates)
+      ? row.certificates
+      : typeof row.certificates === "string"
+      ? JSON.parse(row.certificates)
+      : [];
+
     return (
       <div className="flex gap-2">
         {certificates.length > 0 ? (
@@ -141,7 +123,12 @@ const fetchAgents = async () => {
 {
   name: "Gallery",
   cell: (row: Agent) => {
-    const gallery = typeof row.gallery === "string" ? JSON.parse(row.gallery) : [];
+    const gallery = Array.isArray(row.gallery)
+      ? row.gallery
+      : typeof row.gallery === "string"
+      ? JSON.parse(row.gallery)
+      : [];
+
     return (
       <div className="flex gap-2">
         {gallery.length > 0 ? (
@@ -157,48 +144,44 @@ const fetchAgents = async () => {
   sortable: false,
 },
 
-
-   {
-  name: "Actions",
-  right: true,
-  cell: (row: Agent) => (
-    <div className="relative">
-      <button
-        onClick={() => setOpenMenu(openMenu === row.id ? null : row.id)}
-        className="p-2 rounded-full hover:bg-gray-200"
-      >
-        <FaEllipsisV />
-      </button>
-
-      {openMenu === row.id && (
-        <div
-          className="fixed right-0 bg-white shadow-md rounded-md w-24 mr-16 py-1 z-50"
-        >
+    {
+      name: "Actions",
+      right: true,
+      cell: (row: Agent) => (
+        <div className="relative">
           <button
-            onClick={() => {
-              setEditingAgent(row);
-              setIsEditModalOpen(true);
-            }}
-            className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
+            onClick={() => setOpenMenu(openMenu === row.id ? null : row.id)}
+            className="p-2 rounded-full hover:bg-gray-200"
           >
-            Edit
+            <FaEllipsisV />
           </button>
-          <button
-            onClick={() => {
-              setAgentToDelete(row);
-              setDeleteModalOpen(true);
-              setOpenMenu(null); // Close menu on delete click
-            }}
-            className="block w-full text-left px-4 py-2 text-red-500 hover:bg-gray-100"
-          >
-            Delete
-          </button>
+
+          {openMenu === row.id && (
+            <div className="fixed right-0 bg-white shadow-md rounded-md w-24 mr-16 py-1 z-50">
+              <button
+                onClick={() => {
+                  setEditingAgent(row);
+                  setIsEditModalOpen(true);
+                }}
+                className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
+              >
+                Edit
+              </button>
+              <button
+                onClick={() => {
+                  setAgentToDelete(row);
+                  setDeleteModalOpen(true);
+                  setOpenMenu(null);
+                }}
+                className="block w-full text-left px-4 py-2 text-red-500 hover:bg-gray-100"
+              >
+                Delete
+              </button>
+            </div>
+          )}
         </div>
-      )}
-    </div>
-  ),
-}
-
+      ),
+    },
   ];
 
   return (
@@ -210,18 +193,21 @@ const fetchAgents = async () => {
         </button>
       </div>
 
-      <DataTable columns={columns} data={agents} pagination highlightOnHover striped />
+      {loading ? (
+        <p>Loading...</p>
+      ) : (
+        <DataTable columns={columns} data={agents} pagination highlightOnHover striped />
+      )}
 
-      <AddModal modalOpen={isAddModalOpen} closeModal={() => setIsAddModalOpen(false)} fetchData={fetchAgents} />
-{editingAgent && (
-  <EditModal 
-    modalOpen={isEditModalOpen} 
-    closeModal={() => setIsEditModalOpen(false)} 
-    agent={editingAgent}  // 🔹 Ensure we pass 'agent' instead of 'item'
-    fetchData={fetchAgents} 
-  />
-)}
-
+      <AddModal modalOpen={isAddModalOpen} closeModal={() => setIsAddModalOpen(false)} fetchData={() => dispatch(fetchAgents())} />
+      {editingAgent && (
+        <EditModal
+          modalOpen={isEditModalOpen}
+          closeModal={() => setIsEditModalOpen(false)}
+          agent={editingAgent}
+          fetchData={() => dispatch(fetchAgents())}
+        />
+      )}
 
       {deleteModalOpen && agentToDelete && (
         <div className="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-50 z-50">

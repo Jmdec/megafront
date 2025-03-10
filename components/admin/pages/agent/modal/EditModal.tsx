@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
+import { useDispatch } from "react-redux";
 import { showToast } from "@/components/toast";
+import { updateAgent } from "@/app/redux/services/agentService";
 
 interface EditModalProps {
   modalOpen: boolean;
@@ -25,6 +27,7 @@ interface Agent {
 }
 
 export default function EditModal({ modalOpen, closeModal, agent, fetchData }: EditModalProps) {
+   const dispatch = useDispatch<any>();
   const [formData, setFormData] = useState<Agent>({
     id: agent.id,
     name: agent.name || "",
@@ -81,7 +84,6 @@ const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, field: "image"
   }
 };
 
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -94,19 +96,14 @@ const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, field: "image"
     updatedFormData.append("facebook", formData.sociallinks.facebook || "");
     updatedFormData.append("instagram", formData.sociallinks.instagram || "");
 
-    // Handle Image Upload
     if (imageFile) {
       updatedFormData.append("image", imageFile);
     }
-
-    // Handle Certificates Upload (Keep previous + new files)
     if (certFiles) {
       Array.from(certFiles).forEach((file, index) => {
         updatedFormData.append(`certificates[${index}]`, file);
       });
     }
-
-    // Handle Gallery Upload (Keep previous + new files)
     if (galleryFiles) {
       Array.from(galleryFiles).forEach((file, index) => {
         updatedFormData.append(`gallery[${index}]`, file);
@@ -114,23 +111,14 @@ const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, field: "image"
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/agent/${agent.id}`, {
-        method: "POST",
-        body: updatedFormData,
-      });
+      await dispatch(updateAgent({ id: agent.id, updatedAgent: updatedFormData })).unwrap();
 
-      if (response.ok) {
-        showToast("Agent updated successfully", "success");
-        fetchData();
-        closeModal();
-      } else {
-        showToast("Failed to update agent", "error");
-      }
-    } catch (error) {
-      console.error("Error updating agent:", error);
+      fetchData();
+      closeModal();
+    } catch (error: any) {
+      showToast(error.message || "Failed to update agent", "error");
     }
   };
-
   if (!modalOpen) return null;
 
 return (

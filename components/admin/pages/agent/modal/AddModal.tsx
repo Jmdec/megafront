@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { showToast } from "@/components/toast";
-
+import { useDispatch, useSelector } from "react-redux";
+import { addAgent } from "@/app/redux/services/agentService";
+import { RootState } from "@/app/redux/store";
 interface AddModalProps {
   modalOpen: boolean;
   closeModal: () => void;
@@ -8,6 +9,8 @@ interface AddModalProps {
 }
 
 const AddModal: React.FC<AddModalProps> = ({ modalOpen, closeModal, fetchData }) => {
+  const dispatch = useDispatch<any>();
+  const loading = useSelector((state: RootState) => state.agentData.loading);
   const [newAgent, setNewAgent] = useState<{
     name: string;
     role: string;
@@ -33,10 +36,9 @@ const AddModal: React.FC<AddModalProps> = ({ modalOpen, closeModal, fetchData })
   });
 
   const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
-
-  const handleAddAgent = async () => {
+const handleAddAgent = async () => {
     if (!newAgent.name.trim() || !newAgent.role.trim() || !newAgent.description.trim()) {
-      showToast("Agent Name, Role, and Description are required.", "error");
+      alert("Agent Name, Role, and Description are required.");
       return;
     }
 
@@ -49,9 +51,7 @@ const AddModal: React.FC<AddModalProps> = ({ modalOpen, closeModal, fetchData })
     formData.append("facebook", newAgent.facebook);
     formData.append("instagram", newAgent.instagram);
 
-    if (newAgent.image) {
-      formData.append("image", newAgent.image);
-    }
+    if (newAgent.image) formData.append("image", newAgent.image);
     if (newAgent.certificates) {
       Array.from(newAgent.certificates).forEach((file) => {
         formData.append("certificates[]", file);
@@ -63,31 +63,12 @@ const AddModal: React.FC<AddModalProps> = ({ modalOpen, closeModal, fetchData })
       });
     }
 
-    // ✅ Debugging: Log FormData before sending
-    console.log("FormData being sent:");
-    for (const pair of formData.entries()) {
-      console.log(pair[0], pair[1]);
-    }
-
     try {
-      const response = await fetch(`${API_BASE_URL}/api/agent`, {
-        method: "POST",
-        body: formData,
-      });
-
-      const result = await response.json();
-      console.log("API Response:", result);
-
-      if (response.ok) {
-        showToast("Agent added successfully", "success");
-        fetchData();
-        closeModal();
-      } else {
-        showToast("Failed to add agent.", "error");
-      }
+      await dispatch(addAgent(formData)).unwrap(); // Dispatch Redux action
+      fetchData(); // Refresh the list
+      closeModal(); // Close modal
     } catch (error) {
-      console.error("Error:", error);
-      showToast("Error adding agent.", "error");
+      console.error("Error adding agent:", error);
     }
   };
 

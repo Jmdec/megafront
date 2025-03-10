@@ -1,9 +1,12 @@
 import { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import DataTable from "react-data-table-component";
 import { showToast } from "@/components/toast";
 import AddModal from "./modal/AddModal";
 import EditModal from "./modal/EditModal";
 import { FaEllipsisV } from "react-icons/fa";
+import { RootState } from "@/app/redux/store";
+import { fetchTestimonials, deleteTestimonial } from "@/app/redux/services/testimonialService";
 
 interface Testimonial {
   id: number;
@@ -12,42 +15,28 @@ interface Testimonial {
 }
 
 export default function TestimonialPage() {
-  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const dispatch = useDispatch<any>();
+  const { testimonials, loading } = useSelector((state: RootState) => state.testimonialData);
+
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingTestimonial, setEditingTestimonial] = useState<Testimonial | null>(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [testimonialToDelete, setTestimonialToDelete] = useState<Testimonial | null>(null);
   const [openMenu, setOpenMenu] = useState<number | null>(null);
-  const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
-
-  const fetchTestimonials = async () => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/testimonial`);
-      const data = await response.json();
-      setTestimonials(data);
-    } catch (error) {
-      console.error("Error fetching testimonials:", error);
-    }
-  };
 
   useEffect(() => {
-    fetchTestimonials();
-  }, []);
+    dispatch(fetchTestimonials());
+  }, [dispatch]);
 
   const handleDeleteTestimonial = async () => {
     if (testimonialToDelete) {
       try {
-        const response = await fetch(`${API_BASE_URL}/api/testimonial/${testimonialToDelete.id}`, {
-          method: "DELETE",
-        });
-
-        if (response.ok) {
-          fetchTestimonials();
-          showToast("Testimonial deleted successfully", "success");
-        }
+        await dispatch(deleteTestimonial(testimonialToDelete.id)).unwrap();
+        showToast("Testimonial deleted successfully", "success");
       } catch (error) {
         console.error("Error deleting testimonial:", error);
+        showToast("Failed to delete testimonial", "error");
       }
       setDeleteModalOpen(false);
     }
@@ -102,7 +91,7 @@ export default function TestimonialPage() {
         <button onClick={() => setIsAddModalOpen(true)} className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Add Testimonial</button>
       </div>
 
-      <DataTable columns={columns} data={testimonials} pagination highlightOnHover striped />
+      <DataTable columns={columns} data={testimonials} pagination highlightOnHover striped  />
 
       <AddModal modalOpen={isAddModalOpen} closeModal={() => setIsAddModalOpen(false)} fetchData={fetchTestimonials} itemType="testimonial" />
       {editingTestimonial && (

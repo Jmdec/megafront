@@ -3,41 +3,27 @@
 import { useState, useEffect } from "react";
 import DataTable from "react-data-table-component";
 import { FaEllipsisV } from "react-icons/fa";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState, AppDispatch } from "@/app/redux/store";
+import { fetchLocations,addLocation, updateLocation, deleteLocation } from "@/app/redux/services/locationService";
 import { showToast } from "@/components/toast";
 
-interface Location {
-  id: number;
-  name: string;
-}
-
 export default function LocationPage() {
-  const [locations, setLocations] = useState<Location[]>([]);
-  const [filteredLocations, setFilteredLocations] = useState<Location[]>([]);
+  const dispatch = useDispatch<AppDispatch>();
+  const { locations, loading } = useSelector((state: RootState) => state.locationData);
+
   const [modalOpen, setModalOpen] = useState(false);
   const [newLocation, setNewLocation] = useState("");
-  const [editingLocation, setEditingLocation] = useState<Location | null>(null);
+  const [editingLocation, setEditingLocation] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [openMenu, setOpenMenu] = useState<number | null>(null);
 
-  const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
-
-  const fetchLocations = async () => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/location`);
-      const data = await response.json();
-      setLocations(data);
-      setFilteredLocations(data);
-    } catch (error) {
-      console.error("Error fetching locations:", error);
-    }
-  };
-
   useEffect(() => {
-    fetchLocations();
-  }, []);
+    dispatch(fetchLocations());
+  }, [dispatch]);
 
   // Handle modal open/close
-  const openModal = (location?: Location) => {
+  const openModal = (location?: any) => {
     setEditingLocation(location || null);
     setNewLocation(location?.name || "");
     setModalOpen(true);
@@ -49,73 +35,38 @@ export default function LocationPage() {
     setEditingLocation(null);
   };
 
-  // Add or Update location
-  const handleSaveLocation = async () => {
+  // Add or Update location using Redux
+  const handleSaveLocation = () => {
     if (!newLocation.trim()) return;
-
-    const url = editingLocation
-      ? `${API_BASE_URL}/api/location/${editingLocation.id}`
-      : `${API_BASE_URL}/api/location`;
-
-    const method = editingLocation ? "PUT" : "POST";
-
-    try {
-      const response = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: newLocation }),
-      });
-
-      if (response.ok) {
-        if (method === "PUT") {
-          showToast("Location updated successfully", "success");
-        } else if (method === "POST") {
-          showToast("Location added successfully", "success");
-        }
-
-        closeModal();
-        fetchLocations();
-      }
-    } catch (error) {
-      console.error("Error saving location:", error);
+    if (editingLocation) {
+      dispatch(updateLocation({ id: editingLocation.id, name: newLocation }));
+    } else {
+      dispatch(addLocation(newLocation));
     }
+    closeModal();
   };
 
-  // Delete location
-  const deleteLocation = async (id: number) => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/location/${id}`, {
-        method: "DELETE",
-      });
-
-      if (response.ok) {
-        fetchLocations();
-        showToast("Location deleted successfully", "success");
-      }
-    } catch (error) {
-      console.error("Error deleting location:", error);
-    }
+  // Delete location using Redux
+  const handleDeleteLocation = (id: number) => {
+    dispatch(deleteLocation(id));
   };
 
   // Search filter logic
-  useEffect(() => {
-    const filtered = locations.filter((loc) =>
-      loc.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    setFilteredLocations(filtered);
-  }, [searchTerm, locations]);
+  const filteredLocations = locations.filter((loc) =>
+    loc.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   // Define DataTable columns
   const columns = [
     {
       name: "Location",
-      selector: (row: Location) => row.name,
+      selector: (row: any) => row.name,
       sortable: true,
     },
     {
       name: "Actions",
       right: true,
-      cell: (row: Location) => (
+      cell: (row: any) => (
         <div className="relative">
           <button
             onClick={() =>
@@ -139,7 +90,7 @@ export default function LocationPage() {
               </button>
               <button
                 onClick={() => {
-                  deleteLocation(row.id);
+                  handleDeleteLocation(row.id);
                   setOpenMenu(null);
                 }}
                 className="block w-full text-left px-4 py-2 text-red-500 hover:bg-gray-100"
@@ -155,7 +106,6 @@ export default function LocationPage() {
 
   return (
     <div className="w-full mx-auto p-6 bg-white shadow-md rounded-lg overflow-visible">
-
       {/* Header */}
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-semibold">Location Management</h1>
@@ -179,13 +129,17 @@ export default function LocationPage() {
       </div>
 
       {/* Data Table */}
-      <DataTable
-        columns={columns}
-        data={filteredLocations}
-        pagination
-        highlightOnHover
-        striped
-      />
+      {loading ? (
+        <p>Loading locations...</p>
+      ) : (
+        <DataTable
+          columns={columns}
+          data={filteredLocations}
+          pagination
+          highlightOnHover
+          striped
+        />
+      )}
 
       {/* Location Modal */}
       {modalOpen && (

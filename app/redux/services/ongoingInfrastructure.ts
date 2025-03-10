@@ -1,79 +1,111 @@
+import Cookies from "js-cookie";
 import { createAsyncThunk } from "@reduxjs/toolkit";
+import { showToast } from "@/components/toast";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+const getAuthToken = () => Cookies.get("auth_token");
 
-// 🔹 Fetch all ongoing infrastructure projects
+// 🔹 Fetch all ongoing infrastructure projects (No authentication required)
 export const fetchOngoingInfrastructure = createAsyncThunk(
   "ongoingInfrastructure/fetchAll",
-  async () => {
-    const response = await fetch(`${API_BASE_URL}/api/ongoingInfrastructure`);
-    const data = await response.json();
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/ongoingInfrastructure`, {
+        headers: { "Content-Type": "application/json" },
+      });
 
-    console.log("🔹 Fetched Ongoing Infrastructure:", data); // ✅ Debugging
+      if (!response.ok) throw new Error("Failed to fetch ongoing infrastructure projects");
 
-    return data || []; // Ensure fallback to an empty array
+      const data = await response.json();
+      console.log("📌 Ongoing Infrastructure Fetched:", data);
+      return data || []; // Ensure fallback to an empty array
+    } catch (error: any) {
+      showToast(error.message, "error");
+      return rejectWithValue(error.message);
+    }
   }
 );
 
-// 🔹 Add a new infrastructure project
+// 🔹 Add a new infrastructure project (Requires authentication)
 export const addOngoingInfrastructure = createAsyncThunk(
   "ongoingInfrastructure/add",
-  async (newProject: FormData) => {
-    const response = await fetch(`${API_BASE_URL}/api/ongoingInfrastructure`, {
-      method: "POST",
-      body: newProject,
-    });
+  async (newProject: FormData, { rejectWithValue }) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/ongoingInfrastructure`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${getAuthToken()}` },
+        body: newProject,
+      });
 
-    if (!response.ok) throw new Error("Failed to add infrastructure project");
+      if (!response.ok) throw new Error("Failed to add infrastructure project");
 
-    const result = await response.json();
-    console.log("✅ Added Infrastructure Project:", result);
-    return result;
+      showToast("Infrastructure project added successfully", "success");
+      return response.json();
+    } catch (error: any) {
+      showToast(error.message, "error");
+      return rejectWithValue(error.message);
+    }
   }
 );
 
-// 🔹 Fetch a single infrastructure project by ID
+// 🔹 Fetch a single infrastructure project by ID (No authentication required)
 export const fetchOngoingInfrastructureById = createAsyncThunk(
   "ongoingInfrastructure/fetchById",
-  async (id: number) => {
-    const response = await fetch(`${API_BASE_URL}/api/ongoingInfrastructure/${id}`);
+  async (id: number, { rejectWithValue }) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/ongoingInfrastructure/${id}`);
 
-    if (!response.ok) throw new Error("Failed to fetch infrastructure project");
+      if (!response.ok) throw new Error("Failed to fetch infrastructure project");
 
-    const data = await response.json();
-    console.log(`📌 Fetched Infrastructure Project with ID ${id}:`, data);
-    return data;
+      const data = await response.json();
+      console.log(`📌 Fetched Infrastructure Project with ID ${id}:`, data);
+      return data;
+    } catch (error: any) {
+      showToast(error.message, "error");
+      return rejectWithValue(error.message);
+    }
   }
 );
 
-// 🔹 Update infrastructure project
+// 🔹 Update an infrastructure project (Requires authentication)
 export const updateOngoingInfrastructure = createAsyncThunk(
   "ongoingInfrastructure/update",
-  async ({ id, updatedProject }: { id: number; updatedProject: FormData }) => {
-    const response = await fetch(`${API_BASE_URL}/api/ongoingInfrastructure/${id}`, {
-      method: "POST", // or "PUT" if backend requires
-      body: updatedProject,
-    });
+  async ({ id, updatedProject }: { id: number; updatedProject: FormData }, { rejectWithValue }) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/ongoingInfrastructure/${id}`, {
+        method: "POST", // or "PUT" if backend requires
+        headers: { Authorization: `Bearer ${getAuthToken()}` },
+        body: updatedProject,
+      });
 
-    if (!response.ok) throw new Error("Failed to update infrastructure project");
+      if (!response.ok) throw new Error("Failed to update infrastructure project");
 
-    const updatedData = await response.json();
-    console.log(`🔄 Updated Infrastructure Project ID ${id}:`, updatedData);
-    return updatedData;
+      showToast("Infrastructure project updated successfully", "success");
+      return response.json();
+    } catch (error: any) {
+      showToast(error.message, "error");
+      return rejectWithValue(error.message);
+    }
   }
 );
 
-// 🔹 Delete infrastructure project
+// 🔹 Delete an infrastructure project (Requires authentication)
 export const deleteOngoingInfrastructure = createAsyncThunk(
   "ongoingInfrastructure/delete",
-  async (id: number) => {
-    const response = await fetch(`${API_BASE_URL}/api/ongoingInfrastructure/${id}`, {
-      method: "DELETE",
-    });
+  async (id: number, { rejectWithValue }) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/ongoingInfrastructure/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${getAuthToken()}` },
+      });
 
-    if (!response.ok) throw new Error("Failed to delete infrastructure project");
+      if (!response.ok) throw new Error("Failed to delete infrastructure project");
 
-    console.log(`❌ Deleted Infrastructure Project ID ${id}`);
-    return id; // Return deleted project ID
+      showToast("Infrastructure project deleted successfully", "success");
+      return id; // Return the deleted project ID
+    } catch (error: any) {
+      showToast(error.message, "error");
+      return rejectWithValue(error.message);
+    }
   }
 );
