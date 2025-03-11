@@ -27,7 +27,7 @@ const OfficeParent = () => {
     dispatch(fetchOffices());
   }, [dispatch]);
 
-  const officeProjects = properties.filter((prop) => prop.division !== "Under Construction");
+  const officeProjects = properties.filter((prop) => prop.status !== "Under Construction");
 
   return (
     <>
@@ -110,43 +110,46 @@ const OfficeParent = () => {
         </p>
 
         {/* ✅ Office Cards */}
-        <Swiper
-          spaceBetween={15}
-          slidesPerView={1}
-          loop={true}
-          autoplay={{ delay: 3000, disableOnInteraction: false }}
-          navigation={true}
-          modules={[Autoplay, Navigation]}
-          breakpoints={{
-            1024: { slidesPerView: 4 },
-            768: { slidesPerView: 2 },
-            480: { slidesPerView: 1 },
-          }}
-          className="w-full"
-        >
-          {properties.map((project) => {
-            const projectImageUrl = project.image ? `${API_BASE_URL}${project.image}` : "/default-office.jpg";
+       <Swiper
+  spaceBetween={15}
+  slidesPerView={1}
+  loop={true}
+  autoplay={{ delay: 3000, disableOnInteraction: false }}
+  navigation={true}
+  modules={[Autoplay, Navigation]}
+  breakpoints={{
+    1024: { slidesPerView: 4 },
+    768: { slidesPerView: 2 },
+    480: { slidesPerView: 1 },
+  }}
+  className="w-full"
+>
+  {properties.map((project) => {
+    const projectImageUrl = project.image ? `${API_BASE_URL}${project.image}` : "/default-office.jpg";
 
-            return (
-              <SwiperSlide key={project.name}>
-                <Card className="relative overflow-hidden rounded-lg shadow-lg w-full">
-                  <Image
-                    src={projectImageUrl}
-                    alt={project.name}
-                    width={900}
-                    height={500}
-                    unoptimized={true} // ✅ Ensures Next.js does not block external images
-                    className="w-full h-48 sm:h-72 object-cover"
-                  />
-                  <div className="absolute bottom-0 w-full bg-black/70 p-2 flex flex-col items-center text-center">
-                    <CardTitle className="text-white text-sm sm:text-lg font-bold">{project.name}</CardTitle>
-                    <CardContent className="text-gray-300 text-xs sm:text-sm h-2">{project.location}</CardContent>
-                  </div>
-                </Card>
-              </SwiperSlide>
-            );
-          })}
-        </Swiper>
+    return (
+      <SwiperSlide key={project.id}>
+        <Link href={`/user/office/${project.id}`} passHref>
+          <Card className="relative overflow-hidden rounded-lg shadow-lg w-full cursor-pointer transition-transform duration-300 hover:scale-105 hover:shadow-2xl">
+            <Image
+              src={projectImageUrl}
+              alt={project.name}
+              width={900}
+              height={500}
+              unoptimized={true} // ✅ Ensures Next.js does not block external images
+              className="w-full h-48 sm:h-72 object-cover transition-opacity duration-300 hover:opacity-90"
+            />
+            <div className="absolute bottom-0 w-full bg-black/70 p-2 flex flex-col items-center text-center transition-all duration-300 hover:bg-black/80">
+              <CardTitle className="text-white text-sm sm:text-lg font-bold">{project.name}</CardTitle>
+              <CardContent className="text-gray-300 text-xs sm:text-sm">{project.location}</CardContent>
+            </div>
+          </Card>
+        </Link>
+      </SwiperSlide>
+    );
+  })}
+</Swiper>
+
 
         {/* ✅ View More Button */}
         <div className="flex justify-center mt-6 sm:mt-8">

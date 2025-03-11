@@ -16,6 +16,7 @@ import { fetchProperties } from "@/app/redux/services/propertyService";
 
 const PropertyParent = () => {
   const dispatch = useDispatch<AppDispatch>();
+ const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
   // ✅ Fetch properties from Redux store
   const properties = useSelector((state: RootState) => state.propertyData.properties);
@@ -23,11 +24,14 @@ const PropertyParent = () => {
   const error = useSelector((state: RootState) => state.propertyData.error);
 
   // ✅ Fetch properties on mount
-  useEffect(() => {
-    dispatch(fetchProperties());
-  }, [dispatch]);
+useEffect(() => {
+  dispatch(fetchProperties()); // Fetch properties on mount
+}, [dispatch]);
 
-  // ✅ Filter out "Under Construction"
+useEffect(() => {
+  console.log("✅ Fetched Properties:", properties);
+}, [properties]); // Logs properties whenever it updates
+
   const filteredProperties = properties.filter((prop) => prop.status !== "Under Construction");
 
   return (
@@ -56,7 +60,8 @@ const PropertyParent = () => {
                 <div
                   className="w-full h-full bg-cover bg-center"
                   style={{
-                    backgroundImage: `url(${residence.image})`,
+                    backgroundImage: `url("${API_BASE_URL}${residence.image}")`,
+
                     backgroundSize: "cover",
                     backgroundPosition: "center",
                   }}
@@ -107,38 +112,41 @@ const PropertyParent = () => {
         </p>
 
         {/* ✅ Property Cards */}
-        <Swiper
-          spaceBetween={15}
-          slidesPerView={1}
-          loop={true}
-          autoplay={{ delay: 3000, disableOnInteraction: false }}
-          navigation={true}
-          modules={[Autoplay, Navigation]}
-          breakpoints={{
-            1024: { slidesPerView: 4 },
-            768: { slidesPerView: 2 },
-            480: { slidesPerView: 1 },
-          }}
-          className="w-full"
-        >
-          {filteredProperties.map((project, index) => (
-            <SwiperSlide key={index}>
-              <Card className="relative overflow-hidden rounded-lg shadow-lg w-full">
-                <Image
-                  src={project.image}
-                  alt={project.name}
-                  width={900}
-                  height={500}
-                  className="w-full h-48 sm:h-72 object-cover"
-                />
-                <div className="absolute bottom-0 w-full bg-black/70 p-2 flex flex-col items-center text-center">
-                  <CardTitle className="text-white text-sm sm:text-lg font-bold">{project.name}</CardTitle>
-                  <CardContent className="text-gray-300 text-xs sm:text-sm h-2">{project.location}</CardContent>
-                </div>
-              </Card>
-            </SwiperSlide>
-          ))}
-        </Swiper>
+     <Swiper
+  spaceBetween={15}
+  slidesPerView={1}
+  loop={true}
+  autoplay={{ delay: 3000, disableOnInteraction: false }}
+  navigation={true}
+  modules={[Autoplay, Navigation]}
+  breakpoints={{
+    1024: { slidesPerView: 4 },
+    768: { slidesPerView: 2 },
+    480: { slidesPerView: 1 },
+  }}
+  className="w-full"
+>
+  {filteredProperties.map((project, index) => (
+    <SwiperSlide key={index}>
+      <Link href={`/user/property/${project.id}`} passHref>
+        <Card className="relative overflow-hidden rounded-lg shadow-lg w-full cursor-pointer hover:shadow-2xl transition duration-300">
+          <Image
+            src={`${API_BASE_URL}${project.image}`}
+            alt={project.name}
+            width={900}
+            height={500}
+            className="w-full h-48 sm:h-72 object-cover"
+          />
+          <div className="absolute bottom-0 w-full bg-black/70 p-2 flex flex-col items-center text-center">
+            <CardTitle className="text-white text-sm sm:text-lg font-bold">{project.name}</CardTitle>
+            <CardContent className="text-gray-300 text-xs sm:text-sm">{project.location}</CardContent>
+          </div>
+        </Card>
+      </Link>
+    </SwiperSlide>
+  ))}
+</Swiper>
+
 
         {/* ✅ View More Button */}
         <div className="flex justify-center mt-6 sm:mt-8">

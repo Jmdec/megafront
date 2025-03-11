@@ -1,89 +1,213 @@
 "use client";
-
-import { useState } from "react";
-import { useSelector } from "react-redux";
-import { RootState } from "@/app/redux/store";
 import Link from "next/link";
+import { useState, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { RootState } from "@/app/redux/store";
+import { AppDispatch } from "@/app/redux/store";
+import { fetchOffices } from "@/app/redux/services/officeService"; 
+import { fetchProperties } from "@/app/redux/services/propertyService"; 
+import { addClientAppointment } from "@/app/redux/services/clientappointmentService"; 
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+
 interface PropertyInquiryProps {
-  onClose: () => void; // Function to handle modal closing
+  onClose: () => void;
 }
 
 const PropertyInquiry: React.FC<PropertyInquiryProps> = ({ onClose }) => {
+  const dispatch = useDispatch<AppDispatch>();
+
   const [formData, setFormData] = useState({
     property: "",
+    propertyId: "",
     name: "",
     email: "",
-    phone: "",
     message: "",
+    contactNumber: "",
   });
 
-  // Get properties from Redux store
-  const projects = useSelector((state: RootState) => state.propertyData.properties);
+  const [selectedType, setSelectedType] = useState<"property" | "office">("property"); // State to switch between Property and Office
 
-  // Find selected property details
-  const selectedProperty = projects.find((p) => p.name === formData.property);
+  const projects = useSelector((state: RootState) => state.propertyData.properties);
+  const offices = useSelector((state: RootState) => state.officeData.offices);
+
+const [selectedItem, setSelectedItem] = useState<any>(null);
+
+useEffect(() => {
+  if (!formData.property) return;
+
+  const foundItem =
+    selectedType === "property"
+      ? projects.find((p) => p.name.toLowerCase() === formData.property.toLowerCase())
+      : offices.find((o) => o.name.toLowerCase() === formData.property.toLowerCase());
+
+  console.log("🔹 Selected Item:", foundItem);
+  setSelectedItem(foundItem); // ✅ Update state when selection changes
+}, [formData.property, selectedType, projects, offices]);
+
+  useEffect(() => {
+    dispatch(fetchProperties());
+    dispatch(fetchOffices());
+  }, [dispatch]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+
+    if (name === "property") {
+      const selectedItem = selectedType === "property"
+        ? projects.find((p) => p.name === value)
+        : offices.find((o) => o.name === value);
+
+      console.log("Selected Item:", selectedItem);
+
+      setFormData({
+        ...formData,
+        property: value,
+        propertyId: selectedItem ? selectedItem.id.toString() : "",
+      });
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Inquiry Submitted:", formData);
+
+
+
+    const status = "Pending";
+    const date = new Date().toISOString();
+
+    const appointmentData = {
+      property_id: selectedItem ? selectedItem.id : parseInt(formData.propertyId),
+      property_name: formData.property,
+      name: formData.name,
+      email: formData.email,
+      date: date,
+      message: formData.message,
+      contact_number: formData.contactNumber,
+      status: status,
+      type: selectedType === "property" ? "Property Inquiry" : "Office Inquiry",
+    };
+
+    try {
+      const result = await dispatch(addClientAppointment(appointmentData));
+
+      if (result.type === "clientAppointments/add/fulfilled") {
+        onClose();
+      }
+
+      console.log("✅ Appointment Submitted Successfully:", result);
+    } catch (error) {
+      console.error("❌ Error submitting the appointment", error);
+    }
   };
-return (
+
+  return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
       <div
         className={`bg-white rounded-lg shadow-xl p-6 w-[90%] transition-all duration-300 ease-in-out ${
-          selectedProperty ? "max-w-4xl flex flex-col sm:flex-row" : "max-w-md"
+          formData.property ? "max-w-4xl flex flex-col sm:flex-row" : "max-w-md"
         } relative`}
       >
-        {/* Close Button */}
         <button
-          onClick={() => {
-            onClose(); // Close the popup first
-          }}
+          onClick={onClose}
           className="absolute top-3 right-3 text-gray-600 hover:text-red-500 text-2xl"
         >
           <Link href="/user/property/all">&times;</Link>
         </button>
+  {selectedItem && (
+  <div className="w-full sm:w-1/2 p-4 text-xs sm:text-sm">
+    <img
+      src={`${API_BASE_URL}${selectedItem.image}`}
+      alt={selectedItem.name}
+      className="w-full h-40 sm:h-48 object-cover rounded-lg mb-3"
+    />
+    <h2 className="text-lg sm:text-xl font-semibold text-gray-800">{selectedItem.name}</h2>
 
-        {/* Left Side: Property Details (Only Show If Selected) */}
-        {selectedProperty && (
-          <div className="w-full sm:w-1/2 p-4">
-            <img
-              src={selectedProperty.image}
-              alt={selectedProperty.name}
-              className="w-full h-48 object-cover rounded-lg mb-4"
-            />
-            <h2 className="text-xl font-bold text-gray-800">{selectedProperty.name}</h2>
-            <p className="text-gray-600">{selectedProperty.location}</p>
-            <p className="mt-2 text-sm text-gray-700">{selectedProperty.description}</p>
-         <p className="mt-2 font-semibold text-lg text-[#B8986E]">
-  {selectedProperty.price
-    ? selectedProperty.price
-        .split(" - ") // Split the range
-        .map((price) => `₱${new Intl.NumberFormat("en-PH").format(Number(price))}`) // Format & add ₱ to each
-        .join(" - ") // Rejoin formatted range
+    <p className="text-gray-600">
+      {selectedItem.location}
+    </p>
+
+    {"priceRange" in selectedItem && (
+      <>
+        <p className="mt-2 font-semibold text-xs sm:text-sm text-black">
+          {selectedItem.priceRange
+            ? selectedItem.priceRange
+                .split(" - ")
+                .map((price:any) => `₱${Number(price).toLocaleString()}`)
+                .join(" - ")
+            : "Price upon request"}
+        </p>
+        <p className="mt-2"><strong>Status:</strong> {selectedItem.status}</p>
+        <p className="mt-2"><strong>Development Type:</strong> {selectedItem.developmentType}</p>
+        <p className="mt-2"><strong>Floors:</strong> {selectedItem.floors} | <strong>Parking Lots:</strong> {selectedItem.parkingLots}</p>
+        <p className="mt-2"><strong>Lot Area:</strong> {selectedItem.lotArea} sqm</p>
+      </>
+    )}
+
+    {"price" in selectedItem && (
+      <>
+      <p className="mt-2 font-semibold text-xs sm:text-sm text-black">
+  {selectedItem.price
+    ? selectedItem.price
+        .split(" - ") // Split into two parts: ["7000000", "11000000"]
+        .map((price:any) => `₱${Number(price).toLocaleString()}`) // Convert both parts
+        .join(" - ") // Join them back with a hyphen
     : "Price upon request"}
 </p>
 
-          </div>
+        <p className="mt-2"><strong>Status:</strong> {selectedItem.status}</p>
+        <p className="mt-2"><strong>Lot Area:</strong> {selectedItem.lotArea} sqm</p>
+
+        {/* ✅ Office-Specific Amenities (If Available) */}
+        {Array.isArray(selectedItem.amenities) && (
+          <p className="mt-2"><strong>Amenities:</strong> {selectedItem.amenities.join(", ")}</p>
         )}
+      </>
+    )}
 
-        {/* Right Side: Inquiry Form */}
-        <div
-          className={`w-full p-4 transition-all ${
-            selectedProperty ? "sm:w-1/2 border-l border-gray-300" : "text-start"
-          }`}
-        >
-          <h2 className="text-xl font-bold text-gray-800 mb-4 text-center">Inquire About a Property</h2>
+    <p className="mt-2 text-gray-700"><strong>Description:</strong> {selectedItem.description.split(".")[0]}.</p>
+  </div>
+)}
 
-          {/* Form */}
+
+        <div className="w-full p-4">
+          <h2 className="text-xl font-bold text-gray-800 mb-4 text-center">Submit an Inquiry</h2>
+
+          {/* 🔹 Selection Type */}
+          <div className="flex gap-4 justify-center mb-4">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                name="selectedType"
+                value="property"
+                checked={selectedType === "property"}
+                onChange={() => setSelectedType("property")}
+                className="form-radio"
+              />
+              Property
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                name="selectedType"
+                value="office"
+                checked={selectedType === "office"}
+                onChange={() => setSelectedType("office")}
+                className="form-radio"
+              />
+              Office
+            </label>
+          </div>
+
+
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Select Property */}
+            {/* 🔹 Property or Office Selection */}
             <div>
-              <label className="block text-gray-700 font-medium">Select Property</label>
+              <label className="block text-gray-700 font-medium">
+                {selectedType === "property" ? "Select Property" : "Select Office"}
+              </label>
               <select
                 name="property"
                 value={formData.property}
@@ -91,16 +215,24 @@ return (
                 required
                 className="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="" disabled>Select a property</option>
-                {projects.map((property) => (
-                  <option key={property.name} value={property.name}>
-                    {property.name}
-                  </option>
-                ))}
+                <option value="" disabled>
+                  {selectedType === "property" ? "Select a property" : "Select an office"}
+                </option>
+                {selectedType === "property"
+                  ? projects.map((property) => (
+                      <option key={property.name} value={property.name}>
+                        {property.name}
+                      </option>
+                    ))
+                  : offices.map((office) => (
+                      <option key={office.name} value={office.name}>
+                        {office.name}
+                      </option>
+                    ))}
               </select>
             </div>
 
-            {/* Name */}
+            {/* 🔹 Name */}
             <div>
               <label className="block text-gray-700 font-medium">Name</label>
               <input
@@ -113,7 +245,7 @@ return (
               />
             </div>
 
-            {/* Email */}
+            {/* 🔹 Email */}
             <div>
               <label className="block text-gray-700 font-medium">Email</label>
               <input
@@ -126,20 +258,20 @@ return (
               />
             </div>
 
-            {/* Phone */}
+            {/* 🔹 Contact Number */}
             <div>
-              <label className="block text-gray-700 font-medium">Phone</label>
+              <label className="block text-gray-700 font-medium">Contact Number</label>
               <input
                 type="text"
-                name="phone"
-                value={formData.phone}
+                name="contactNumber"
+                value={formData.contactNumber}
                 onChange={handleInputChange}
                 required
                 className="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
-            {/* Message */}
+            {/* 🔹 Message */}
             <div>
               <label className="block text-gray-700 font-medium">Message</label>
               <textarea
@@ -151,16 +283,14 @@ return (
               ></textarea>
             </div>
 
-            {/* Submit Button */}
+            {/* 🔹 Submit Button */}
             <div className="flex justify-end">
-              <Link href="/user/property/all">
-                <button
-                  type="submit"
-                  className="bg-blue-600 text-white px-6 py-2 rounded-md font-semibold shadow-md hover:bg-blue-700 transition"
-                >
-                  Submit Inquiry
-                </button>
-              </Link>
+              <button
+                type="submit"
+                className="bg-blue-600 text-white px-6 py-2 rounded-md font-semibold shadow-md hover:bg-blue-700 transition"
+              >
+                Submit Inquiry
+              </button>
             </div>
           </form>
         </div>

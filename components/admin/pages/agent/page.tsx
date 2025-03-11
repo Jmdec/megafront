@@ -51,7 +51,6 @@ export default function AgentPage() {
     if (agentToDelete) {
       try {
         await dispatch(deleteAgent(agentToDelete.id)).unwrap();
-
       } catch (error) {
         console.error("Error deleting agent:", error);
       }

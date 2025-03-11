@@ -49,7 +49,12 @@ const propertySlice = createSlice({
   initialState,
   reducers: {
     setSearchResults: (state, action) => {
-      state.searchResults = action.payload; // Store filtered properties in searchResults
+      state.searchResults = action.payload;
+      localStorage.setItem("searchResults", JSON.stringify(action.payload)); // ✅ Save to localStorage
+    },
+    resetSearchResults: (state) => {
+      state.searchResults = [];
+      localStorage.removeItem("searchResults"); // ✅ Clear previous search results
     },
   },
   extraReducers: (builder) => {
@@ -149,5 +154,5 @@ const propertySlice = createSlice({
   },
 });
 
-export const { setSearchResults } = propertySlice.actions; // Export the action to set search results
+export const { setSearchResults,resetSearchResults } = propertySlice.actions; // Export the action to set search results
 export default propertySlice.reducer;

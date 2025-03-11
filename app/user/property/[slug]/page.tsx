@@ -9,6 +9,7 @@ import { Provider } from "react-redux";
 import store from "@/app/redux/store";
 import VisitProperty from "@/components/user/pages/showroom/scheduleVisit";
 import InquiryProperty from "@/components/user/pages/showroom/propertyInquiry";
+import Property from "@/components/user/pages/property/page";
 
 export default function PropertySlugPage() {
   const params = useParams();
@@ -16,21 +17,29 @@ export default function PropertySlugPage() {
 
   const [isVisitPopupOpen, setIsVisitPopupOpen] = useState(false);
   const [isInquiryPopupOpen, setIsInquiryPopupOpen] = useState(false);
-  const [prevSlug, setPrevSlug] = useState<string | null>(null);
 
-useEffect(() => {
-  // Always reset popups before checking the new slug
-  setIsVisitPopupOpen(false);
-  setIsInquiryPopupOpen(false);
+  // Check if slug is a number
+  const isNumber = !isNaN(Number(slug)) && slug !== "" && slug !== null;
 
-  // Open the correct popup
-  if (slug === "all-schedule-a-visit") {
-    setTimeout(() => setIsVisitPopupOpen(true), 0); // Ensures a re-render
-  } else if (slug === "all-inquire-a-property") {
-    setTimeout(() => setIsInquiryPopupOpen(true), 0);
-  }
-}, [slug]); // ✅ Remove prevSlug from dependencies
+  useEffect(() => {
+    // Always reset popups before checking the new slug
+    setIsVisitPopupOpen(false);
+    setIsInquiryPopupOpen(false);
 
+    console.log("🔹 Slug Value:", slug);
+
+    if (isNumber) {
+      console.log("🚫 Slug is a number, rendering Property.");
+      return; // Exit early, rendering Property below
+    }
+
+    // Open the correct popup
+    if (slug === "all-schedule-a-visit") {
+      setTimeout(() => setIsVisitPopupOpen(true), 0);
+    } else if (slug === "all-inquire-a-property") {
+      setTimeout(() => setIsInquiryPopupOpen(true), 0);
+    }
+  }, [slug]);
 
   // ✅ Only close popups, do not change slug to keep PropertyChild running
   const handleClose = () => {
@@ -42,10 +51,10 @@ useEffect(() => {
     <Provider store={store}>
       <Header />
 
-      {/* ✅ PropertyChild always runs */}
-      <div className="mx-auto px-6 py-16 bg-[#F9FAF1] w-full">
-        <PropertyChild property={slug} />
-      </div>
+   <div className="mx-auto px-6 py-16 bg-[#F9FAF1] w-full">
+  {isNumber ? <Property id={slug} /> : <PropertyChild property={slug} />}
+</div>
+
 
       {/* ✅ Popups close properly but PropertyChild remains */}
       {isVisitPopupOpen && <VisitProperty onClose={handleClose} />}

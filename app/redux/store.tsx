@@ -18,6 +18,8 @@ import locationData from '@/app/redux/slice/locationData';
 import testimonialData from '@/app/redux/slice/testimonialData';
 import agentData from '@/app/redux/slice/agentData';
 
+import clientappointmentData from '@/app/redux/slice/clientappointmentData';
+
 const store = configureStore({
   reducer: {
     officeData:officeData,
@@ -35,6 +37,7 @@ const store = configureStore({
      locationData:locationData,
      testimonialData:testimonialData,
      agentData:agentData,
+     clientappointmentData:clientappointmentData,
   },
 });
 

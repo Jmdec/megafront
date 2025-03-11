@@ -36,7 +36,20 @@ const initialState: OfficeState = {
 const officeSlice = createSlice({
   name: "offices",
   initialState,
-  reducers: {},
+  reducers: {
+    setOfficeSearchResults: (state, action) => {
+      state.offices = action.payload.map((office:any) => ({
+        ...office,
+        developmentType: "Office", // ✅ Add developmentType for offices
+      }));
+      localStorage.setItem("officeSearchResults", JSON.stringify(state.offices)); // ✅ Save search results
+    },
+    resetOfficeSearchResults: (state) => {
+      state.offices = [];
+      localStorage.removeItem("officeSearchResults"); // ✅ Clear search results
+    },
+  },
+
   extraReducers: (builder) => {
     builder.addCase(fetchOffices.pending, (state) => {
       state.loading = true;
@@ -107,5 +120,5 @@ const officeSlice = createSlice({
     });
   },
 });
-
+export const { setOfficeSearchResults, resetOfficeSearchResults } = officeSlice.actions;
 export default officeSlice.reducer;

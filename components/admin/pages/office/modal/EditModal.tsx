@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { showToast } from "@/components/toast";
 import { useDispatch, useSelector } from "react-redux";
-import { RootState, AppDispatch } from "@/app/redux/store"; // Correctly type dispatch here
-import { fetchLocations } from "@/app/redux/services/locationService"; // Fetch locations action
-import { fetchOffices,updateOffice } from "@/app/redux/services/officeService"; // Correct import for the updateOffice function
+import { RootState, AppDispatch } from "@/app/redux/store";
+import { fetchLocations } from "@/app/redux/services/locationService";
+import { fetchOffices, updateOffice } from "@/app/redux/services/officeService";
 
 interface EditModalProps {
   modalOpen: boolean;
@@ -23,9 +23,9 @@ interface EditModalProps {
 }
 
 const EditModal: React.FC<EditModalProps> = ({ modalOpen, closeModal, fetchData, office }) => {
-  const dispatch = useDispatch<AppDispatch>(); // Correctly type dispatch here
-  const locations = useSelector((state: RootState) => state.locationData.locations); // Get locations from Redux
-  const { loading, error } = useSelector((state: RootState) => state.officeData); // Get office loading and error states
+  const dispatch = useDispatch<AppDispatch>();
+  const locations = useSelector((state: RootState) => state.locationData.locations);
+  const { error } = useSelector((state: RootState) => state.officeData);
 
   const [updatedOffice, setUpdatedOffice] = useState({
     name: "",
@@ -38,15 +38,13 @@ const EditModal: React.FC<EditModalProps> = ({ modalOpen, closeModal, fetchData,
     amenities: [""],
   });
 
-  const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
-
-  // Use Effect to set the office data when the office prop changes
+  // Set initial state when office prop changes
   useEffect(() => {
     if (office) {
       setUpdatedOffice({
         name: office.name,
         description: office.description,
-        image: null, // Keep existing image unless changed
+        image: null,
         location: office.location,
         status: office.status,
         price: office.price,
@@ -56,62 +54,63 @@ const EditModal: React.FC<EditModalProps> = ({ modalOpen, closeModal, fetchData,
     }
   }, [office]);
 
-  // Fetch locations from API
+  // Fetch locations on mount
   useEffect(() => {
- 
+    dispatch(fetchLocations());
+  }, [dispatch]);
 
-    fetchLocations();
-  }, []);
+  // ✅ Function to Add an Amenity
+  const handleAddAmenity = () => {
+    setUpdatedOffice((prev) => ({
+      ...prev,
+      amenities: [...prev.amenities, ""], // Add an empty string for the new input field
+    }));
+  };
 
-const handleUpdateOffice = () => {
-  if (!updatedOffice.name.trim() || !updatedOffice.location || !updatedOffice.status || !updatedOffice.price.trim()) {
-    showToast("Name, Location, Status, and Price are required.", "error");
-    return;
-  }
+  // ✅ Function to Remove an Amenity
+  const handleRemoveAmenity = (index: number) => {
+    setUpdatedOffice((prev) => ({
+      ...prev,
+      amenities: prev.amenities.filter((_, i) => i !== index), // Remove selected amenity
+    }));
+  };
 
-  const formData = new FormData();
-  formData.append("name", updatedOffice.name);
-  formData.append("description", updatedOffice.description);
-  formData.append("location", updatedOffice.location);
-  formData.append("status", updatedOffice.status);
-  formData.append("price", updatedOffice.price);
-  formData.append("lotArea", updatedOffice.lotArea);
-  formData.append("amenities", JSON.stringify(updatedOffice.amenities.filter(Boolean)));
-
-  if (updatedOffice.image) {
-    formData.append("image", updatedOffice.image);
-  } else {
-    formData.append("image", office?.image || "");  // Keep the existing image if no new image is uploaded
-  }
-
-  // Log FormData before dispatching
-  console.log("🔹 Form Data to be submitted:");
-  for (let pair of formData.entries()) {
-    console.log(pair[0] + ": " + pair[1]);
-  }
-
-  // Dispatch the update action using Redux
-  if (office?.id) {
-    dispatch(updateOffice({ id: office.id, updatedOffice: formData }))
-      .unwrap() // Wait for the promise to resolve or reject
-      .then(() => {
-        dispatch(fetchOffices()); // Ensure the latest data is fetched immediately after update
-      })
-    
-  }
-
-
-  closeModal();
-};
-
-
-  // Handle error
-  useEffect(() => {
-    if (error) {
-      showToast(error, "error");
+  // ✅ Function to Update Office
+  const handleUpdateOffice = () => {
+    if (!updatedOffice.name.trim() || !updatedOffice.location || !updatedOffice.status || !updatedOffice.price.trim()) {
+      showToast("Name, Location, Status, and Price are required.", "error");
+      return;
     }
-  }, [error]);
 
+    const formData = new FormData();
+    formData.append("name", updatedOffice.name);
+    formData.append("description", updatedOffice.description);
+    formData.append("location", updatedOffice.location);
+    formData.append("status", updatedOffice.status);
+    formData.append("price", updatedOffice.price);
+    formData.append("lotArea", updatedOffice.lotArea);
+    formData.append("amenities", JSON.stringify(updatedOffice.amenities.filter(Boolean))); // ✅ Filter out empty values
+
+    if (updatedOffice.image) {
+      formData.append("image", updatedOffice.image);
+    } else {
+      formData.append("image", office?.image || ""); // Keep existing image if not updated
+    }
+
+    console.log("🔹 Form Data to be submitted:");
+    for (let pair of formData.entries()) {
+      console.log(pair[0] + ": " + pair[1]);
+    }
+
+    if (office?.id) {
+      dispatch(updateOffice({ id: office.id, updatedOffice: formData }))
+        .unwrap()
+        .then(() => {
+          dispatch(fetchOffices());
+          closeModal();
+        });
+    }
+  };
 
   return modalOpen && office ? (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
@@ -124,7 +123,6 @@ const handleUpdateOffice = () => {
             <label className="block font-medium mb-1">Name</label>
             <input
               type="text"
-              placeholder="Enter Name"
               value={updatedOffice.name}
               onChange={(e) => setUpdatedOffice({ ...updatedOffice, name: e.target.value })}
               className="w-full border rounded-md px-3 py-2 mb-4"
@@ -150,7 +148,6 @@ const handleUpdateOffice = () => {
               onChange={(e) => setUpdatedOffice({ ...updatedOffice, status: e.target.value })}
               className="w-full border rounded-md px-3 py-2 mb-4"
             >
-              <option value="">Select Status</option>
               <option value="For Lease">For Lease</option>
               <option value="For Sale">For Sale</option>
               <option value="For Rent">For Rent</option>
@@ -159,7 +156,6 @@ const handleUpdateOffice = () => {
             <label className="block font-medium mb-1">Price</label>
             <input
               type="text"
-              placeholder="Enter Price"
               value={updatedOffice.price}
               onChange={(e) => setUpdatedOffice({ ...updatedOffice, price: e.target.value })}
               className="w-full border rounded-md px-3 py-2 mb-4"
@@ -171,7 +167,6 @@ const handleUpdateOffice = () => {
             <label className="block font-medium mb-1">Lot Area</label>
             <input
               type="text"
-              placeholder="Enter Lot Area in SQM"
               value={updatedOffice.lotArea}
               onChange={(e) => setUpdatedOffice({ ...updatedOffice, lotArea: e.target.value })}
               className="w-full border rounded-md px-3 py-2 mb-4"
@@ -179,13 +174,11 @@ const handleUpdateOffice = () => {
 
             <label className="block font-medium mb-1">Description</label>
             <textarea
-              placeholder="Enter Description"
               value={updatedOffice.description}
               onChange={(e) => setUpdatedOffice({ ...updatedOffice, description: e.target.value })}
               className="w-full border rounded-md px-3 py-2 mb-4"
             />
 
-            {/* Image Upload */}
             <label className="block font-medium mb-1">Image</label>
             <input
               type="file"
@@ -209,19 +202,20 @@ const handleUpdateOffice = () => {
                   setUpdatedOffice({ ...updatedOffice, amenities: updatedAmenities });
                 }}
                 className="w-full border rounded-md px-3 py-2"
-                placeholder="Enter Amenity"
               />
+              <button onClick={() => handleRemoveAmenity(index)} className="bg-red-500 text-white px-3 py-2 rounded-md">
+                ✕
+              </button>
             </div>
           ))}
+          <button onClick={handleAddAmenity} className="bg-blue-500 text-white px-4 py-2 rounded-md">
+            + Add Amenity
+          </button>
         </div>
 
-        {/* Buttons */}
         <div className="flex justify-end gap-2 mt-6">
-          <button onClick={handleUpdateOffice} className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">
+          <button onClick={handleUpdateOffice} className="bg-blue-500 text-white px-4 py-2 rounded-md">
             Update
-          </button>
-          <button onClick={closeModal} className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600">
-            Cancel
           </button>
         </div>
       </div>

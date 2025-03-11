@@ -76,36 +76,43 @@ export default function OfficePage() {
 {
   name: "Amenities",
   cell: (row: Office) => {
+    console.log("Amenities for row:", row.name, row.amenities); // ✅ Debugging
+
     const isExpanded = expandedRows[row.id] || false;
-    
-    // Ensure displayedAmenities is always an array
-    const displayedAmenities = Array.isArray(row.amenities) 
-      ? (isExpanded ? row.amenities : row.amenities.slice(0, 2)) 
+
+    // ✅ Ensure amenities is an array and filter out empty strings
+    const displayedAmenities = Array.isArray(row.amenities)
+      ? row.amenities.filter(amenity => amenity.trim() !== "") // Remove empty items
       : [];
 
     return (
       <div>
-        <ul className="list-disc pl-4 text-gray-600">
-          {displayedAmenities.length > 0 ? (
-            displayedAmenities.map((amenity, index) => <li key={index}>{amenity}</li>)
-          ) : (
-            <p>No Amenities</p>
-          )}
-        </ul>
+        {displayedAmenities.length > 0 ? (
+          <>
+            <ul className="list-disc pl-4 text-gray-600">
+              {(isExpanded ? displayedAmenities : displayedAmenities.slice(0, 2)).map((amenity, index) => (
+                <li key={index}>{amenity}</li>
+              ))}
+            </ul>
 
-        {row.amenities && Array.isArray(row.amenities) && row.amenities.length > 2 && (
-          <button
-            onClick={() => toggleExpand(row.id)}
-            className="text-blue-500 hover:underline text-sm mt-1"
-          >
-            {isExpanded ? "See Less" : "See More"}
-          </button>
+            {displayedAmenities.length > 2 && (
+              <button
+                onClick={() => toggleExpand(row.id)}
+                className="text-blue-500 hover:underline text-sm mt-1"
+              >
+                {isExpanded ? "See Less" : "See More"}
+              </button>
+            )}
+          </>
+        ) : (
+          <p className="text-gray-500">No Amenities</p>
         )}
       </div>
     );
   },
   sortable: false,
 },
+
 {
   name: "Actions",
   right: true,

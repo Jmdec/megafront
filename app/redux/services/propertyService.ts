@@ -49,18 +49,28 @@ export const addProperty = createAsyncThunk("properties/add", async (newProperty
 });
 
 // 🔹 Fetch a single property by ID (No authentication required)
-export const fetchPropertyById = createAsyncThunk("properties/fetchById", async (id: number, { rejectWithValue }) => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/property/${id}`);
+export const fetchPropertyById = createAsyncThunk(
+  "properties/fetchById",
+  async (id: number, { rejectWithValue }) => {
+    try {
+      console.log(`🔍 Fetching property with ID: ${id}`); // ✅ Log the ID being fetched
 
-    if (!response.ok) throw new Error("Failed to fetch property");
+      const response = await fetch(`${API_BASE_URL}/api/property/${id}`);
 
-    return response.json();
-  } catch (error: any) {
-    showToast(error.message, "error"); // Show error toast
-    return rejectWithValue(error.message);
+      if (!response.ok) throw new Error("Failed to fetch property");
+
+      const data = await response.json();
+      console.log("✅ Fetched Property Data:", data); // ✅ Log the fetched data
+
+      return data;
+    } catch (error: any) {
+      console.error("❌ Error fetching property:", error);
+      showToast(error.message, "error"); // Show error toast
+      return rejectWithValue(error.message);
+    }
   }
-});
+);
+
 
 // 🔹 Update a property (Requires authentication)
 export const updateProperty = createAsyncThunk(

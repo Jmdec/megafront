@@ -58,7 +58,8 @@ const AddModal: React.FC<AddModalProps> = ({ modalOpen, closeModal, fetchData })
     formData.append("status", newOffice.status);
     formData.append("price", newOffice.price);
     formData.append("lotArea", newOffice.lotArea);
-    formData.append("amenities", JSON.stringify(newOffice.amenities.filter(Boolean)));
+ formData.append("amenities", JSON.stringify(newOffice.amenities.filter(a => a.trim() !== "")));
+
 
     if (newOffice.image) {
       formData.append("image", newOffice.image);

@@ -6,28 +6,38 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 // ✅ Function to get the auth token
 const getAuthToken = () => Cookies.get("auth_token");
-
-// 🔹 Fetch all offices (Public)
 export const fetchOffices = createAsyncThunk("offices/fetchAll", async (_, { rejectWithValue }) => {
   try {
     const response = await fetch(`${API_BASE_URL}/api/office`);
     const data = await response.json();
 
-    // Handle the amenities processing
+    console.log("Raw Office Data:", data); // ✅ Debugging
+
     if (Array.isArray(data)) {
-      const formattedData = data.map((office) => ({
-        ...office,
-        amenities: typeof office.amenities === "string" ? JSON.parse(office.amenities) : office.amenities || [],
-      }));
+      const formattedData = data.map((office) => {
+        const parsedAmenities =
+          typeof office.amenities === "string"
+            ? JSON.parse(office.amenities).filter((a: string) => a.trim() !== "") // ✅ Remove empty items
+            : office.amenities || [];
+
+        console.log(`Office: ${office.name}, Amenities:`, parsedAmenities); // ✅ Debugging
+
+        return {
+          ...office,
+          amenities: parsedAmenities,
+        };
+      });
+
       return formattedData;
     } else {
-      throw new Error('Invalid data format');
+      throw new Error("Invalid data format");
     }
   } catch (error: any) {
-    showToast(error.message, "error"); // Show error toast
+    showToast(error.message, "error");
     return rejectWithValue(error.message);
   }
 });
+
 
 // 🔹 Add a new office (Protected)
 export const addOffice = createAsyncThunk("offices/add", async (newOffice: FormData, { rejectWithValue }) => {

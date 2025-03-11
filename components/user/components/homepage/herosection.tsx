@@ -3,17 +3,19 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState, AppDispatch } from "@/app/redux/store"; // Adjust path as needed
-import { fetchProperties } from "@/app/redux/services/propertyService";
+import { fetchProperties, } from "@/app/redux/services/propertyService";
 import { fetchLocations } from "@/app/redux/services/locationService"; // Import fetchLocations action
+import { fetchOffices } from "@/app/redux/services/officeService"; // Import fetchLocations action
 
 import { useRouter } from "next/navigation"; // Use next/navigation for navigation
-import { setSearchResults } from "@/app/redux/slice/propertyData";
+import { setSearchResults,resetSearchResults } from "@/app/redux/slice/propertyData";
+import { setOfficeSearchResults,resetOfficeSearchResults } from "@/app/redux/slice/officeData";
 
 const Form: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter(); // Initialize the router from next/navigation
 
-  // ✅ Fetch properties and locations from Redux store
+  const offices = useSelector((state: RootState) => state.officeData.offices);
   const properties = useSelector((state: RootState) => state.propertyData.properties);
   const locations = useSelector((state: RootState) => state.locationData.locations); // Add location data here
   const loading = useSelector((state: RootState) => state.propertyData.loading);
@@ -33,6 +35,7 @@ const Form: React.FC = () => {
   // ✅ Fetch properties on mount
   useEffect(() => {
     dispatch(fetchProperties());
+     dispatch(fetchOffices());
     dispatch(fetchLocations()); // Fetch locations when component mounts
   }, [dispatch]);
 
@@ -60,29 +63,48 @@ const Form: React.FC = () => {
   const formatPrice = (value: string) => {
     return value.replace(/[^\d]/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   };
-
 const handleSearchClick = () => {
-  // Filter properties based on search criteria
-  const filteredProperties = properties.filter((property) => {
-    // Filter by location
-    const isLocationMatch = selectedLocation ? property.location === selectedLocation : true;
+  if (selectedType === "Office") {
+    dispatch(resetSearchResults()); // ✅ Clear property results first
+    localStorage.removeItem("searchResults"); // ✅ Ensure property results are removed
+  } else {
+    dispatch(resetOfficeSearchResults()); // ✅ Clear office results first
+    localStorage.removeItem("officeSearchResults"); // ✅ Ensure office results are removed
+  }
 
-    // Filter by minPrice and maxPrice
-    const [min, max] = property.priceRange.split(" - ").map((price) => parseInt(price.replace(/[^\d]/g, "")));
-    const isMinPriceMatch = minPrice ? min >= parseInt(minPrice.replace(/[^\d]/g, "")) : true;
-    const isMaxPriceMatch = maxPrice ? max <= parseInt(maxPrice.replace(/[^\d]/g, "")) : true;
+  setTimeout(() => { // ✅ Delay setting new results to ensure reset happens
+    let filteredResults = [];
 
-    // Filter by selected property type
-    const isTypeMatch = selectedType ? property.developmentType === selectedType : true;
+    if (selectedType === "Office") {
+      filteredResults = offices.filter((office) => {
+        const isLocationMatch = selectedLocation ? office.location === selectedLocation : true;
+        const [min, max] = office.price.split(" - ").map((price) => parseInt(price.replace(/[^\d]/g, "")));
+        const isMinPriceMatch = minPrice ? min >= parseInt(minPrice.replace(/[^\d]/g, "")) : true;
+        const isMaxPriceMatch = maxPrice ? max <= parseInt(maxPrice.replace(/[^\d]/g, "")) : true;
 
-    return isLocationMatch && isMinPriceMatch && isMaxPriceMatch && isTypeMatch;
-  });
+        return isLocationMatch && isMinPriceMatch && isMaxPriceMatch;
+      });
 
-  // Dispatch the filtered properties to Redux state
-  dispatch(setSearchResults(filteredProperties));
+      dispatch(setOfficeSearchResults(filteredResults));
+      localStorage.setItem("officeSearchResults", JSON.stringify(filteredResults)); // ✅ Save office results
+    } else {
+      filteredResults = properties.filter((property) => {
+        const isLocationMatch = selectedLocation ? property.location === selectedLocation : true;
+        const [min, max] = property.priceRange.split(" - ").map((price) => parseInt(price.replace(/[^\d]/g, "")));
+        const isMinPriceMatch = minPrice ? min >= parseInt(minPrice.replace(/[^\d]/g, "")) : true;
+        const isMaxPriceMatch = maxPrice ? max <= parseInt(maxPrice.replace(/[^\d]/g, "")) : true;
+        const isTypeMatch = selectedType ? property.developmentType === selectedType : true;
 
-  // Navigate to search results page
-  router.push("/user/search");
+        return isLocationMatch && isMinPriceMatch && isMaxPriceMatch && isTypeMatch;
+      });
+
+      dispatch(setSearchResults(filteredResults));
+      localStorage.setItem("searchResults", JSON.stringify(filteredResults)); // ✅ Save property results
+    }
+
+    console.log("🔹 Filtered Results:", filteredResults);
+    router.push('/user/search');
+  }, 100); // ✅ Ensure reset completes before setting new values
 };
 
 

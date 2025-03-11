@@ -21,6 +21,9 @@ import ClosedDeals from "@/components/admin/pages/whatsnew/closedDeals";
 import RealEstateNews from "@/components/admin/pages/whatsnew/realEstateNews";
 import RealEstateTips from "@/components/admin/pages/whatsnew/realEstateTips";
 import OnGoingInfrastructure from "@/components/admin/pages/whatsnew/onGoingInfrastructure";
+import ClientAppointment from "@/components/admin/pages/clientappointment/page";
+
+
 import Video from "@/components/admin/pages/whatsnew/video";
 import Location from "@/components/admin/pages/formfiller/location";
 import { Provider } from 'react-redux';
@@ -90,6 +93,8 @@ export default function AdminPage() {
             {activeTab === "AGENT" && <Agent />}
             {activeTab === "OFFICES" && <Office />}
             {activeTab === "PROPERTIES" && <Property />}
+            {activeTab === "CLIENT APPOINTMENT" && <ClientAppointment />}
+    
           </Provider>
         </div>
       </div>
