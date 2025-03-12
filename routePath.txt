@@ -23,3 +23,5 @@ import store from "@/app/redux/store"; // Default import for store
       <Provider store={store}>
         <TownshipParent /> - Sample Page
       </Provider>
+
+        const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;

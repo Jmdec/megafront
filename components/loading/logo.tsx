@@ -7,7 +7,7 @@ const Loading = () => {
 
   useEffect(() => {
     // Hide loader after 3 seconds
-    const timeout = setTimeout(() => setIsVisible(false), 5000);
+    const timeout = setTimeout(() => setIsVisible(false), 3000);
     return () => clearTimeout(timeout);
   }, []);
 

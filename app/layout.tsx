@@ -2,8 +2,9 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import ToastProvider from "@/components/toast";
 import type { Metadata, Viewport } from "next";
-import PushNotificationHandler from '../components/Pushnotificationhandler';
+import PushNotificationHandler from "../components/Pushnotificationhandler";
 import ServiceWorkerRegister from "@/app/Serviceworkerregister";
+
 const APP_NAME = "MegaWorld Corporation";
 const APP_DEFAULT_TITLE = "MegaWorld";
 const APP_TITLE_TEMPLATE = "%s - PWA App";
@@ -17,8 +18,6 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
-
-
 
 export const metadata: Metadata = {
   applicationName: APP_NAME,
@@ -67,13 +66,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-       
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ServiceWorkerRegister/>
-          <PushNotificationHandler />
-   <ToastProvider />
+        <ServiceWorkerRegister />
+        <PushNotificationHandler />
+        <ToastProvider />
         {children}
       </body>
     </html>

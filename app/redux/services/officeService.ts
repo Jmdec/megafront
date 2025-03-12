@@ -11,7 +11,7 @@ export const fetchOffices = createAsyncThunk("offices/fetchAll", async (_, { rej
     const response = await fetch(`${API_BASE_URL}/api/office`);
     const data = await response.json();
 
-    console.log("Raw Office Data:", data); // ✅ Debugging
+
 
     if (Array.isArray(data)) {
       const formattedData = data.map((office) => {
@@ -20,7 +20,6 @@ export const fetchOffices = createAsyncThunk("offices/fetchAll", async (_, { rej
             ? JSON.parse(office.amenities).filter((a: string) => a.trim() !== "") // ✅ Remove empty items
             : office.amenities || [];
 
-        console.log(`Office: ${office.name}, Amenities:`, parsedAmenities); // ✅ Debugging
 
         return {
           ...office,

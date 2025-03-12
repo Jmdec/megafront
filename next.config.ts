@@ -5,6 +5,7 @@ const withPWA = withPWAInit({
   dest: "public", // Folder where service worker and other PWA assets will be saved
 });
 const nextConfig: NextConfig = {
+  
   reactStrictMode: true, // Enable React strict mode for development
   images: {
     domains: ['localhost'], // Allow images from localhost (if needed for your app)

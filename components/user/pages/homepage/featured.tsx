@@ -15,7 +15,9 @@ import "swiper/css/effect-fade";
 const FeaturedProjects = () => {
   const dispatch = useDispatch<AppDispatch>();
 
-  const projects = useSelector((state: RootState) => state.propertyData.properties);
+  const projects = useSelector(
+    (state: RootState) => state.propertyData.properties
+  );
   const loading = useSelector((state: RootState) => state.propertyData.loading);
   const error = useSelector((state: RootState) => state.propertyData.error);
 
@@ -27,10 +29,14 @@ const FeaturedProjects = () => {
 
   return (
     <div className="mx-auto px-6 py-16 bg-[#F9FAF1] w-full">
-      <h2 className={`text-sm sm:text-md text-center text-black mb-2 tracking-widest uppercase ${montserrat.className}`}>
+      <h2
+        className={`text-sm sm:text-md text-center text-black mb-2 tracking-widest uppercase ${montserrat.className}`}
+      >
         MEGAWORLD TOWNSHIP
       </h2>
-      <h3 className={`text-4xl sm:text-6xl text-center text-gray-700 font-bold mb-8 sm:mb-12 ${cardo.className}`}>
+      <h3
+        className={`text-4xl sm:text-6xl text-center text-gray-700 font-bold mb-8 sm:mb-12 ${cardo.className}`}
+      >
         FEATURED PROJECTS
       </h3>
 
@@ -72,33 +78,24 @@ const FeaturedProjects = () => {
                       <div className="absolute inset-0 bg-white opacity-10 transform scale-125 rotate-45 -translate-x-[130%] transition-transform duration-500 ease-in-out group-hover:translate-x-[130%]"></div>
                     </div>
                   </CardHeader>
-             <CardContent className="text-center">
-  <CardTitle className={`text-lg sm:text-xl font-bold text-black ${cardo.className}`}>
-    {project.name ? project.name.toLocaleUpperCase() : "N/A"}
-  </CardTitle>
+                  <CardContent className="text-center">
+                    <CardTitle
+                      className={`text-lg sm:text-xl font-bold text-black ${cardo.className}`}
+                    >
+                      {project.name ? project.name.toLocaleUpperCase() : "N/A"}
+                    </CardTitle>
 
-  {/* Underline */}
-  <hr className="w-fullmx-auto my-2 border-t border-gray-300" />
+                    {/* Underline */}
+                    <hr className="w-fullmx-auto my-2 border-t border-gray-300" />
 
-  <p className={`text-gray-700 text-xs sm:text-sm font-medium ${montserrat.className}`}>
-    {project.location ? project.location.toLocaleUpperCase() : "N/A"}
-  </p>
-
-  <p className={`text-gray-600 text-xs sm:text-sm ${montserrat.className}`}>
-    {project.description ? project.description.toLocaleUpperCase() : "N/A"}
-  </p>
-
-  <p className={`text-xs sm:text-sm font-semibold text-gray-500 mt-2 ${montserrat.className}`}>
-    {project.priceRange
-      ? project.priceRange
-          .split(" - ")
-          .map((price: string) => `₱${parseInt(price).toLocaleString()}`)
-          .join(" - ")
-      : "Price Not Available"}
-  </p>
-</CardContent>
-
-
+                    <p
+                      className={`text-gray-500 text-xs sm:text-sm ${montserrat.className}`}
+                    >
+                      {project.description
+                        ? project.description.split(".")[0] + "." // Get only the first sentence
+                        : "N/A"}
+                    </p>
+                  </CardContent>
                 </Card>
               </SwiperSlide>
             ))}
@@ -108,7 +105,7 @@ const FeaturedProjects = () => {
 
       {/* View More Button */}
       <div className="flex justify-center mt-8 sm:mt-10">
-        <Link href="/user/properties">
+        <Link href="/user/property/all">
           <Button
             className={`px-6 sm:px-6 py-3 sm:py-5 text-lg sm:text-xl !bg-white !text-[#B8986E] !border-[#B8986E] border-2 rounded-lg transition-all duration-300 transform hover:scale-105 ${montserrat.className}`}
           >
