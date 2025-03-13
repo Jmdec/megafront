@@ -22,11 +22,11 @@ import RealEstateNews from "@/components/admin/pages/whatsnew/realEstateNews";
 import RealEstateTips from "@/components/admin/pages/whatsnew/realEstateTips";
 import OnGoingInfrastructure from "@/components/admin/pages/whatsnew/onGoingInfrastructure";
 import ClientAppointment from "@/components/admin/pages/clientappointment/page";
-
+import ClientProperty from "@/components/admin/pages/clientproperty/page";
 
 import Video from "@/components/admin/pages/whatsnew/video";
 import Location from "@/components/admin/pages/formfiller/location";
-import { Provider } from 'react-redux';
+import { Provider } from "react-redux";
 import store from "@/app/redux/store"; // Default import for store
 
 import Loading from "@/components/loading/logo"; // Import Loading Component
@@ -63,8 +63,6 @@ export default function AdminPage() {
   //   return () => clearTimeout(timeout); // Clear timeout on tab change to prevent side effects
   // }, [activeTab]);
 
-  console.log(activeTab);
-
   return (
     <div className="flex h-screen bg-gray-100">
       {/* Show loading screen if `isLoading` is true */}
@@ -86,7 +84,9 @@ export default function AdminPage() {
             {activeTab === "Closed Deals" && <ClosedDeals />}
             {activeTab === "Real Estate News" && <RealEstateNews />}
             {activeTab === "Real Estate Tips" && <RealEstateTips />}
-            {activeTab === "On-Going Infrastructure" && <OnGoingInfrastructure />}
+            {activeTab === "On-Going Infrastructure" && (
+              <OnGoingInfrastructure />
+            )}
             {activeTab === "Watch Videos" && <Video />}
             {activeTab === "Careers" && <Careers />}
             {activeTab === "Testimonials" && <Testimonial />}
@@ -94,7 +94,7 @@ export default function AdminPage() {
             {activeTab === "OFFICES" && <Office />}
             {activeTab === "PROPERTIES" && <Property />}
             {activeTab === "CLIENT APPOINTMENT" && <ClientAppointment />}
-    
+            {activeTab === "CLIENT PROPERTY" && <ClientProperty />}
           </Provider>
         </div>
       </div>

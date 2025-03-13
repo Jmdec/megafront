@@ -1,4 +1,6 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { Formik, Form, Field, ErrorMessage } from "formik";
+import * as Yup from "yup";
 import { useDispatch } from "react-redux";
 import { showToast } from "@/components/toast";
 import { updateAgent } from "@/app/redux/services/agentService";
@@ -26,166 +28,318 @@ interface Agent {
   gallery: string[];
 }
 
-export default function EditModal({ modalOpen, closeModal, agent, fetchData }: EditModalProps) {
-   const dispatch = useDispatch<any>();
-  const [formData, setFormData] = useState<Agent>({
-    id: agent.id,
-    name: agent.name || "",
-    role: agent.role || "",
-    image: agent.image || "",
-    description: agent.description || "",
-    email: agent.email || "",
-    phone: agent.phone || "",
-    sociallinks: {
-      facebook: agent.sociallinks?.facebook || "",
-      instagram: agent.sociallinks?.instagram || "",
-    },
-    certificates: Array.isArray(agent.certificates) ? agent.certificates : [],
-    gallery: Array.isArray(agent.gallery) ? agent.gallery : [],
-  });
+const validationSchema = Yup.object({
+  name: Yup.string().trim().required("Agent Name is required"),
+  role: Yup.string().required("Role is required"),
+  description: Yup.string().trim().required("Description is required"),
+  email: Yup.string()
+    .email("Invalid email format")
+    .required("Email is required"),
+  phone: Yup.string().required("Phone is required"),
+  facebook: Yup.string()
+    .url("Invalid URL format")
+    .required("Facebook is required"),
+  instagram: Yup.string()
+    .url("Invalid URL format")
+    .required("Instagram is required"),
+  // image: Yup.mixed().required("Image is required"),
+  // certificates: Yup.mixed().required("Certificate is required"),
+  // gallery: Yup.mixed().required("Gallery is required"),
+});
 
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [certFiles, setCertFiles] = useState<FileList | null>(null);
-  const [galleryFiles, setGalleryFiles] = useState<FileList | null>(null);
-
+export default function EditModal({
+  modalOpen,
+  closeModal,
+  agent,
+  fetchData,
+}: EditModalProps) {
+  const dispatch = useDispatch<any>();
   const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
-
-  useEffect(() => {
-    if (agent) {
-      setFormData({
-        id: agent.id,
-        name: agent.name || "",
-        role: agent.role || "",
-        image: agent.image || "",
-        description: agent.description || "",
-        email: agent.email || "",
-        phone: agent.phone || "",
-        sociallinks: {
-          facebook: agent.sociallinks?.facebook || "",
-          instagram: agent.sociallinks?.instagram || "",
-        },
-        certificates: Array.isArray(agent.certificates) ? agent.certificates : [],
-        gallery: Array.isArray(agent.gallery) ? agent.gallery : [],
-      });
-    }
-  }, [agent]);
-
-const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, field: "image" | "certificates" | "gallery") => {
-  const files = e.target.files;
-  if (!files || files.length === 0) return; // ✅ Ensure files exist before processing
-
-  if (field === "image") {
-    setImageFile(files[0]);
-    setFormData((prev) => ({ ...prev, image: URL.createObjectURL(files[0]) }));
-  } else if (field === "certificates") {
-    setCertFiles(files);
-  } else if (field === "gallery") {
-    setGalleryFiles(files);
-  }
-};
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    const updatedFormData = new FormData();
-    updatedFormData.append("name", formData.name);
-    updatedFormData.append("role", formData.role);
-    updatedFormData.append("description", formData.description);
-    updatedFormData.append("email", formData.email);
-    updatedFormData.append("phone", formData.phone);
-    updatedFormData.append("facebook", formData.sociallinks.facebook || "");
-    updatedFormData.append("instagram", formData.sociallinks.instagram || "");
-
-    if (imageFile) {
-      updatedFormData.append("image", imageFile);
-    }
-    if (certFiles) {
-      Array.from(certFiles).forEach((file, index) => {
-        updatedFormData.append(`certificates[${index}]`, file);
-      });
-    }
-    if (galleryFiles) {
-      Array.from(galleryFiles).forEach((file, index) => {
-        updatedFormData.append(`gallery[${index}]`, file);
-      });
-    }
-
-    try {
-      await dispatch(updateAgent({ id: agent.id, updatedAgent: updatedFormData })).unwrap();
-
-      fetchData();
-      closeModal();
-    } catch (error: any) {
-      showToast(error.message || "Failed to update agent", "error");
-    }
-  };
+  const [imagePreview, setImagePreview] = useState<string | null>(
+    agent.image ? `${API_BASE_URL}${agent.image}` : null
+  );
+  const [certPreviews, setCertPreviews] = useState<string[]>(
+    agent.certificates.map((cert) => `${API_BASE_URL}${cert}`)
+  );
+  const [galleryPreviews, setGalleryPreviews] = useState<string[]>(
+    agent.gallery.map((photo) => `${API_BASE_URL}${photo}`)
+  );
   if (!modalOpen) return null;
 
-return (
-  <div className="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-50 z-50">
-    <div className="bg-white p-6 rounded-md shadow-md w-full max-w-3xl">
-      <h2 className="text-2xl font-semibold mb-4">Edit Agent</h2>
+  return (
+    <div className="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-50 z-50">
+      <div className="bg-white p-6 rounded-md shadow-md w-full max-w-3xl">
+        <h2 className="text-2xl font-semibold mb-4">Edit Agent</h2>
 
-      <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-6">
-        {/* Left Column */}
-        <div className="space-y-4">
-          <label className="block font-medium">Name:</label>
-          <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full border p-2 rounded" placeholder="Enter Name" />
+        <Formik
+          initialValues={{
+            name: agent.name || "",
+            role: agent.role || "",
+            description: agent.description || "",
+            email: agent.email || "",
+            phone: agent.phone || "",
+            facebook: agent.sociallinks?.facebook || "",
+            instagram: agent.sociallinks?.instagram || "",
+            image: null as File | null,
+            certificates: null as FileList | null,
+            gallery: null as FileList | null,
+          }}
+          validationSchema={validationSchema}
+          onSubmit={async (values, { setSubmitting }) => {
+            const formData = new FormData();
+            console.log(values);
+            formData.append("name", values.name);
+            formData.append("role", values.role);
+            formData.append("description", values.description);
+            formData.append("email", values.email);
+            formData.append("phone", values.phone);
+            formData.append("facebook", values.facebook);
+            formData.append("instagram", values.instagram);
 
-          <label className="block font-medium">Role:</label>
-          <input type="text" value={formData.role} onChange={(e) => setFormData({ ...formData, role: e.target.value })} className="w-full border p-2 rounded" placeholder="Enter Role" />
+            if (values.image) {
+              formData.append("image", values.image);
+            }
+            if (values.certificates) {
+              Array.from(values.certificates).forEach((file, index) => {
+                formData.append(`certificates[${index}]`, file);
+              });
+            }
+            if (values.gallery) {
+              Array.from(values.gallery).forEach((file, index) => {
+                formData.append(`gallery[${index}]`, file);
+              });
+            }
 
-          <label className="block font-medium">Description:</label>
-          <textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="w-full border p-2 rounded" placeholder="Enter Description" />
+            try {
+              await dispatch(
+                updateAgent({ id: agent.id, updatedAgent: formData })
+              ).unwrap();
+              fetchData();
+              closeModal();
+            } catch (error: any) {
+              showToast(error.message || "Failed to update agent", "error");
+            }
 
-          <label className="block font-medium">Email:</label>
-          <input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className="w-full border p-2 rounded" placeholder="Enter Email" />
+            setSubmitting(false);
+          }}
+        >
+          {({ setFieldValue, setFieldTouched, validateField, values }) => (
+            <Form className="grid grid-cols-2 gap-6">
+              {/* Left Column */}
+              <div className="space-y-4">
+                {/* Name */}
+                <label className="block font-medium">Name:</label>
+                <Field
+                  type="text"
+                  name="name"
+                  className="w-full border p-2 rounded"
+                />
+                <ErrorMessage
+                  name="name"
+                  component="div"
+                  className="text-red-500 text-sm"
+                />
 
-          <label className="block font-medium">Phone:</label>
-          <input type="text" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} className="w-full border p-2 rounded" placeholder="Enter Phone Number" />
+                {/* Role */}
+                <label className="block font-medium">Role:</label>
+                <Field
+                  type="text"
+                  name="role"
+                  className="w-full border p-2 rounded"
+                />
+                <ErrorMessage
+                  name="role"
+                  component="div"
+                  className="text-red-500 text-sm"
+                />
 
-          {/* Social Links */}
-          <label className="block font-medium">Facebook URL:</label>
-          <input type="text" value={formData.sociallinks.facebook} onChange={(e) => setFormData({ ...formData, sociallinks: { ...formData.sociallinks, facebook: e.target.value } })} className="w-full border p-2 rounded" placeholder="Enter Facebook URL" />
+                {/* Description */}
+                <label className="block font-medium">Description:</label>
+                <Field
+                  as="textarea"
+                  name="description"
+                  className="w-full border p-2 rounded"
+                />
+                <ErrorMessage
+                  name="description"
+                  component="div"
+                  className="text-red-500 text-sm"
+                />
 
-          <label className="block font-medium">Instagram URL:</label>
-          <input type="text" value={formData.sociallinks.instagram} onChange={(e) => setFormData({ ...formData, sociallinks: { ...formData.sociallinks, instagram: e.target.value } })} className="w-full border p-2 rounded" placeholder="Enter Instagram URL" />
-        </div>
+                {/* Email */}
+                <label className="block font-medium">Email:</label>
+                <Field
+                  type="email"
+                  name="email"
+                  className="w-full border p-2 rounded"
+                />
+                <ErrorMessage
+                  name="email"
+                  component="div"
+                  className="text-red-500 text-sm"
+                />
 
-        {/* Right Column */}
-        <div className="space-y-4">
-          {/* Image Upload */}
-          <label className="block font-medium">Profile Image:</label>
-          {formData.image && <img src={`${API_BASE_URL}${formData.image}`} alt="Agent" className="w-full h-24 object-cover rounded-md mb-2" />}
-          <input type="file" onChange={(e) => handleFileChange(e, "image")} className="w-full border p-2 rounded" />
+                {/* Phone */}
+                <label className="block font-medium">Phone:</label>
+                <Field
+                  type="text"
+                  name="phone"
+                  className="w-full border p-2 rounded"
+                />
+                <ErrorMessage
+                  name="phone"
+                  component="div"
+                  className="text-red-500 text-sm"
+                />
 
-          {/* Certificates */}
-          <label className="block font-medium">Certificates:</label>
-          <div className="grid grid-cols-2 gap-2">
-            {formData.certificates.map((cert, index) => (
-              <img key={index} src={`${API_BASE_URL}${cert}`} alt="Certificate" className="w-full h-20 object-cover rounded-md" />
-            ))}
-          </div>
-          <input type="file" multiple onChange={(e) => handleFileChange(e, "certificates")} className="w-full border p-2 rounded" />
+                {/* Facebook URL */}
+                <label className="block font-medium">Facebook URL:</label>
+                <Field
+                  type="text"
+                  name="facebook"
+                  className="w-full border p-2 rounded"
+                />
+                <ErrorMessage
+                  name="facebook"
+                  component="div"
+                  className="text-red-500 text-sm"
+                />
 
-          {/* Gallery */}
-          <label className="block font-medium">Gallery:</label>
-          <div className="grid grid-cols-2 gap-2">
-            {formData.gallery.map((photo, index) => (
-              <img key={index} src={`${API_BASE_URL}${photo}`} alt="Gallery" className="w-full h-20 object-cover rounded-md" />
-            ))}
-          </div>
-          <input type="file" multiple onChange={(e) => handleFileChange(e, "gallery")} className="w-full border p-2 rounded" />
-        </div>
+                {/* Instagram URL */}
+                <label className="block font-medium">Instagram URL:</label>
+                <Field
+                  type="text"
+                  name="instagram"
+                  className="w-full border p-2 rounded"
+                />
+                <ErrorMessage
+                  name="instagram"
+                  component="div"
+                  className="text-red-500 text-sm"
+                />
+              </div>
 
-        {/* Buttons */}
-        <div className="col-span-2 flex justify-end gap-2 mt-4">
-          <button type="button" onClick={closeModal} className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600">Cancel</button>
-          <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Save Changes</button>
-        </div>
-      </form>
+              {/* Right Column */}
+              <div className="space-y-4">
+                <label className="block font-medium">Profile Image:</label>
+                {imagePreview && (
+                  <img
+                    src={imagePreview}
+                    alt="Profile Preview"
+                    className="w-full h-24 object-cover rounded-md mb-2"
+                  />
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0] || null;
+                    if (file) {
+                      setFieldValue("image", file);
+                      setImagePreview(URL.createObjectURL(file));
+                    }
+                    setFieldTouched("image", true);
+                    validateField("image");
+                  }}
+                  className="w-full border p-2 rounded"
+                />
+                <ErrorMessage
+                  name="image"
+                  component="div"
+                  className="text-red-500 text-sm"
+                />
+
+                {/* Certificates Upload */}
+                <label className="block font-medium">Certificates:</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {certPreviews.map((cert, index) => (
+                    <img
+                      key={index}
+                      src={cert}
+                      alt="Certificate Preview"
+                      className="w-full h-20 object-cover rounded-md"
+                    />
+                  ))}
+                </div>
+                <input
+                  type="file"
+                  multiple
+                  onChange={(e) => {
+                    if (e.target.files) {
+                      setFieldValue("certificates", e.target.files);
+                      setCertPreviews(
+                        Array.from(e.target.files).map((file) =>
+                          URL.createObjectURL(file)
+                        )
+                      );
+                    }
+                    setFieldTouched("certificates", true);
+                    validateField("certificates");
+                  }}
+                  className="w-full border p-2 rounded"
+                />
+                <ErrorMessage
+                  name="certificates"
+                  component="div"
+                  className="text-red-500 text-sm"
+                />
+
+                {/* Gallery Upload */}
+                <label className="block font-medium">Gallery:</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {galleryPreviews.map((photo, index) => (
+                    <img
+                      key={index}
+                      src={photo}
+                      alt="Gallery Preview"
+                      className="w-full h-20 object-cover rounded-md"
+                    />
+                  ))}
+                </div>
+                <input
+                  type="file"
+                  multiple
+                  onChange={(e) => {
+                    if (e.target.files) {
+                      setFieldValue("gallery", e.target.files);
+                      setGalleryPreviews(
+                        Array.from(e.target.files).map((file) =>
+                          URL.createObjectURL(file)
+                        )
+                      );
+                    }
+                    setFieldTouched("gallery", true);
+                    validateField("gallery");
+                  }}
+                  className="w-full border p-2 rounded"
+                />
+                <ErrorMessage
+                  name="gallery"
+                  component="div"
+                  className="text-red-500 text-sm"
+                />
+              </div>
+
+              {/* Buttons */}
+              <div className="col-span-2 flex justify-end gap-2 mt-4">
+                <button
+                  type="button"
+                  onClick={closeModal}
+                  className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </Form>
+          )}
+        </Formik>
+      </div>
     </div>
-  </div>
-);
-
+  );
 }

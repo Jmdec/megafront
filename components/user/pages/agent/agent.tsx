@@ -32,7 +32,7 @@ export default function AgentProfile() {
         text: "Ella was amazing! She helped us find our dream home quickly and efficiently.",
         author: "- Jane Smith",
       },
-         {
+      {
         text: "Ella was amazing! She helped us find our dream home quickly and efficiently.",
         author: "- Jane Smith",
       },
@@ -63,10 +63,18 @@ export default function AgentProfile() {
     <div className="max-w-3xl mx-auto p-6 bg-white shadow-lg rounded-lg mt-24 relative">
       {/* Social Links - Positioned in the Upper Right */}
       <div className="absolute top-6 right-6 flex space-x-4">
-        <a href={data.agent.sociallinks.facebook} target="_blank" className="text-blue-500 hover:text-blue-700">
+        <a
+          href={data.agent.sociallinks.facebook}
+          target="_blank"
+          className="text-blue-500 hover:text-blue-700"
+        >
           <FaFacebook size={24} />
         </a>
-        <a href={data.agent.sociallinks.instagram} target="_blank" className="text-pink-500 hover:text-pink-700">
+        <a
+          href={data.agent.sociallinks.instagram}
+          target="_blank"
+          className="text-pink-500 hover:text-pink-700"
+        >
           <FaInstagram size={24} />
         </a>
       </div>
@@ -84,10 +92,16 @@ export default function AgentProfile() {
           <h1 className="text-2xl font-bold">{data.agent.name}</h1>
           <p className="text-gray-600">{data.agent.role}</p>
           <div className="mt-2 text-gray-600 space-y-1">
-            <a href={`tel:${data.agent.contacts.phone}`} className="flex items-center gap-2 text-blue-600 hover:underline">
+            <a
+              href={`tel:${data.agent.contacts.phone}`}
+              className="flex items-center gap-2 text-blue-600 hover:underline"
+            >
               <FaPhone /> {data.agent.contacts.phone}
             </a>
-            <a href={`mailto:${data.agent.contacts.email}`} className="flex items-center gap-2 text-blue-600 hover:underline">
+            <a
+              href={`mailto:${data.agent.contacts.email}`}
+              className="flex items-center gap-2 text-blue-600 hover:underline"
+            >
               <FaEnvelope /> {data.agent.contacts.email}
             </a>
           </div>
@@ -104,7 +118,9 @@ export default function AgentProfile() {
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={`px-4 py-2 rounded text-lg font-medium transition ${
-              activeTab === tab ? "bg-blue-500 text-white" : "bg-gray-200 hover:bg-gray-300"
+              activeTab === tab
+                ? "bg-blue-500 text-white"
+                : "bg-gray-200 hover:bg-gray-300"
             }`}
           >
             {tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -114,28 +130,32 @@ export default function AgentProfile() {
 
       {/* Tab Content */}
       <div className="mt-4 bg-gray-100 p-4 rounded-lg">
-     {activeTab === "testimonials" && (
-  <div>
-    <h3 className="text-lg font-semibold">Testimonials</h3>
-    <Swiper
-      modules={[Autoplay, Pagination]}
-      spaceBetween={20}
-      slidesPerView={3}
-      loop={true} // Enables infinite loop
-      pagination={{ clickable: true }}
-      autoplay={{ delay: 3000, disableOnInteraction: false }} // Autoplay Enabled
-      className="mt-4 h-40"
-    >
-      {data.testimonials.map((testimonial, index) => (
-        <SwiperSlide key={index} className="p-4 bg-white shadow-md rounded-lg h-40 flex flex-col justify-between">
-          <p className="text-gray-600 italic">"{testimonial.text}"</p>
-          <p className="text-right font-semibold text-gray-800 mt-auto">{testimonial.author}</p>
-        </SwiperSlide>
-      ))}
-    </Swiper>
-  </div>
-)}
-
+        {activeTab === "testimonials" && (
+          <div>
+            <h3 className="text-lg font-semibold">Testimonials</h3>
+            <Swiper
+              modules={[Autoplay, Pagination]}
+              spaceBetween={20}
+              slidesPerView={3}
+              loop={true} // Enables infinite loop
+              pagination={{ clickable: true }}
+              autoplay={{ delay: 3000, disableOnInteraction: false }} // Autoplay Enabled
+              className="mt-4 h-40"
+            >
+              {data.testimonials.map((testimonial, index) => (
+                <SwiperSlide
+                  key={index}
+                  className="p-4 bg-white shadow-md rounded-lg h-40 flex flex-col justify-between"
+                >
+                  <p className="text-gray-600 italic">"{testimonial.text}"</p>
+                  <p className="text-right font-semibold text-gray-800 mt-auto">
+                    {testimonial.author}
+                  </p>
+                </SwiperSlide>
+              ))}
+            </Swiper>
+          </div>
+        )}
 
         {activeTab === "certificates" && (
           <div>

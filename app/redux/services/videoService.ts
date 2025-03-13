@@ -1,80 +1,109 @@
 import Cookies from "js-cookie";
 import { createAsyncThunk } from "@reduxjs/toolkit";
+import { showToast } from "@/components/toast"; // ✅ Import showToast
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
-
-// Helper function to get the auth token from cookies
 const getAuthToken = () => Cookies.get("auth_token");
 
 // 🔹 Fetch all videos (No authentication required)
-export const fetchVideos = createAsyncThunk("video/fetchAll", async () => {
-  const response = await fetch(`${API_BASE_URL}/api/video`);
-  const data = await response.json();
+export const fetchVideos = createAsyncThunk(
+  "video/fetchAll",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/video`);
+      if (!response.ok) throw new Error("Failed to fetch videos");
 
-  console.log("🔹 Fetched Videos:", data); // ✅ Debugging
-
-  return data || []; // Ensure fallback to an empty array
-});
+      const data = await response.json();
+      console.log("🔹 Fetched Videos:", data);
+      return data || [];
+    } catch (error: any) {
+      showToast(error.message, "error");
+      return rejectWithValue(error.message);
+    }
+  }
+);
 
 // 🔹 Add a new video (Requires authentication)
-export const addVideo = createAsyncThunk("video/add", async (newVideo: FormData) => {
-  const response = await fetch(`${API_BASE_URL}/api/video`, {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${getAuthToken()}`, // Apply token in the header
-    },
-    body: newVideo,
-  });
+export const addVideo = createAsyncThunk(
+  "video/add",
+  async (newVideo: FormData, { rejectWithValue }) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/video`, {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${getAuthToken()}` },
+        body: newVideo,
+      });
 
-  if (!response.ok) throw new Error("Failed to add video");
+      if (!response.ok) throw new Error("Failed to add video");
 
-  const result = await response.json();
-  console.log("✅ Added Video:", result);
-  return result;
-});
+      const result = await response.json();
+      showToast("Video added successfully!", "success");
+      return result;
+    } catch (error: any) {
+      showToast(error.message, "error");
+      return rejectWithValue(error.message);
+    }
+  }
+);
 
 // 🔹 Fetch a single video by ID (No authentication required)
-export const fetchVideoById = createAsyncThunk("video/fetchById", async (id: number) => {
-  const response = await fetch(`${API_BASE_URL}/api/video/${id}`);
+export const fetchVideoById = createAsyncThunk(
+  "video/fetchById",
+  async (id: number, { rejectWithValue }) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/video/${id}`);
+      if (!response.ok) throw new Error("Failed to fetch video");
 
-  if (!response.ok) throw new Error("Failed to fetch video");
-
-  const data = await response.json();
-  console.log(`📌 Fetched Video with ID ${id}:`, data);
-  return data;
-});
+      const data = await response.json();
+      console.log(`📌 Fetched Video with ID ${id}:`, data);
+      return data;
+    } catch (error: any) {
+      showToast(error.message, "error");
+      return rejectWithValue(error.message);
+    }
+  }
+);
 
 // 🔹 Update a video (Requires authentication)
 export const updateVideo = createAsyncThunk(
   "video/update",
-  async ({ id, updatedVideo }: { id: number; updatedVideo: FormData }) => {
-    const response = await fetch(`${API_BASE_URL}/api/video/${id}`, {
-      method: "POST", // or "PUT" if backend requires
-      headers: {
-        "Authorization": `Bearer ${getAuthToken()}`, // Apply token in the header
-      },
-      body: updatedVideo,
-    });
+  async ({ id, updatedVideo }: { id: number; updatedVideo: FormData }, { rejectWithValue }) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/video/${id}`, {
+        method: "POST", // or "PUT" if backend requires
+        headers: { "Authorization": `Bearer ${getAuthToken()}` },
+        body: updatedVideo,
+      });
 
-    if (!response.ok) throw new Error("Failed to update video");
+      if (!response.ok) throw new Error("Failed to update video");
 
-    const updatedData = await response.json();
-    console.log(`🔄 Updated Video ID ${id}:`, updatedData);
-    return updatedData;
+      const updatedData = await response.json();
+      showToast(`🔄 Video ID ${id} updated successfully!`, "success");
+      return updatedData;
+    } catch (error: any) {
+      showToast(error.message, "error");
+      return rejectWithValue(error.message);
+    }
   }
 );
 
 // 🔹 Delete a video (Requires authentication)
-export const deleteVideo = createAsyncThunk("video/delete", async (id: number) => {
-  const response = await fetch(`${API_BASE_URL}/api/video/${id}`, {
-    method: "DELETE",
-    headers: {
-      "Authorization": `Bearer ${getAuthToken()}`, // Apply token in the header
-    },
-  });
+export const deleteVideo = createAsyncThunk(
+  "video/delete",
+  async (id: number, { rejectWithValue }) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/video/${id}`, {
+        method: "DELETE",
+        headers: { "Authorization": `Bearer ${getAuthToken()}` },
+      });
 
-  if (!response.ok) throw new Error("Failed to delete video");
+      if (!response.ok) throw new Error("Failed to delete video");
 
-  console.log(`❌ Deleted Video ID ${id}`);
-  return id; // Return deleted video ID
-});
+      showToast(` Video ID ${id} deleted successfully!`, "success");
+      return id;
+    } catch (error: any) {
+      showToast(error.message, "error");
+      return rejectWithValue(error.message);
+    }
+  }
+);

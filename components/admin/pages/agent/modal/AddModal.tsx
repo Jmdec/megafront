@@ -1,28 +1,25 @@
-import React, { useState } from "react";
+import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { addAgent } from "@/app/redux/services/agentService";
 import { RootState } from "@/app/redux/store";
+import { Formik, Form, Field, ErrorMessage } from "formik";
+import * as Yup from "yup";
+
 interface AddModalProps {
   modalOpen: boolean;
   closeModal: () => void;
   fetchData: () => void;
 }
 
-const AddModal: React.FC<AddModalProps> = ({ modalOpen, closeModal, fetchData }) => {
+const AddModal: React.FC<AddModalProps> = ({
+  modalOpen,
+  closeModal,
+  fetchData,
+}) => {
   const dispatch = useDispatch<any>();
   const loading = useSelector((state: RootState) => state.agentData.loading);
-  const [newAgent, setNewAgent] = useState<{
-    name: string;
-    role: string;
-    image: File | null;
-    description: string;
-    email: string;
-    phone: string;
-    facebook: string;
-    instagram: string;
-    certificates: FileList | null;
-    gallery: FileList | null;
-  }>({
+
+  const initialValues = {
     name: "",
     role: "",
     image: null,
@@ -33,40 +30,45 @@ const AddModal: React.FC<AddModalProps> = ({ modalOpen, closeModal, fetchData })
     instagram: "",
     certificates: null,
     gallery: null,
+  };
+
+  const validationSchema = Yup.object({
+    name: Yup.string().trim().required("Agent Name is required"),
+    role: Yup.string().required("Role is required"),
+    description: Yup.string().trim().required("Description is required"),
+    email: Yup.string()
+      .email("Invalid email format")
+      .required("Email is required"),
+    phone: Yup.string().required("Phone is required"),
+    facebook: Yup.string()
+      .url("Invalid URL format")
+      .required("Facebook is required"),
+    instagram: Yup.string()
+      .url("Invalid URL format")
+      .required("Instagram is required"),
+    image: Yup.mixed().required("Image is required"),
+    certificates: Yup.mixed().required("Certificate is required"),
+    gallery: Yup.mixed().required("Gallery is required"),
   });
 
-  const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
-const handleAddAgent = async () => {
-    if (!newAgent.name.trim() || !newAgent.role.trim() || !newAgent.description.trim()) {
-      alert("Agent Name, Role, and Description are required.");
-      return;
-    }
-
+  const handleAddAgent = async (values: any) => {
     const formData = new FormData();
-    formData.append("name", newAgent.name);
-    formData.append("role", newAgent.role);
-    formData.append("description", newAgent.description);
-    formData.append("email", newAgent.email);
-    formData.append("phone", newAgent.phone);
-    formData.append("facebook", newAgent.facebook);
-    formData.append("instagram", newAgent.instagram);
-
-    if (newAgent.image) formData.append("image", newAgent.image);
-    if (newAgent.certificates) {
-      Array.from(newAgent.certificates).forEach((file) => {
-        formData.append("certificates[]", file);
-      });
-    }
-    if (newAgent.gallery) {
-      Array.from(newAgent.gallery).forEach((file) => {
-        formData.append("gallery[]", file);
-      });
-    }
+    Object.entries(values).forEach(([key, value]) => {
+      if (value) {
+        if (value instanceof FileList) {
+          Array.from(value).forEach((file) =>
+            formData.append(`${key}[]`, file)
+          );
+        } else {
+          formData.append(key, value as string | Blob);
+        }
+      }
+    });
 
     try {
-      await dispatch(addAgent(formData)).unwrap(); // Dispatch Redux action
-      fetchData(); // Refresh the list
-      closeModal(); // Close modal
+      await dispatch(addAgent(formData)).unwrap();
+      fetchData();
+      closeModal();
     } catch (error) {
       console.error("Error adding agent:", error);
     }
@@ -77,121 +79,198 @@ const handleAddAgent = async () => {
       <div className="bg-white p-6 rounded-lg shadow-lg max-w-4xl w-full overflow-y-auto max-h-[90vh]">
         <h2 className="text-xl font-semibold mb-4">Add Agent</h2>
 
-        <div className="grid grid-cols-2 gap-6">
-          {/* Left Column */}
-          <div>
-            <label className="block text-gray-700 font-medium mb-1">Name</label>
-            <input
-              type="text"
-              placeholder="Enter Name"
-              value={newAgent.name}
-              onChange={(e) => setNewAgent({ ...newAgent, name: e.target.value })}
-              className="w-full border rounded-md px-3 py-2 mb-4"
-            />
+        <Formik
+          initialValues={initialValues}
+          validationSchema={validationSchema}
+          onSubmit={handleAddAgent}
+        >
+          {({ setFieldValue, setFieldTouched, validateField }) => (
+            <Form>
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                  <label>Name</label>
+                  <Field
+                    type="text"
+                    name="name"
+                    className="w-full border rounded-md px-3 py-2 mb-2"
+                  />
+                  <ErrorMessage
+                    name="name"
+                    component="div"
+                    className="text-red-500 text-sm"
+                  />
 
-    <label className="block text-gray-700 font-medium mb-1">Role</label>
-<select
-  value={newAgent.role}
-  onChange={(e) => setNewAgent({ ...newAgent, role: e.target.value })}
-  className="w-full border rounded-md px-3 py-2 mb-4 bg-white focus:ring-2 focus:ring-[#B8986E]"
->
-  <option value="">Select Role</option>
-  <option value="Real Estate Agent">Real Estate Agent</option>
-  <option value="Marketing Specialist">Marketing Specialist</option>
-  <option value="Property Manager">Property Manager</option>
-</select>
+                  <label>Role</label>
+                  <Field
+                    as="select"
+                    name="role"
+                    className="w-full border rounded-md px-3 py-2 mb-2"
+                  >
+                    <option value="">Select Role</option>
+                    <option value="Real Estate Agent">Real Estate Agent</option>
+                    <option value="Marketing Specialist">
+                      Marketing Specialist
+                    </option>
+                    <option value="Property Manager">Property Manager</option>
+                  </Field>
+                  <ErrorMessage
+                    name="role"
+                    component="div"
+                    className="text-red-500 text-sm"
+                  />
 
+                  <label>Description</label>
+                  <Field
+                    as="textarea"
+                    name="description"
+                    className="w-full border rounded-md px-3 py-2 mb-2"
+                  />
+                  <ErrorMessage
+                    name="description"
+                    component="div"
+                    className="text-red-500 text-sm"
+                  />
+                </div>
 
-            <label className="block text-gray-700 font-medium mb-1">Description</label>
-            <textarea
-              placeholder="Enter Description"
-              value={newAgent.description}
-              onChange={(e) => setNewAgent({ ...newAgent, description: e.target.value })}
-              className="w-full border rounded-md px-3 py-2 mb-4"
-            />
-          </div>
+                <div>
+                  <label>Email</label>
+                  <Field
+                    type="email"
+                    name="email"
+                    className="w-full border rounded-md px-3 py-2 mb-2"
+                  />
+                  <ErrorMessage
+                    name="email"
+                    component="div"
+                    className="text-red-500 text-sm"
+                  />
 
-          {/* Right Column */}
-          <div>
-            <label className="block text-gray-700 font-medium mb-1">Email</label>
-            <input
-              type="email"
-              placeholder="Enter Email"
-              value={newAgent.email}
-              onChange={(e) => setNewAgent({ ...newAgent, email: e.target.value })}
-              className="w-full border rounded-md px-3 py-2 mb-4"
-            />
+                  <label>Phone</label>
+                  <Field
+                    type="text"
+                    name="phone"
+                    className="w-full border rounded-md px-3 py-2 mb-2"
+                  />
+                  <ErrorMessage
+                    name="phone"
+                    component="div"
+                    className="text-red-500 text-sm"
+                  />
+                  <label>Facebook</label>
+                  <Field
+                    type="text"
+                    name="facebook"
+                    className="w-full border rounded-md px-3 py-2 mb-2"
+                  />
+                  <ErrorMessage
+                    name="facebook"
+                    component="div"
+                    className="text-red-500 text-sm"
+                  />
 
-            <label className="block text-gray-700 font-medium mb-1">Phone</label>
-            <input
-              type="text"
-              placeholder="Enter Phone Number"
-              value={newAgent.phone}
-              onChange={(e) => setNewAgent({ ...newAgent, phone: e.target.value })}
-              className="w-full border rounded-md px-3 py-2 mb-4"
-            />
+                  <label>Instagram</label>
+                  <Field
+                    type="text"
+                    name="instagram"
+                    className="w-full border rounded-md px-3 py-2 mb-2"
+                  />
+                  <ErrorMessage
+                    name="instagram"
+                    component="div"
+                    className="text-red-500 text-sm"
+                  />
+                </div>
+              </div>
 
-            <label className="block text-gray-700 font-medium mb-1">Facebook</label>
-            <input
-              type="text"
-              placeholder="Enter Facebook URL"
-              value={newAgent.facebook}
-              onChange={(e) => setNewAgent({ ...newAgent, facebook: e.target.value })}
-              className="w-full border rounded-md px-3 py-2 mb-4"
-            />
+              <div className="grid grid-cols-2 gap-6 mt-4">
+                <div>
+                  <label>Image</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(event) => {
+                      const file = event.target.files?.[0] || null;
+                      setFieldValue("image", file);
+                      setFieldTouched("image", true);
+                      validateField("image");
+                    }}
+                    onBlur={() => {
+                      setFieldTouched("image", true);
+                      validateField("image");
+                    }}
+                    className="w-full mb-4"
+                  />
+                  <ErrorMessage
+                    name="image"
+                    component="div"
+                    className="text-red-500 text-sm"
+                  />
+                </div>
 
-            <label className="block text-gray-700 font-medium mb-1">Instagram</label>
-            <input
-              type="text"
-              placeholder="Enter Instagram URL"
-              value={newAgent.instagram}
-              onChange={(e) => setNewAgent({ ...newAgent, instagram: e.target.value })}
-              className="w-full border rounded-md px-3 py-2 mb-4"
-            />
-          </div>
-        </div>
+                <div>
+                  <label>Certificates</label>
+                  <input
+                    type="file"
+                    multiple
+                    onChange={(event) => {
+                      setFieldValue("certificates", event.target.files);
+                      setFieldTouched("certificates", true);
+                      validateField("certificates");
+                    }}
+                    onBlur={() => {
+                      setFieldTouched("certificates", true);
+                      validateField("certificates");
+                    }}
+                    className="w-full mb-4"
+                  />
+                  <ErrorMessage
+                    name="certificates"
+                    component="div"
+                    className="text-red-500 text-sm"
+                  />
+                </div>
 
-        {/* File Uploads */}
-        <div className="grid grid-cols-2 gap-6 mt-4">
-          <div>
-            <label className="block text-gray-700 font-medium mb-1">Image</label>
-            <input
-              type="file"
-              onChange={(e) => setNewAgent({ ...newAgent, image: e.target.files?.[0] || null })}
-              className="w-full mb-4"
-            />
-          </div>
-
-          <div>
-            <label className="block text-gray-700 font-medium mb-1">Certificates</label>
-            <input
-              type="file"
-              multiple
-              onChange={(e) => setNewAgent({ ...newAgent, certificates: e.target.files })}
-              className="w-full mb-4"
-            />
-          </div>
-
-          <div>
-            <label className="block text-gray-700 font-medium mb-1">Gallery</label>
-            <input
-              type="file"
-              multiple
-              onChange={(e) => setNewAgent({ ...newAgent, gallery: e.target.files })}
-              className="w-full mb-4"
-            />
-          </div>
-        </div>
-
-        {/* Buttons */}
-        <div className="flex justify-end gap-2">
-          <button onClick={handleAddAgent} className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">
-            Save
-          </button>
-          <button onClick={closeModal} className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600">
-            Cancel
-          </button>
-        </div>
+                <div>
+                  <label>Gallery</label>
+                  <input
+                    type="file"
+                    multiple
+                    onChange={(event) => {
+                      setFieldValue("gallery", event.target.files);
+                      setFieldTouched("gallery", true);
+                      validateField("gallery");
+                    }}
+                    onBlur={() => {
+                      setFieldTouched("gallery", true);
+                      validateField("gallery");
+                    }}
+                    className="w-full mb-4"
+                  />
+                  <ErrorMessage
+                    name="gallery"
+                    component="div"
+                    className="text-red-500 text-sm"
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end gap-2 mt-4">
+                <button
+                  type="submit"
+                  className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+                >
+                  Save
+                </button>
+                <button
+                  type="button"
+                  onClick={closeModal}
+                  className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600"
+                >
+                  Cancel
+                </button>
+              </div>
+            </Form>
+          )}
+        </Formik>
       </div>
     </div>
   ) : null;

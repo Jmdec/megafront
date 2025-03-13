@@ -8,25 +8,29 @@ import { Building, Ruler, Layers } from "lucide-react"; // ✅ Import icons
 
 export default function Office({ id }: { id: string }) {
   const dispatch = useDispatch<AppDispatch>();
-  const office = useSelector((state: RootState) => state.officeData.selectedOffice);
+  const office = useSelector(
+    (state: RootState) => state.officeData.selectedOffice
+  );
   const loading = useSelector((state: RootState) => state.officeData.loading);
   const error = useSelector((state: RootState) => state.officeData.error);
   const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
-useEffect(() => {
-  if (id) {
-    dispatch(fetchOfficeById(Number(id))); // Fetch office by ID
-  }
-}, [dispatch, id]);
+  useEffect(() => {
+    if (id) {
+      dispatch(fetchOfficeById(Number(id))); // Fetch office by ID
+    }
+  }, [dispatch, id]);
 
-// ✅ Log office data whenever it updates
-useEffect(() => {
-  console.log("Fetched Office Data:", office);
-}, [office]); // 🔹 Runs whenever office data updates
+  // ✅ Log office data whenever it updates
+  useEffect(() => {
+    console.log("Fetched Office Data:", office);
+  }, [office]); // 🔹 Runs whenever office data updates
 
-  if (loading) return <p className="text-center text-lg">Loading office details...</p>;
+  if (loading)
+    return <p className="text-center text-lg">Loading office details...</p>;
   if (error) return <p className="text-center text-red-500">Error: {error}</p>;
-  if (!office) return <p className="text-center text-gray-500">No office found.</p>;
+  if (!office)
+    return <p className="text-center text-gray-500">No office found.</p>;
 
   // ✅ Status Badge Colors
   const statusColors: Record<string, string> = {
@@ -37,7 +41,6 @@ useEffect(() => {
 
   return (
     <div className="max-w-6xl mx-auto p-6 bg-white shadow-lg rounded-lg mt-10">
-      
       {/* ✅ Office Image & Status */}
       <div className="relative w-full h-96">
         <img
@@ -58,10 +61,13 @@ useEffect(() => {
       <div className="mt-6">
         <h1 className="text-3xl font-bold text-gray-900">{office.name}</h1>
         <p className="text-lg text-gray-600 mt-1">{office.location}</p>
-      <p className="text-xl font-semibold text-black mt-2">
-  ₱ {office.price.split(" - ").map(num => Number(num).toLocaleString()).join(" - ₱ ")}
-</p>
-
+        <p className="text-xl font-semibold text-black mt-2">
+          ₱{" "}
+          {office.price
+            .split(" - ")
+            .map((num) => Number(num).toLocaleString())
+            .join(" - ₱ ")}
+        </p>
       </div>
 
       {/* ✅ Office Details Section */}
@@ -87,7 +93,10 @@ useEffect(() => {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-3">
           {office.amenities.length > 0 ? (
             office.amenities.map((amenity: string, index: number) => (
-              <div key={index} className="text-center bg-gray-100 p-3 rounded-lg shadow">
+              <div
+                key={index}
+                className="text-center bg-gray-100 p-3 rounded-lg shadow"
+              >
                 <p className="text-sm text-gray-700">{amenity}</p>
               </div>
             ))
@@ -96,7 +105,6 @@ useEffect(() => {
           )}
         </div>
       </div>
-
     </div>
   );
 }

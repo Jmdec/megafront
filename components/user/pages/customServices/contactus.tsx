@@ -1,7 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { FaPhone, FaPhoneAlt, FaEnvelope, FaRegQuestionCircle, FaTwitter, FaFacebook, FaHeadset, FaFilePdf, FaMoneyBillWave, FaUser, FaPaperPlane, FaCheckCircle } from "react-icons/fa";
+import {
+  FaPhone,
+  FaPhoneAlt,
+  FaEnvelope,
+  FaRegQuestionCircle,
+  FaTwitter,
+  FaFacebook,
+  FaHeadset,
+  FaFilePdf,
+  FaMoneyBillWave,
+  FaUser,
+  FaPaperPlane,
+  FaCheckCircle,
+} from "react-icons/fa";
 import Image from "next/image";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
@@ -18,7 +31,9 @@ export default function ContactUs() {
     message: "",
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
@@ -31,7 +46,6 @@ export default function ContactUs() {
   return (
     <div className="bg-gray-50 py-8 px-6">
       <div className="w-[60%] mx-auto bg-white shadow-lg rounded-lg overflow-hidden border border-gray-200">
-
         <div className=" text-center rounded-lg py-10 max-w-full mx-auto ">
           <h2 className="text-lg md:text-2xl font-semibold text-gray-900 mb-2">
             Buying a Condo Online – Simple & Easy!
@@ -56,7 +70,11 @@ export default function ContactUs() {
             <motion.div
               initial={{ opacity: 0, x: -5 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, repeat: Infinity, repeatType: "reverse" }}
+              transition={{
+                duration: 0.6,
+                repeat: Infinity,
+                repeatType: "reverse",
+              }}
               className="text-lg md:text-xl text-gray-500"
             >
               ➜
@@ -77,7 +95,12 @@ export default function ContactUs() {
             <motion.div
               initial={{ opacity: 0, x: -5 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, repeat: Infinity, repeatType: "reverse", delay: 0.2 }}
+              transition={{
+                duration: 0.6,
+                repeat: Infinity,
+                repeatType: "reverse",
+                delay: 0.2,
+              }}
               className="text-lg md:text-xl text-gray-500"
             >
               ➜
@@ -98,7 +121,12 @@ export default function ContactUs() {
             <motion.div
               initial={{ opacity: 0, x: -5 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, repeat: Infinity, repeatType: "reverse", delay: 0.4 }}
+              transition={{
+                duration: 0.6,
+                repeat: Infinity,
+                repeatType: "reverse",
+                delay: 0.4,
+              }}
               className="text-lg md:text-xl text-gray-500"
             >
               ➜
@@ -122,51 +150,74 @@ export default function ContactUs() {
           <div className="text-center">
             <h1 className="text-xl md:text-2xl font-semibold text-gray-900 leading-tight">
               Get in Touch With Us
-              <span className="block text-neutral-700 text-sm mt-1">We’re Here to Assist You</span>
+              <span className="block text-neutral-700 text-sm mt-1">
+                We’re Here to Assist You
+              </span>
             </h1>
             <p className="text-gray-700 w-7/12 mx-auto mt-2 text-sm md:text-xm mb-3">
-              Have questions or need assistance? Our team is ready to help with your inquiries, partnerships, or service requests.
-              Contact us today, and let’s start the conversation.
+              Have questions or need assistance? Our team is ready to help with
+              your inquiries, partnerships, or service requests. Contact us
+              today, and let’s start the conversation.
             </p>
           </div>
 
           <div className="container mx-auto px-4 flex justify-center">
             <div className="w-full md:w-6/12 flex bg-white shadow-lg border border-gray-200 rounded-lg overflow-hidden relative">
-
               {/* Form Section (Left) */}
               <div className="w-full md:w-7/12 p-4 md:p-6 bg-white absolute md:relative z-10">
-                <h2 className="text-lg md:text-xl font-semibold text-gray-900 text-start mb-3">Get in Touch</h2>
+                <h2 className="text-lg md:text-xl font-semibold text-gray-900 text-start mb-3">
+                  Get in Touch
+                </h2>
 
                 <form className="space-y-2 w-full">
                   <div className="grid grid-cols-1 gap-2">
-
                     {/* Full Name */}
-                    <label className="text-gray-700 text-xs md:text-sm font-medium">Full Name</label>
+                    <label className="text-gray-700 text-xs md:text-sm font-medium">
+                      Full Name
+                    </label>
                     <input
-                      type="text" name="name" placeholder="Enter your name"
-                      className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 text-gray-700 shadow-sm text-xs md:text-sm" required
+                      type="text"
+                      name="name"
+                      placeholder="Enter your name"
+                      className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 text-gray-700 shadow-sm text-xs md:text-sm"
+                      required
                     />
 
                     {/* Email Address */}
-                    <label className="text-gray-700 text-xs md:text-sm font-medium">Email Address</label>
+                    <label className="text-gray-700 text-xs md:text-sm font-medium">
+                      Email Address
+                    </label>
                     <input
-                      type="email" name="email" placeholder="Enter your email"
-                      className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 text-gray-700 shadow-sm text-xs md:text-sm" required
+                      type="email"
+                      name="email"
+                      placeholder="Enter your email"
+                      className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 text-gray-700 shadow-sm text-xs md:text-sm"
+                      required
                     />
 
                     {/* Phone Number */}
-                    <label className="text-gray-700 text-xs md:text-sm font-medium">Phone Number</label>
+                    <label className="text-gray-700 text-xs md:text-sm font-medium">
+                      Phone Number
+                    </label>
                     <input
-                      type="text" name="contact" placeholder="Enter your phone number"
-                      className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 text-gray-700 shadow-sm text-xs md:text-sm" required
+                      type="text"
+                      name="contact"
+                      placeholder="Enter your phone number"
+                      className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 text-gray-700 shadow-sm text-xs md:text-sm"
+                      required
                     />
                   </div>
 
                   {/* Message */}
-                  <label className="text-gray-700 text-xs md:text-sm font-medium">Message</label>
+                  <label className="text-gray-700 text-xs md:text-sm font-medium">
+                    Message
+                  </label>
                   <textarea
-                    name="message" placeholder="Write your message..." rows={2}
-                    className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 text-gray-700 resize-none shadow-sm text-xs md:text-sm" required
+                    name="message"
+                    placeholder="Write your message..."
+                    rows={2}
+                    className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 text-gray-700 resize-none shadow-sm text-xs md:text-sm"
+                    required
                   ></textarea>
 
                   {/* Submit Button */}
@@ -189,16 +240,9 @@ export default function ContactUs() {
                   className="w-full h-full object-cover object-left rounded-l-full"
                 />
               </div>
-
             </div>
           </div>
-
-
-
-
         </div>
-
-
       </div>
     </div>
   );

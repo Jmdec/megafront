@@ -1,9 +1,9 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
-import { useDispatch, useSelector } from 'react-redux';
-import { RootState, AppDispatch } from '@/app/redux/store';
-import { fetchOffices } from '@/app/redux/services/officeService';
+import { useDispatch, useSelector } from "react-redux";
+import { RootState, AppDispatch } from "@/app/redux/store";
+import { fetchOffices } from "@/app/redux/services/officeService";
 import Link from "next/link";
 interface OfficeProps {
   office?: string;
@@ -27,7 +27,7 @@ const Office = ({ office }: OfficeProps) => {
   }, [dispatch]);
 
   useEffect(() => {
-    console.log(office)
+    console.log(office);
     if (office) {
       setStatusFilter(office);
     }
@@ -36,28 +36,30 @@ const Office = ({ office }: OfficeProps) => {
   const uniqueLocations = [...new Set(offices.map((item) => item.location))];
   const uniqueStatuses = [...new Set(offices.map((item) => item.status))];
 
- const filteredOffices = offices.filter((officeItem) => {
-  const matchesSearch = `${officeItem.name} ${officeItem.location}`
-    .toLowerCase()
-    .includes(search.toLowerCase());
+  const filteredOffices = offices.filter((officeItem) => {
+    const matchesSearch = `${officeItem.name} ${officeItem.location}`
+      .toLowerCase()
+      .includes(search.toLowerCase());
 
-  const matchesLocation =
-    !locationFilter ||
-    locationFilter.toLowerCase() === "all" ||
-    officeItem.location.toLowerCase() === locationFilter.toLowerCase();
+    const matchesLocation =
+      !locationFilter ||
+      locationFilter.toLowerCase() === "all" ||
+      officeItem.location.toLowerCase() === locationFilter.toLowerCase();
 
-  // ✅ Normalize `status` and `office` for comparison
-  const normalizedStatus = officeItem.status.toLowerCase().replace(/\s+/g, "-"); // "For Lease" → "for-lease"
-  const normalizedOffice = office?.toLowerCase().trim(); // "for-lease"
+    // ✅ Normalize `status` and `office` for comparison
+    const normalizedStatus = officeItem.status
+      .toLowerCase()
+      .replace(/\s+/g, "-"); // "For Lease" → "for-lease"
+    const normalizedOffice = office?.toLowerCase().trim(); // "for-lease"
 
-const matchesStatus =
-  !statusFilter ||
-  statusFilter.toLowerCase().replace(/\s+/g, "-") === "all" ||
-  officeItem.status.toLowerCase().replace(/\s+/g, "-") === statusFilter.toLowerCase().replace(/\s+/g, "-");
+    const matchesStatus =
+      !statusFilter ||
+      statusFilter.toLowerCase().replace(/\s+/g, "-") === "all" ||
+      officeItem.status.toLowerCase().replace(/\s+/g, "-") ===
+        statusFilter.toLowerCase().replace(/\s+/g, "-");
 
-  return matchesSearch && matchesLocation && matchesStatus;
-});
-
+    return matchesSearch && matchesLocation && matchesStatus;
+  });
 
   return (
     <div className="mx-auto px-6 py-16 bg-[#F9FAF1] w-full sm:w-[90%] md:w-[80%] lg:w-[70%]">
@@ -109,55 +111,70 @@ const matchesStatus =
         </div>
       </div>
 
-    {loading ? (
-  <div className="flex justify-center items-center h-60">
-    <div className="w-10 h-10 border-4 border-gray-300 border-t-[#B8986E] rounded-full animate-spin"></div>
-  </div>
-) : error ? (
-  <p className="text-center text-red-500">{error}</p>
-) : (
-  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8">
-    {filteredOffices.length > 0 ? (
-      filteredOffices.map((office, index) => {
-        const imageUrl = office.image ? `${API_BASE_URL}${office.image}` : "/default-office.jpg";
+      {loading ? (
+        <div className="flex justify-center items-center h-60">
+          <div className="w-10 h-10 border-4 border-gray-300 border-t-[#B8986E] rounded-full animate-spin"></div>
+        </div>
+      ) : error ? (
+        <p className="text-center text-red-500">{error}</p>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8">
+          {filteredOffices.length > 0 ? (
+            filteredOffices.map((office, index) => {
+              const imageUrl = office.image
+                ? `${API_BASE_URL}${office.image}`
+                : "/default-office.jpg";
 
-        const statusColors: Record<string, string> = {
-          "For Lease": "bg-yellow-500",
-          "For Sale": "bg-green-500",
-          "For Rent": "bg-red-500",
-        };
-        const badgeColor = statusColors[office.status] || "bg-gray-500";
+              const statusColors: Record<string, string> = {
+                "For Lease": "bg-yellow-500",
+                "For Sale": "bg-green-500",
+                "For Rent": "bg-red-500",
+              };
+              const badgeColor = statusColors[office.status] || "bg-gray-500";
 
-        return (
-          <Link key={index} href={`/user/office/${office.id}`} passHref>
-            <Card className="relative p-2 rounded-xl shadow-lg border border-gray-200 hover:shadow-2xl transition duration-300 cursor-pointer">
-              <CardHeader className="p-0 relative">
-                <span className={`absolute top-6 right-5 text-white text-xs font-semibold px-3 py-1 rounded-md shadow-md ${badgeColor}`}>
-                  {office.status}
-                </span>
-                <img src={imageUrl} alt={office.name} className="w-full p-3 h-64 object-cover rounded-2xl" />
-              </CardHeader>
-              <CardContent className="text-center">
-                <CardTitle className="text-lg font-bold text-black mt-2">{office.name}</CardTitle>
-                <hr className="border-gray-300" />
-                <p className="text-gray-700">{office.location}</p>
-                <p className="text-sm text-gray-600">Lot Area: {office.lotArea} sqm</p>
-                <p className="text-sm text-gray-600">
-                  Price: ₱{office.price
-                    .split("-")
-                    .map((p) => parseInt(p.trim(), 10).toLocaleString())
-                    .join(" - ₱")}
-                </p>
-              </CardContent>
-            </Card>
-          </Link>
-        );
-      })
-    ) : (
-      <p className="text-center text-gray-700 text-lg col-span-full">No offices found.</p>
-    )}
-  </div>
-)}
+              return (
+                <Link key={index} href={`/user/office/${office.id}`} passHref>
+                  <Card className="relative p-2 rounded-xl shadow-lg border border-gray-200 hover:shadow-2xl transition duration-300 cursor-pointer">
+                    <CardHeader className="p-0 relative">
+                      <span
+                        className={`absolute top-6 right-5 text-white text-xs font-semibold px-3 py-1 rounded-md shadow-md ${badgeColor}`}
+                      >
+                        {office.status}
+                      </span>
+                      <img
+                        src={imageUrl}
+                        alt={office.name}
+                        className="w-full p-3 h-64 object-cover rounded-2xl"
+                      />
+                    </CardHeader>
+                    <CardContent className="text-center">
+                      <CardTitle className="text-lg font-bold text-black mt-2">
+                        {office.name}
+                      </CardTitle>
+                      <hr className="border-gray-300" />
+                      <p className="text-gray-700">{office.location}</p>
+                      <p className="text-sm text-gray-600">
+                        Lot Area: {office.lotArea} sqm
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        Price: ₱
+                        {office.price
+                          .split("-")
+                          .map((p) => parseInt(p.trim(), 10).toLocaleString())
+                          .join(" - ₱")}
+                      </p>
+                    </CardContent>
+                  </Card>
+                </Link>
+              );
+            })
+          ) : (
+            <p className="text-center text-gray-700 text-lg col-span-full">
+              No offices found.
+            </p>
+          )}
+        </div>
+      )}
     </div>
   );
 };

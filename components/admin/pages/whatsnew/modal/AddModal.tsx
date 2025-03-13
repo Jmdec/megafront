@@ -11,15 +11,29 @@ import { addRealEstateNews } from "@/app/redux/services/realestateNewsService";
 import { addRealEstateTip } from "@/app/redux/services/realestateTipsService";
 import { addOngoingInfrastructure } from "@/app/redux/services/ongoingInfrastructure";
 import { addVideo } from "@/app/redux/services/videoService";
-
+import { Formik, Form, Field, ErrorMessage } from "formik";
+import * as Yup from "yup";
 interface AddModalProps {
   modalOpen: boolean;
   closeModal: () => void;
   fetchData: () => void;
-  itemType: "seminar" | "meeting" | "event" | "closedDeal" | "realEstateNews" | "realEstateTips" | "ongoingInfrastructure" | "video";
+  itemType:
+    | "seminar"
+    | "meeting"
+    | "event"
+    | "closedDeal"
+    | "realEstateNews"
+    | "realEstateTips"
+    | "ongoingInfrastructure"
+    | "video";
 }
 
-const AddModal: React.FC<AddModalProps> = ({ modalOpen, closeModal, fetchData, itemType }) => {
+const AddModal: React.FC<AddModalProps> = ({
+  modalOpen,
+  closeModal,
+  fetchData,
+  itemType,
+}) => {
   const [newItem, setNewItem] = useState<{
     title: string;
     date: string;
@@ -30,7 +44,7 @@ const AddModal: React.FC<AddModalProps> = ({ modalOpen, closeModal, fetchData, i
     url?: string;
     file?: File | null;
     thumbnail?: File | null;
-      mediaType?: "image" | "video"; 
+    mediaType?: "image" | "video";
   }>({
     title: "",
     date: "",
@@ -41,239 +55,516 @@ const AddModal: React.FC<AddModalProps> = ({ modalOpen, closeModal, fetchData, i
     url: "",
     file: null,
     thumbnail: null,
-      mediaType: "image",
+    mediaType: "image",
   });
+  const getValidationSchema = (itemType: any) => {
+    return Yup.lazy((values) => {
+      let schema = Yup.object({
+        title: Yup.string().required("Title is required"),
+        date: Yup.string().required("Date is required"),
+      });
+
+      // ✅ Enforce image requirement for specific types
+      if (
+        [
+          "seminar",
+          "meeting",
+          "closedDeal",
+          "realEstateNews",
+          "realEstateTips",
+          "ongoingInfrastructure",
+        ].includes(itemType)
+      ) {
+        schema = schema.shape({
+          image: Yup.mixed().nullable().required("Image is required"),
+          description: Yup.string().required("Description is required"),
+        });
+      }
+
+      if (itemType === "event") {
+        schema = schema.shape({
+          description: Yup.string().required("Description is required"),
+          mediaType: Yup.string()
+            .oneOf(["image", "video"], "Invalid media type")
+            .required("Media type is required"),
+          image: Yup.mixed()
+            .nullable()
+            .when("mediaType", {
+              is: "image",
+              then: (schema) =>
+                schema.required(
+                  "Image is required for events with media type 'image'"
+                ),
+            }),
+          file: Yup.mixed()
+            .nullable()
+            .when("mediaType", {
+              is: "video",
+              then: (schema) =>
+                schema.required(
+                  "Video file is required for events with media type 'video'"
+                ),
+            }),
+        });
+      }
+      if (itemType === "video") {
+        schema = schema.shape({
+          location: Yup.string().required("Location is required for videos"),
+          views: Yup.string().required("Views are required for videos"),
+          url: Yup.string()
+            .url("Invalid URL")
+            .required("YouTube URL is required for videos"),
+          file: Yup.mixed()
+            .nullable()
+            .required("Video file is required for videos"),
+          thumbnail: Yup.mixed()
+            .nullable()
+            .required("Thumbnail is required for videos"),
+        });
+      }
+
+      return schema;
+    });
+  };
 
   const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
-const dispatch = useDispatch();
+  const dispatch = useDispatch();
 
-const getReduxAction = () => {
-  switch (itemType) {
-    case "seminar":
-      return addSeminar;
-    case "meeting":
-      return addMeeting;
-    case "event":
-      return addEvent;
-    case "closedDeal":
-      return addClosedDeal;
-    case "realEstateNews":
-      return addRealEstateNews;
-    case "realEstateTips":
-      return addRealEstateTip;
-    case "ongoingInfrastructure":
-      return addOngoingInfrastructure;
-    case "video":
-      return addVideo;
-    default:
-      return null;
-  }
-};
-const handleAddItem = async () => {
-  if (!newItem.title.trim() || !newItem.date.trim()) {
-    showToast("Title and Date are required.", "error");
-    return;
-  }
-
-  if (itemType === "video" && !newItem.url?.trim() && !newItem.file) {
-    showToast("Please provide a YouTube URL or upload a video file.", "error");
-    return;
-  }
-
-  if (itemType === "event" && !newItem.description?.trim()) {
-    showToast("Description is required for events.", "error");
-    return;
-  }
-
-  const formData = new FormData();
-  formData.append("title", newItem.title);
-  formData.append("date", newItem.date);
-  
-  // Handle specific cases
-  if (itemType === "video") {
-    formData.append("location", newItem.location || "");
-    formData.append("views", String(parseInt(newItem.views || "0", 10)));
-    if (newItem.url) formData.append("url", newItem.url);
-    if (newItem.file) formData.append("file", newItem.file);
-    if (newItem.thumbnail) formData.append("thumbnail", newItem.thumbnail);
-  } else if (itemType === "event") {
-    formData.append("description", newItem.description || "");
-    formData.append("media_type", newItem.mediaType || "");
-    if (newItem.mediaType === "image" && newItem.image) {
-      formData.append("image", newItem.image);
-    } else if (newItem.file) {
-      formData.append("file", newItem.file);
+  const getReduxAction = () => {
+    switch (itemType) {
+      case "seminar":
+        return addSeminar;
+      case "meeting":
+        return addMeeting;
+      case "event":
+        return addEvent;
+      case "closedDeal":
+        return addClosedDeal;
+      case "realEstateNews":
+        return addRealEstateNews;
+      case "realEstateTips":
+        return addRealEstateTip;
+      case "ongoingInfrastructure":
+        return addOngoingInfrastructure;
+      case "video":
+        return addVideo;
+      default:
+        return null;
     }
-  } else {
-    formData.append("description", newItem.description || "");
-    if (newItem.image) formData.append("image", newItem.image);
-  }
+  };
+  const handleAddItem = async (values: any) => {
+    try {
+      // Validate the form data
+      // await validationSchema.validate(values, { abortEarly: false });
 
-  try {
-    const reduxAction = getReduxAction();
-    if (reduxAction) {
-      await dispatch(reduxAction(formData) as any).unwrap(); // ✅ Fix: Ensure proper typing
-    
-      fetchData();
-      closeModal();
-    } else {
-      showToast("Invalid item type.", "error");
+      console.log("Submitted values:", values);
+      console.log("Item Type:", itemType);
+
+      // if (!values.title.trim() || !values.date.trim()) {
+      //   showToast("Title and Date are required.", "error");
+      //   return;
+      // }
+
+      // if (itemType === "video" && !values.url?.trim() && !values.file) {
+      //   showToast(
+      //     "Please provide a YouTube URL or upload a video file.",
+      //     "error"
+      //   );
+      //   return;
+      // }
+
+      // if (itemType === "event" && !values.description?.trim()) {
+      //   showToast("Description is required for events.", "error");
+      //   return;
+      // }
+
+      const formData = new FormData();
+      formData.append("title", values.title);
+      formData.append("date", values.date);
+
+      if (itemType === "video") {
+        formData.append("location", values.location || "");
+        formData.append("views", String(parseInt(values.views || "0", 10)));
+
+        if (values.url) formData.append("url", values.url);
+        if (values.file) {
+          formData.append("file", values.file);
+          console.log(
+            "✅ Video File Added:",
+            values.file.name,
+            values.file.size
+          );
+        }
+        if (values.thumbnail) formData.append("thumbnail", values.thumbnail);
+      } else if (itemType === "event") {
+        formData.append("description", values.description || "");
+        formData.append("media_type", values.mediaType || "");
+
+        if (values.mediaType === "image" && values.image) {
+          formData.append("image", values.image);
+          console.log("✅ Image Added:", values.image.name, values.image.size);
+        }
+
+        if (values.mediaType === "video" && values.file) {
+          formData.append("file", values.file);
+          console.log(
+            "✅ Event Video File Added:",
+            values.file.name,
+            values.file.size
+          );
+        }
+      } else {
+        formData.append("description", values.description || "");
+        if (values.image) {
+          formData.append("image", values.image);
+          console.log(
+            "✅ Default Image Added:",
+            values.image.name,
+            values.image.size
+          );
+        }
+      }
+
+      // **Log FormData Contents**
+      console.log("🚀 Final FormData:");
+      for (let [key, value] of formData.entries()) {
+        console.log(`${key}:`, value);
+      }
+
+      const reduxAction = getReduxAction();
+      if (reduxAction) {
+        await dispatch(reduxAction(formData) as any).unwrap();
+        fetchData();
+        closeModal();
+      } else {
+        showToast("Invalid item type.", "error");
+      }
+    } catch (error: any) {
+      console.error("Validation Error:", error);
+
+      if (error.inner) {
+        error.inner.forEach((err: any) => {
+          console.error("❌ Validation Error:", err.path, err.message);
+        });
+      }
     }
-  } catch (error) {
-    console.error("Error:", error);
-    showToast("Error adding item.", "error");
-  }
-};
-
-
+  };
 
   return modalOpen ? (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
       <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
-        <h2 className="text-xl font-semibold mb-4">Add {itemType.charAt(0).toUpperCase() + itemType.slice(1)}</h2>
+        <h2 className="text-xl font-semibold mb-4">
+          Add {itemType.charAt(0).toUpperCase() + itemType.slice(1)}
+        </h2>
 
-          <label className="block text-gray-700 font-medium mb-1">Date</label>
-        <input
-          type="date"
-          value={newItem.date}
-          onChange={(e) => setNewItem({ ...newItem, date: e.target.value })}
-          className="w-full border rounded-md px-3 py-2 mb-4 focus:ring-2 focus:ring-blue-500"
-        />
-        <label className="block text-gray-700 font-medium mb-1">Title</label>
-        <input
-          type="text"
-          placeholder="Enter Title"
-          value={newItem.title}
-          onChange={(e) => setNewItem({ ...newItem, title: e.target.value })}
-          className="w-full border rounded-md px-3 py-2 mb-4 focus:ring-2 focus:ring-blue-500"
-        />
+        <Formik
+          initialValues={{
+            title: "",
+            date: "",
+            description: "",
+            location: "",
+            views: "",
+            url: "",
+            image: null, // ✅ Ensure image starts as null
+            file: null,
+            thumbnail: null,
+            itemType: itemType,
+            mediaType: "image",
+          }}
+          validationSchema={getValidationSchema(itemType)}
+          onSubmit={(values, { setSubmitting }) => {
+            console.log("Submitting...", values); // ✅ Debugging
+            handleAddItem(values);
+            setSubmitting(false);
+            closeModal();
+          }}
+        >
+          {({
+            setFieldValue,
+            values,
+            isSubmitting,
+            errors,
+            setTouched,
+            setFieldTouched,
+            validateField,
+          }) => (
+            <Form>
+              {/* Date */}
+              <label className="block text-gray-700 font-medium mb-1">
+                Date
+              </label>
+              <Field
+                type="date"
+                name="date"
+                className="w-full border rounded-md px-3 py-2 mb-4 focus:ring-2 focus:ring-blue-500"
+              />
+              <ErrorMessage
+                name="date"
+                component="div"
+                className="text-red-500 text-sm"
+              />
 
-     
-{itemType === "event" && (
-          <>
-            <label className="block text-gray-700 font-medium mb-1">Description</label>
-            <textarea
-              placeholder="Enter Description"
-              value={newItem.description}
-              onChange={(e) => setNewItem({ ...newItem, description: e.target.value })}
-              className="w-full border rounded-md px-3 py-2 mb-4 focus:ring-2 focus:ring-blue-500"
-            />
-            <label className="block text-gray-700 font-medium mb-1">Media Type</label>
-            <select
-              value={newItem.mediaType}
-              onChange={(e) => setNewItem({ ...newItem, mediaType: e.target.value as "image" | "video" })}
-              className="w-full border rounded-md px-3 py-2 mb-4 focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="image">Image</option>
-              <option value="video">Video</option>
-            </select>
+              {/* Title */}
+              <label className="block text-gray-700 font-medium mb-1">
+                Title
+              </label>
+              <Field
+                type="text"
+                name="title"
+                placeholder="Enter Title"
+                className="w-full border rounded-md px-3 py-2 mb-4 focus:ring-2 focus:ring-blue-500"
+              />
+              <ErrorMessage
+                name="title"
+                component="div"
+                className="text-red-500 text-sm"
+              />
 
-            {newItem.mediaType === "image" && (
-              <>
-                <label className="block text-gray-700 font-medium mb-1">Upload Image</label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => setNewItem({ ...newItem, image: e.target.files?.[0] || null })}
-                  className="w-full mb-4"
-                />
-              </>
-            )}
+              {/* Event-Specific Fields */}
+              {itemType === "event" && (
+                <>
+                  <label className="block text-gray-700 font-medium mb-1">
+                    Description
+                  </label>
+                  <Field
+                    as="textarea"
+                    name="description"
+                    placeholder="Enter Description"
+                    className="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                  />
+                  <ErrorMessage
+                    name="description"
+                    component="div"
+                    className="text-red-500 text-sm"
+                  />
 
-            {newItem.mediaType === "video" && (
-              <>
-              
-                <label className="block text-gray-700 font-medium mb-1">Upload Video File</label>
-                <input
-                  type="file"
-                  accept="video/*"
-                  onChange={(e) => setNewItem({ ...newItem, file: e.target.files?.[0] || null })}
-                  className="w-full mb-4"
-                />
+                  {/* Media Type Selection */}
+                  <label className="block text-gray-700 font-medium mb-1">
+                    Media Type
+                  </label>
+                  <Field
+                    as="select"
+                    name="mediaType"
+                    className="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="image">Image</option>
+                    <option value="video">Video</option>
+                  </Field>
+                  <ErrorMessage
+                    name="mediaType"
+                    component="div"
+                    className="text-red-500 text-sm"
+                  />
+                  {values.mediaType === "image" && (
+                    <>
+                      <label className="block text-gray-700 font-medium mb-1">
+                        Upload Image
+                      </label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(event) => {
+                          const file = event.currentTarget.files?.[0] || null;
+                          setFieldValue("image", file);
+                        }}
+                        onBlur={() => {
+                          setTouched({ image: true }); // ✅ Mark as touched when user leaves
+                          validateField("image"); // ✅ Force validation to run
+                        }}
+                        className="w-full"
+                      />
+                      <ErrorMessage
+                        name="image"
+                        component="div"
+                        className="text-red-500 text-sm"
+                      />
+                    </>
+                  )}
 
-              </>
-            )}
-          </>
-        )}
-          
-        {/* Non-video fields */}
-        {itemType !== "video" && itemType !== "event" &&(
-          <>
-            <label className="block text-gray-700 font-medium mb-1">Description</label>
-            <textarea
-              placeholder="Enter Description"
-              value={newItem.description}
-              onChange={(e) => setNewItem({ ...newItem, description: e.target.value })}
-              className="w-full border rounded-md px-3 py-2 mb-4 focus:ring-2 focus:ring-blue-500"
-            />
+                  {/* Video Upload */}
+                  {values.mediaType === "video" && (
+                    <>
+                      <label className="block text-gray-700 font-medium mb-1">
+                        Upload Video
+                      </label>
+                      <input
+                        type="file"
+                        accept="video/*"
+                        onChange={(event) => {
+                          const file = event.currentTarget.files?.[0] || null;
+                          setFieldValue("file", file);
+                        }}
+                        onBlur={() => {
+                          setTouched({ file: true }); // ✅ Mark as touched when user leaves
+                          validateField("file"); // ✅ Force validation to run
+                        }}
+                        className="w-full"
+                      />
+                      <ErrorMessage
+                        name="file"
+                        component="div"
+                        className="text-red-500 text-sm"
+                      />
+                    </>
+                  )}
+                </>
+              )}
 
-            <label className="block text-gray-700 font-medium mb-1">Upload Image</label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => setNewItem({ ...newItem, image: e.target.files?.[0] || null })}
-              className="w-full mb-4"
-            />
-          </>
-        )}
+              {itemType !== "video" && itemType !== "event" && (
+                <>
+                  <label className="block text-gray-700 font-medium mb-1">
+                    Description
+                  </label>
+                  <Field
+                    as="textarea"
+                    name="description"
+                    placeholder="Enter Description"
+                    className="w-full border rounded-md px-3 py-2 mb-4 focus:ring-2 focus:ring-blue-500"
+                  />
+                  <ErrorMessage
+                    name="description"
+                    component="div"
+                    className="text-red-500 text-sm"
+                  />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(event) => {
+                      const file = event.target.files?.[0] || null;
+                      setFieldValue("image", file); // Set the selected file
+                      setFieldTouched("image", true); // Mark the field as touched
+                      validateField("image"); // Trigger validation for the image field
+                    }}
+                    onBlur={() => {
+                      setFieldTouched("image", true); // Mark the field as touched on blur
+                      validateField("image"); // Trigger validation on blur
+                    }}
+                    className="w-full mb-4"
+                  />
 
-        {/* Video-specific fields */}
-        {itemType === "video" && (
-          <>
-            <label className="block text-gray-700 font-medium mb-1">Video Location (Optional)</label>
-            <input
-              type="text"
-              placeholder="Enter Video Location"
-              value={newItem.location}
-              onChange={(e) => setNewItem({ ...newItem, location: e.target.value })}
-              className="w-full border rounded-md px-3 py-2 mb-4 focus:ring-2 focus:ring-blue-500"
-            />
+                  <ErrorMessage
+                    name="image"
+                    component="div"
+                    className="text-red-500 text-sm"
+                  />
+                </>
+              )}
 
-            <label className="block text-gray-700 font-medium mb-1">Initial Views (Optional)</label>
-            <input
-              type="number"
-              placeholder="Initial Views"
-              value={newItem.views}
-              onChange={(e) => setNewItem({ ...newItem, views: e.target.value })}
-              className="w-full border rounded-md px-3 py-2 mb-4 focus:ring-2 focus:ring-blue-500"
-            />
+              {/* Video-Specific Fields */}
+              {itemType === "video" && (
+                <>
+                  {/* Video Location */}
+                  <label className="block text-gray-700 font-medium mb-1">
+                    Video Location
+                  </label>
+                  <Field
+                    type="text"
+                    name="location"
+                    placeholder="Enter Video Location"
+                    className="w-full border rounded-md px-3 py-2 mb-1 focus:ring-2 focus:ring-blue-500"
+                  />
+                  <ErrorMessage
+                    name="location"
+                    component="div"
+                    className="text-red-500 text-sm mb-4"
+                  />
 
-            <label className="block text-gray-700 font-medium mb-1">YouTube URL (Optional)</label>
-            <input
-              type="text"
-              placeholder="Enter YouTube URL"
-              value={newItem.url}
-              onChange={(e) => setNewItem({ ...newItem, url: e.target.value })}
-              className="w-full border rounded-md px-3 py-2 mb-4 focus:ring-2 focus:ring-blue-500"
-            />
+                  {/* Initial Views */}
+                  <label className="block text-gray-700 font-medium mb-1">
+                    Initial Views
+                  </label>
+                  <Field
+                    type="number"
+                    name="views"
+                    placeholder="Initial Views"
+                    className="w-full border rounded-md px-3 py-2 mb-1 focus:ring-2 focus:ring-blue-500"
+                  />
+                  <ErrorMessage
+                    name="views"
+                    component="div"
+                    className="text-red-500 text-sm mb-4"
+                  />
 
-            <label className="block text-gray-700 font-medium mb-1">Upload Video File</label>
-            <input
-              type="file"
-              accept="video/*"
-              onChange={(e) => setNewItem({ ...newItem, file: e.target.files?.[0] || null })}
-              className="w-full mb-4"
-            />
+                  {/* YouTube URL */}
+                  <label className="block text-gray-700 font-medium mb-1">
+                    YouTube URL
+                  </label>
+                  <Field
+                    type="text"
+                    name="url"
+                    placeholder="Enter YouTube URL"
+                    className="w-full border rounded-md px-3 py-2 mb-1 focus:ring-2 focus:ring-blue-500"
+                  />
+                  <ErrorMessage
+                    name="url"
+                    component="div"
+                    className="text-red-500 text-sm mb-4"
+                  />
 
-            <label className="block text-gray-700 font-medium mb-1">Upload Thumbnail</label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => setNewItem({ ...newItem, thumbnail: e.target.files?.[0] || null })}
-              className="w-full mb-4"
-            />
-          </>
-        )}
+                  {/* Upload Video File */}
+                  <label className="block text-gray-700 font-medium mb-1">
+                    Upload Video File
+                  </label>
+                  <input
+                    type="file"
+                    accept="video/*"
+                    onChange={(event) => {
+                      setFieldValue("file", event.target.files?.[0] || null);
+                      setFieldTouched("file", true); // ✅ Ensure validation runs
+                    }}
+                    className="w-full mb-1"
+                  />
+                  {errors.file && (
+                    <div className="text-red-500 text-sm mb-4">
+                      {errors.file}
+                    </div>
+                  )}
 
-        {/* Buttons */}
-        <div className="flex justify-end gap-2">
-          <button onClick={handleAddItem} className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">
-            Save
-          </button>
-          <button onClick={closeModal} className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600">
-            Cancel
-          </button>
-        </div>
+                  {/* Upload Thumbnail */}
+                  <label className="block text-gray-700 font-medium mb-1">
+                    Upload Thumbnail
+                  </label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(event) => {
+                      setFieldValue(
+                        "thumbnail",
+                        event.target.files?.[0] || null
+                      );
+                      setFieldTouched("thumbnail", true); // ✅ Ensure validation runs
+                    }}
+                    className="w-full mb-1"
+                  />
+                  {errors.thumbnail && (
+                    <div className="text-red-500 text-sm mb-4">
+                      {errors.thumbnail}
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* Buttons */}
+              <div className="flex justify-end gap-2">
+                <button
+                  type="button" // Prevents default form submission
+                  onClick={() => handleAddItem(values)}
+                  className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+                >
+                  Add Item
+                </button>
+
+                <button
+                  type="button"
+                  onClick={closeModal}
+                  className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600"
+                >
+                  Cancel
+                </button>
+              </div>
+            </Form>
+          )}
+        </Formik>
       </div>
     </div>
   ) : null;

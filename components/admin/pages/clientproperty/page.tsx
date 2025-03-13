@@ -6,131 +6,169 @@ import { FaEllipsisV } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/app/redux/store";
 import {
-  fetchClientAppointments,
-  deleteClientAppointment,
-  updateClientAppointmentStatus,
-} from "@/app/redux/services/clientappointmentService";
+  fetchClientProperties,
+  deleteClientProperty,
+  updateClientPropertyStatus,
+} from "@/app/redux/services/clientpropertyService";
 
-interface ClientAppointment {
+interface ClientProperty {
   id: number;
-  name: string;
+  last_name: string;
+  first_name: string;
   email: string;
-  contact_number: string;
+  number: string;
   property_name: string;
-  date: string;
+  development_type: string;
+  unit_type: string[];
+  price: string;
+  location: string;
+  images: string[];
   status: string;
-  message: string;
-  type: string;
 }
 
-export default function ClientAppointmentPage() {
+export default function ClientPropertyPage() {
   const dispatch = useDispatch<any>();
-  const { clientAppointments, loading } = useSelector(
-    (state: RootState) => state.clientappointmentData
+  const { properties, loading } = useSelector(
+    (state: RootState) => state.clientpropertyData
   );
-
+  const [search, setSearch] = useState("");
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [statusModalOpen, setStatusModalOpen] = useState(false);
-  const [appointmentToDelete, setAppointmentToDelete] =
-    useState<ClientAppointment | null>(null);
-  const [appointmentToUpdate, setAppointmentToUpdate] =
-    useState<ClientAppointment | null>(null);
-
-  // ✅ Search filter state
-  const [search, setSearch] = useState("");
+  const [propertyToDelete, setPropertyToDelete] =
+    useState<ClientProperty | null>(null);
+  const [propertyToUpdate, setPropertyToUpdate] =
+    useState<ClientProperty | null>(null);
 
   useEffect(() => {
-    dispatch(fetchClientAppointments());
+    dispatch(fetchClientProperties());
   }, [dispatch]);
 
-  const handleDeleteAppointment = async () => {
-    if (appointmentToDelete) {
+  const handleDeleteProperty = async () => {
+    if (propertyToDelete) {
       try {
-        await dispatch(
-          deleteClientAppointment(appointmentToDelete.id)
-        ).unwrap();
+        await dispatch(deleteClientProperty(propertyToDelete.id)).unwrap();
+        showToast("Property deleted successfully", "success");
       } catch (error) {
-        console.error("Error deleting appointment:", error);
+        console.error("Error deleting property:", error);
+        showToast("Failed to delete property", "error");
       }
       setDeleteModalOpen(false);
     }
   };
 
   const handleUpdateStatus = async (newStatus: string) => {
-    if (appointmentToUpdate) {
+    console.log(propertyToUpdate);
+    if (propertyToUpdate) {
       try {
         await dispatch(
-          updateClientAppointmentStatus({
-            id: appointmentToUpdate.id,
+          updateClientPropertyStatus({
+            id: propertyToUpdate.id,
             status: newStatus,
           })
         ).unwrap();
         setStatusModalOpen(false);
-
-        // 🔹 Refresh appointments after updating status
-        dispatch(fetchClientAppointments());
+        dispatch(fetchClientProperties());
+        showToast("Status updated successfully", "success");
       } catch (error) {
-        console.error("Error updating appointment status:", error);
+        console.error("Error updating property status:", error);
+        showToast("Failed to update status", "error");
       }
     }
   };
-
-  // ✅ Filter client appointments based on search input
-  const filteredAppointments = clientAppointments.filter(
-    (appointment: ClientAppointment) =>
-      [appointment.name].some((field) =>
-        field?.toLowerCase().includes(search.toLowerCase())
-      )
+  const filteredProperties = properties.filter((property: ClientProperty) =>
+    [`${property.first_name} ${property.last_name}`].some((field) =>
+      field?.toLowerCase().includes(search.toLowerCase())
+    )
   );
-
   const columns = [
     {
       name: "Client Name",
-      selector: (row: ClientAppointment) => row.name || "N/A",
+      selector: (row: ClientProperty) => `${row.first_name} ${row.last_name}`,
       sortable: true,
     },
     {
       name: "Email",
-      selector: (row: ClientAppointment) => row.email || "N/A",
+      selector: (row: ClientProperty) => row.email || "N/A",
       sortable: true,
     },
     {
       name: "Contact",
-      selector: (row: ClientAppointment) => row.contact_number || "N/A",
+      selector: (row: ClientProperty) => row.number || "N/A",
       sortable: true,
     },
     {
       name: "Property",
-      selector: (row: ClientAppointment) => row.property_name || "N/A",
+      selector: (row: ClientProperty) => row.property_name || "N/A",
       sortable: true,
     },
     {
-      name: "Date & Time",
-      selector: (row: ClientAppointment) => new Date(row.date).toLocaleString(),
+      name: "Development Type",
+      selector: (row: ClientProperty) => row.development_type || "N/A",
       sortable: true,
     },
     {
-      name: "Type",
-      selector: (row: ClientAppointment) => row.type || "N/A",
+      name: "Unit Type",
+      selector: (row: ClientProperty) => row.unit_type?.join(", ") || "N/A",
       sortable: true,
     },
-    // ✅ Status Column with Modal Popup
+    {
+      name: "Price",
+      selector: (row: ClientProperty) =>
+        row.price
+          ? row.price
+              .split(" - ") // Split the range
+              .map((num) =>
+                new Intl.NumberFormat("en-US", {
+                  style: "currency",
+                  currency: "PHP",
+                  minimumFractionDigits: 0, // Adjust decimal places as needed
+                }).format(Number(num))
+              )
+              .join(" - ")
+          : "N/A",
+      sortable: true,
+      wrap: true,
+    },
+
+    {
+      name: "Location",
+      selector: (row: ClientProperty) => row.location || "N/A",
+      sortable: true,
+    },
+    {
+      name: "Images",
+      selector: (row: ClientProperty) =>
+        row.images.length > 0 ? "Available" : "None",
+      cell: (row: ClientProperty) => (
+        <div className="flex gap-2">
+          {row.images.map((img, index) => (
+            <img
+              key={index}
+              src={`${process.env.NEXT_PUBLIC_BACKEND_URL}${img}`}
+              alt="Property"
+              className="w-10 h-10 rounded-md"
+            />
+          ))}
+        </div>
+      ),
+      sortable: false,
+    },
     {
       name: "Status",
-      selector: (row: ClientAppointment) => row.status || "N/A",
+      selector: (row: ClientProperty) => row.status || "N/A",
       sortable: true,
-      cell: (row: ClientAppointment) => (
+      cell: (row: ClientProperty) => (
         <button
           className={`px-2 py-1 rounded-md text-white ${
             row.status === "Pending"
               ? "bg-yellow-500"
-              : row.status === "Accept"
+              : row.status === "Approved"
               ? "bg-green-500"
               : "bg-red-500"
           }`}
           onClick={() => {
-            if (row.status !== "Decline") {
-              setAppointmentToUpdate(row);
+            if (row.status !== "Rejected") {
+              setPropertyToUpdate(row);
               setStatusModalOpen(true);
             }
           }}
@@ -142,11 +180,11 @@ export default function ClientAppointmentPage() {
     {
       name: "Actions",
       right: true,
-      cell: (row: ClientAppointment) => (
+      cell: (row: ClientProperty) => (
         <div className="relative">
           <button
             onClick={() => {
-              setAppointmentToDelete(row);
+              setPropertyToDelete(row);
               setDeleteModalOpen(true);
             }}
             className="p-2 rounded-full hover:bg-gray-200 text-red-500"
@@ -161,54 +199,52 @@ export default function ClientAppointmentPage() {
   return (
     <div className="w-full mx-auto p-6 bg-white shadow-md rounded-lg">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-semibold">Client Appointments</h1>
+        <h1 className="text-2xl font-semibold">Client Properties</h1>
       </div>
-
-      {/* ✅ Search Input */}
       <div className="mb-4">
         <input
           type="text"
-          placeholder="Search by client name"
+          placeholder="Search by client name."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="w-1/4 px-4 py-1 border border-gray-300 rounded-md focus:ring focus:ring-blue-300"
         />
       </div>
-
       <DataTable
         columns={columns}
-        data={filteredAppointments}
+        data={filteredProperties}
         pagination
         highlightOnHover
         striped
       />
 
       {/* ✅ Status Change Modal */}
-      {statusModalOpen && appointmentToUpdate && (
+      {statusModalOpen && propertyToUpdate && (
         <div className="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-50 z-50">
           <div className="bg-white p-6 rounded-md shadow-md w-80">
             <h3 className="text-xl font-semibold mb-4">Update Status</h3>
             <p className="mb-4">
-              Change status for <strong>{appointmentToUpdate.name}</strong>?
+              Change status for{" "}
+              <strong>{propertyToUpdate.property_name}</strong>?
             </p>
             <div className="flex justify-end gap-2">
-              {appointmentToUpdate.status === "Pending" && (
+              {propertyToUpdate.status === "Pending" && (
                 <>
                   <button
-                    onClick={() => handleUpdateStatus("Accept")}
+                    onClick={() => handleUpdateStatus("Approved")}
                     className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600"
                   >
-                    Accept
+                    Approve
                   </button>
                   <button
-                    onClick={() => handleUpdateStatus("Decline")}
+                    onClick={() => handleUpdateStatus("Rejected")}
                     className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600"
                   >
-                    Decline
+                    Reject
                   </button>
                 </>
               )}
-              {appointmentToUpdate.status === "Accept" && (
+              {propertyToUpdate.status === "Approved" && (
                 <>
                   <button
                     onClick={() => handleUpdateStatus("Pending")}
@@ -217,10 +253,10 @@ export default function ClientAppointmentPage() {
                     Pending
                   </button>
                   <button
-                    onClick={() => handleUpdateStatus("Decline")}
+                    onClick={() => handleUpdateStatus("Rejected")}
                     className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600"
                   >
-                    Decline
+                    Reject
                   </button>
                 </>
               )}
@@ -236,17 +272,17 @@ export default function ClientAppointmentPage() {
       )}
 
       {/* ✅ Delete Confirmation Modal */}
-      {deleteModalOpen && appointmentToDelete && (
+      {deleteModalOpen && propertyToDelete && (
         <div className="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-50 z-50">
           <div className="bg-white p-6 rounded-md shadow-md w-80">
             <h3 className="text-xl font-semibold mb-4">Confirm Deletion</h3>
             <p className="mb-4">
-              Are you sure you want to delete the appointment for{" "}
-              <strong>{appointmentToDelete.name}</strong>?
+              Are you sure you want to delete the property{" "}
+              <strong>{propertyToDelete.property_name}</strong>?
             </p>
             <div className="flex justify-end gap-2">
               <button
-                onClick={handleDeleteAppointment}
+                onClick={handleDeleteProperty}
                 className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600"
               >
                 Confirm

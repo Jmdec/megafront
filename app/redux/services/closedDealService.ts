@@ -30,13 +30,16 @@ export const addClosedDeal = createAsyncThunk(
   "closedDeals/add",
   async (newClosedDeal: FormData, { rejectWithValue }) => {
     try {
+      for (let [key, value] of newClosedDeal.entries()) {
+        console.log(`${key}:`, value);
+      }
+
       const response = await fetch(`${API_BASE_URL}/api/closedDeal`, {
         method: "POST",
         headers: { 
-          "Content-Type": "multipart/form-data",
           Authorization: `Bearer ${getAuthToken()}` // Apply token in the header
         },
-        body: newClosedDeal,
+        body: newClosedDeal, // No need to set "Content-Type"
       });
 
       if (!response.ok) throw new Error("Failed to add closed deal");
@@ -58,10 +61,9 @@ export const updateClosedDeal = createAsyncThunk(
       const response = await fetch(`${API_BASE_URL}/api/closedDeal/${id}`, {
         method: "POST",
         headers: { 
-          "Content-Type": "multipart/form-data",
           Authorization: `Bearer ${getAuthToken()}` // Apply token in the header
         },
-        body: updatedClosedDeal,
+        body: updatedClosedDeal, // No need to set "Content-Type"
       });
 
       if (!response.ok) throw new Error("Failed to update closed deal");

@@ -5,12 +5,20 @@ import DataTable from "react-data-table-component";
 import { FaEllipsisV } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState, AppDispatch } from "@/app/redux/store";
-import { fetchLocations,addLocation, updateLocation, deleteLocation } from "@/app/redux/services/locationService";
+import {
+  fetchLocations,
+  addLocation,
+  updateLocation,
+  deleteLocation,
+} from "@/app/redux/services/locationService";
 import { showToast } from "@/components/toast";
-
+import { Formik, Form, Field, ErrorMessage } from "formik";
+import * as Yup from "yup";
 export default function LocationPage() {
   const dispatch = useDispatch<AppDispatch>();
-  const { locations, loading } = useSelector((state: RootState) => state.locationData);
+  const { locations, loading } = useSelector(
+    (state: RootState) => state.locationData
+  );
 
   const [modalOpen, setModalOpen] = useState(false);
   const [newLocation, setNewLocation] = useState("");
@@ -69,9 +77,7 @@ export default function LocationPage() {
       cell: (row: any) => (
         <div className="relative">
           <button
-            onClick={() =>
-              setOpenMenu(openMenu === row.id ? null : row.id)
-            }
+            onClick={() => setOpenMenu(openMenu === row.id ? null : row.id)}
             className="p-2 rounded-full hover:bg-gray-200"
           >
             <FaEllipsisV />
@@ -148,27 +154,64 @@ export default function LocationPage() {
             <h2 className="text-xl font-semibold mb-4">
               {editingLocation ? "Edit Location" : "Add Location"}
             </h2>
-            <input
-              type="text"
-              placeholder="Enter location"
-              value={newLocation}
-              onChange={(e) => setNewLocation(e.target.value)}
-              className="w-full border rounded-md px-3 py-2 mb-4 focus:ring-2 focus:ring-blue-500"
-            />
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={closeModal}
-                className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSaveLocation}
-                className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
-              >
-                Save
-              </button>
-            </div>
+
+            <Formik
+              initialValues={{
+                name: editingLocation ? editingLocation.name : "",
+              }}
+              validationSchema={Yup.object({
+                name: Yup.string()
+                  .trim()
+                  .required("Location name is required")
+                  .min(4, "Location name must be at least 4 characters"),
+              })}
+              onSubmit={(values, { setSubmitting }) => {
+                if (editingLocation) {
+                  dispatch(
+                    updateLocation({
+                      id: editingLocation.id,
+                      name: values.name,
+                    })
+                  );
+                } else {
+                  dispatch(addLocation(values.name));
+                }
+                setSubmitting(false);
+                closeModal();
+              }}
+            >
+              {({ isSubmitting }) => (
+                <Form>
+                  <Field
+                    type="text"
+                    name="name"
+                    placeholder="Enter location"
+                    className="w-full border rounded-md px-3 py-2 mb-2 focus:ring-2 focus:ring-blue-500"
+                  />
+                  <ErrorMessage
+                    name="name"
+                    component="div"
+                    className="text-red-500 text-sm mb-2"
+                  />
+                  <div className="flex justify-end gap-2">
+                    <button
+                      type="button"
+                      onClick={closeModal}
+                      className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+                    >
+                      {isSubmitting ? "Saving..." : "Save"}
+                    </button>
+                  </div>
+                </Form>
+              )}
+            </Formik>
           </div>
         </div>
       )}

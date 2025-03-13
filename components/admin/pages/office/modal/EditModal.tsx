@@ -1,6 +1,10 @@
-import { useState, useEffect } from "react";
-import { showToast } from "@/components/toast";
+"use client";
+
+import { useEffect, useState } from "react";
+import { Formik, Form, Field, ErrorMessage } from "formik";
+import * as Yup from "yup";
 import { useDispatch, useSelector } from "react-redux";
+import { showToast } from "@/components/toast";
 import { RootState, AppDispatch } from "@/app/redux/store";
 import { fetchLocations } from "@/app/redux/services/locationService";
 import { fetchOffices, updateOffice } from "@/app/redux/services/officeService";
@@ -22,205 +26,249 @@ interface EditModalProps {
   } | null;
 }
 
-const EditModal: React.FC<EditModalProps> = ({ modalOpen, closeModal, fetchData, office }) => {
+const validationSchema = Yup.object({
+  name: Yup.string().required("Office Name is required"),
+  location: Yup.string().required("Location is required"),
+  status: Yup.string().required("Status is required"),
+  price: Yup.string().required("Price is required"),
+  lotArea: Yup.string().required("Lot Area is required"),
+  description: Yup.string().required("Description is required"),
+  image: Yup.mixed().notRequired(),
+  amenities: Yup.array()
+    .of(Yup.string().trim())
+    .min(1, "At least one amenity is required"),
+});
+
+const EditModal: React.FC<EditModalProps> = ({
+  modalOpen,
+  closeModal,
+  fetchData,
+  office,
+}) => {
   const dispatch = useDispatch<AppDispatch>();
-  const locations = useSelector((state: RootState) => state.locationData.locations);
-  const { error } = useSelector((state: RootState) => state.officeData);
+  const locations = useSelector(
+    (state: RootState) => state.locationData.locations
+  );
 
-  const [updatedOffice, setUpdatedOffice] = useState({
-    name: "",
-    description: "",
-    image: null as File | null,
-    location: "",
-    status: "",
-    price: "",
-    lotArea: "",
-    amenities: [""],
-  });
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
-  // Set initial state when office prop changes
-  useEffect(() => {
-    if (office) {
-      setUpdatedOffice({
-        name: office.name,
-        description: office.description,
-        image: null,
-        location: office.location,
-        status: office.status,
-        price: office.price,
-        lotArea: office.lotArea,
-        amenities: Array.isArray(office.amenities) ? office.amenities : JSON.parse(office.amenities || "[]"),
-      });
-    }
-  }, [office]);
-
-  // Fetch locations on mount
   useEffect(() => {
     dispatch(fetchLocations());
   }, [dispatch]);
 
-  // ✅ Function to Add an Amenity
-  const handleAddAmenity = () => {
-    setUpdatedOffice((prev) => ({
-      ...prev,
-      amenities: [...prev.amenities, ""], // Add an empty string for the new input field
-    }));
-  };
-
-  // ✅ Function to Remove an Amenity
-  const handleRemoveAmenity = (index: number) => {
-    setUpdatedOffice((prev) => ({
-      ...prev,
-      amenities: prev.amenities.filter((_, i) => i !== index), // Remove selected amenity
-    }));
-  };
-
-  // ✅ Function to Update Office
-  const handleUpdateOffice = () => {
-    if (!updatedOffice.name.trim() || !updatedOffice.location || !updatedOffice.status || !updatedOffice.price.trim()) {
-      showToast("Name, Location, Status, and Price are required.", "error");
-      return;
+  useEffect(() => {
+    if (office) {
+      setImagePreview(
+        office.image
+          ? `${process.env.NEXT_PUBLIC_BACKEND_URL}${office.image}`
+          : null
+      );
     }
+  }, [office]);
 
-    const formData = new FormData();
-    formData.append("name", updatedOffice.name);
-    formData.append("description", updatedOffice.description);
-    formData.append("location", updatedOffice.location);
-    formData.append("status", updatedOffice.status);
-    formData.append("price", updatedOffice.price);
-    formData.append("lotArea", updatedOffice.lotArea);
-    formData.append("amenities", JSON.stringify(updatedOffice.amenities.filter(Boolean))); // ✅ Filter out empty values
+  if (!modalOpen || !office) return null;
 
-    if (updatedOffice.image) {
-      formData.append("image", updatedOffice.image);
-    } else {
-      formData.append("image", office?.image || ""); // Keep existing image if not updated
-    }
-
-    console.log("🔹 Form Data to be submitted:");
-    for (let pair of formData.entries()) {
-      console.log(pair[0] + ": " + pair[1]);
-    }
-
-    if (office?.id) {
-      dispatch(updateOffice({ id: office.id, updatedOffice: formData }))
-        .unwrap()
-        .then(() => {
-          dispatch(fetchOffices());
-          closeModal();
-        });
-    }
-  };
-
-  return modalOpen && office ? (
+  return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-      <div className="bg-white p-6 rounded-lg shadow-lg max-w-3xl w-full">
+      <div className="bg-white p-6 rounded-lg shadow-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto">
         <h2 className="text-2xl font-semibold mb-4">Edit Office</h2>
 
-        <div className="grid grid-cols-2 gap-6">
-          {/* Left Column */}
-          <div>
-            <label className="block font-medium mb-1">Name</label>
-            <input
-              type="text"
-              value={updatedOffice.name}
-              onChange={(e) => setUpdatedOffice({ ...updatedOffice, name: e.target.value })}
-              className="w-full border rounded-md px-3 py-2 mb-4"
-            />
+        <Formik
+          initialValues={{
+            name: office.name || "",
+            description: office.description || "",
+            image: null as File | null,
+            location: office.location || "",
+            status: office.status || "",
+            price: office.price || "",
+            lotArea: office.lotArea || "",
+            amenities: office.amenities || [""],
+          }}
+          validationSchema={validationSchema}
+          onSubmit={async (values, { setSubmitting }) => {
+            const formData = new FormData();
+            formData.append("name", values.name);
+            formData.append("description", values.description);
+            formData.append("location", values.location);
+            formData.append("status", values.status);
+            formData.append("price", values.price);
+            formData.append("lotArea", values.lotArea);
+            formData.append(
+              "amenities",
+              JSON.stringify(values.amenities.filter((a) => a.trim() !== ""))
+            );
 
-            <label className="block font-medium mb-1">Location</label>
-            <select
-              value={updatedOffice.location}
-              onChange={(e) => setUpdatedOffice({ ...updatedOffice, location: e.target.value })}
-              className="w-full border rounded-md px-3 py-2 mb-4"
-            >
-              <option value="">Select Location</option>
-              {locations.map((loc) => (
-                <option key={loc.id} value={loc.name}>
-                  {loc.name}
-                </option>
-              ))}
-            </select>
+            if (values.image) {
+              formData.append("image", values.image);
+            }
 
-            <label className="block font-medium mb-1">Status</label>
-            <select
-              value={updatedOffice.status}
-              onChange={(e) => setUpdatedOffice({ ...updatedOffice, status: e.target.value })}
-              className="w-full border rounded-md px-3 py-2 mb-4"
-            >
-              <option value="For Lease">For Lease</option>
-              <option value="For Sale">For Sale</option>
-              <option value="For Rent">For Rent</option>
-            </select>
+            try {
+              await dispatch(
+                updateOffice({ id: office.id, updatedOffice: formData })
+              ).unwrap();
+              dispatch(fetchOffices());
+              fetchData();
+              closeModal();
+            } catch (error: any) {
+              showToast(error.message || "Failed to update office", "error");
+            }
 
-            <label className="block font-medium mb-1">Price</label>
-            <input
-              type="text"
-              value={updatedOffice.price}
-              onChange={(e) => setUpdatedOffice({ ...updatedOffice, price: e.target.value })}
-              className="w-full border rounded-md px-3 py-2 mb-4"
-            />
-          </div>
+            setSubmitting(false);
+          }}
+        >
+          {({ setFieldValue, values }) => (
+            <Form className="grid grid-cols-2 gap-6">
+              {/* Left Column */}
+              <div>
+                <label className="block font-medium mb-1">Name</label>
+                <Field
+                  type="text"
+                  name="name"
+                  className="w-full border rounded-md px-3 py-2 mb-4"
+                />
+                <ErrorMessage
+                  name="name"
+                  component="div"
+                  className="text-red-500 text-sm"
+                />
 
-          {/* Right Column */}
-          <div>
-            <label className="block font-medium mb-1">Lot Area</label>
-            <input
-              type="text"
-              value={updatedOffice.lotArea}
-              onChange={(e) => setUpdatedOffice({ ...updatedOffice, lotArea: e.target.value })}
-              className="w-full border rounded-md px-3 py-2 mb-4"
-            />
+                <label className="block font-medium mb-1">Location</label>
+                <Field
+                  as="select"
+                  name="location"
+                  className="w-full border rounded-md px-3 py-2 mb-4"
+                >
+                  <option value="">Select Location</option>
+                  {locations.map((loc) => (
+                    <option key={loc.id} value={loc.name}>
+                      {loc.name}
+                    </option>
+                  ))}
+                </Field>
+                <ErrorMessage
+                  name="location"
+                  component="div"
+                  className="text-red-500 text-sm"
+                />
 
-            <label className="block font-medium mb-1">Description</label>
-            <textarea
-              value={updatedOffice.description}
-              onChange={(e) => setUpdatedOffice({ ...updatedOffice, description: e.target.value })}
-              className="w-full border rounded-md px-3 py-2 mb-4"
-            />
+                <label className="block font-medium mb-1">Status</label>
+                <Field
+                  as="select"
+                  name="status"
+                  className="w-full border rounded-md px-3 py-2 mb-4"
+                >
+                  <option value="For Lease">For Lease</option>
+                  <option value="For Sale">For Sale</option>
+                  <option value="For Rent">For Rent</option>
+                </Field>
+                <ErrorMessage
+                  name="status"
+                  component="div"
+                  className="text-red-500 text-sm"
+                />
 
-            <label className="block font-medium mb-1">Image</label>
-            <input
-              type="file"
-              onChange={(e) => setUpdatedOffice({ ...updatedOffice, image: e.target.files?.[0] || null })}
-              className="w-full border rounded-md px-3 py-2 mb-4"
-            />
-          </div>
-        </div>
+                <label className="block font-medium mb-1">Price</label>
+                <Field
+                  type="text"
+                  name="price"
+                  className="w-full border rounded-md px-3 py-2 mb-4"
+                />
+                <ErrorMessage
+                  name="price"
+                  component="div"
+                  className="text-red-500 text-sm"
+                />
+              </div>
 
-        {/* Amenities Section */}
-        <div className="mt-4">
-          <label className="block font-medium mb-1">Amenities</label>
-          {updatedOffice.amenities.map((amenity, index) => (
-            <div key={index} className="flex gap-2 mb-2">
-              <input
-                type="text"
-                value={amenity}
-                onChange={(e) => {
-                  const updatedAmenities = [...updatedOffice.amenities];
-                  updatedAmenities[index] = e.target.value;
-                  setUpdatedOffice({ ...updatedOffice, amenities: updatedAmenities });
-                }}
-                className="w-full border rounded-md px-3 py-2"
-              />
-              <button onClick={() => handleRemoveAmenity(index)} className="bg-red-500 text-white px-3 py-2 rounded-md">
-                ✕
-              </button>
-            </div>
-          ))}
-          <button onClick={handleAddAmenity} className="bg-blue-500 text-white px-4 py-2 rounded-md">
-            + Add Amenity
-          </button>
-        </div>
+              {/* Right Column */}
+              <div>
+                <label className="block font-medium mb-1">Lot Area</label>
+                <Field
+                  type="text"
+                  name="lotArea"
+                  className="w-full border rounded-md px-3 py-2 mb-4"
+                />
+                <ErrorMessage
+                  name="lotArea"
+                  component="div"
+                  className="text-red-500 text-sm"
+                />
 
-        <div className="flex justify-end gap-2 mt-6">
-          <button onClick={handleUpdateOffice} className="bg-blue-500 text-white px-4 py-2 rounded-md">
-            Update
-          </button>
-        </div>
+                <label className="block font-medium mb-1">Description</label>
+                <Field
+                  as="textarea"
+                  name="description"
+                  className="w-full border rounded-md px-3 py-2 mb-4"
+                />
+                <ErrorMessage
+                  name="description"
+                  component="div"
+                  className="text-red-500 text-sm"
+                />
+
+                {/* Image Upload */}
+                <label className="block font-medium mb-1">Image</label>
+                {imagePreview && (
+                  <img
+                    src={imagePreview}
+                    alt="Preview"
+                    className="w-full h-24 object-cover rounded-md mb-2"
+                  />
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0] || null;
+                    if (file) {
+                      setFieldValue("image", file);
+                      setImagePreview(URL.createObjectURL(file));
+                    }
+                  }}
+                  className="w-full border rounded-md px-3 py-2 mb-4"
+                />
+              </div>
+
+              {/* Amenities Section */}
+              <div className="col-span-2">
+                <label className="block font-medium mb-1">Amenities</label>
+                {values.amenities.map((amenity, index) => (
+                  <div key={index} className="flex gap-2 mb-2">
+                    <Field
+                      type="text"
+                      name={`amenities[${index}]`}
+                      className="w-full border rounded-md px-3 py-2"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const updatedAmenities = values.amenities.filter(
+                          (_, i) => i !== index
+                        );
+                        setFieldValue("amenities", updatedAmenities);
+                      }}
+                      className="bg-red-500 text-white px-3 py-2 rounded-md"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              <div className="col-span-2 flex justify-end gap-2 mt-6">
+                <button
+                  type="submit"
+                  className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+                >
+                  Update
+                </button>
+              </div>
+            </Form>
+          )}
+        </Formik>
       </div>
     </div>
-  ) : null;
+  );
 };
 
 export default EditModal;
