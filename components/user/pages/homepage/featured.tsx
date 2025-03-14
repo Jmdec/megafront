@@ -50,7 +50,7 @@ const FeaturedProjects = () => {
       ) : (
         <div className="relative">
           <Swiper
-            spaceBetween={20}
+            spaceBetween={-300}
             slidesPerView={1}
             loop={true}
             autoplay={{ delay: 3000, disableOnInteraction: false }}
@@ -65,38 +65,42 @@ const FeaturedProjects = () => {
           >
             {projects.map((project, index) => (
               <SwiperSlide key={index}>
-                <Card className="p-0 rounded-xl shadow-lg border border-gray-200 hover:shadow-2xl transition duration-300 max-w-[90%] sm:max-w-[350px] mx-auto h-[500px]">
-                  <CardHeader>
-                    <div className="relative overflow-hidden rounded-lg group w-full h-64 sm:h-72 mx-auto">
-                      <ImageWithLoader
-                        src={`${API_BASE_URL}${project.image}`}
-                        alt={project.name}
-                        width={350}
-                        height={250}
-                        className="w-full h-full object-cover rounded-lg transition-transform duration-300 group-hover:scale-105"
-                      />
-                      <div className="absolute inset-0 bg-white opacity-10 transform scale-125 rotate-45 -translate-x-[130%] transition-transform duration-500 ease-in-out group-hover:translate-x-[130%]"></div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="text-center">
-                    <CardTitle
-                      className={`text-lg sm:text-xl font-bold text-black ${cardo.className}`}
-                    >
-                      {project.name ? project.name.toLocaleUpperCase() : "N/A"}
-                    </CardTitle>
+                <Link href={`/user/property/${project.id}`} className="block">
+                  <Card className="p-0 rounded-xl shadow-lg border border-gray-200 hover:shadow-2xl transition duration-300 max-w-[90%] sm:max-w-[350px] mx-auto h-[500px]">
+                    <CardHeader>
+                      <div className="relative overflow-hidden rounded-lg group w-full h-64 sm:h-72 mx-auto">
+                        <ImageWithLoader
+                          src={`${API_BASE_URL}${project.image}`}
+                          alt={project.name}
+                          width={350}
+                          height={250}
+                          className="w-full h-full object-cover rounded-lg transition-transform duration-300 group-hover:scale-105"
+                        />
+                        <div className="absolute inset-0 bg-white opacity-10 transform scale-125 rotate-45 -translate-x-[130%] transition-transform duration-500 ease-in-out group-hover:translate-x-[130%]"></div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="text-center">
+                      <CardTitle
+                        className={`text-lg sm:text-xl font-bold text-black ${cardo.className}`}
+                      >
+                        {project.name
+                          ? project.name.toLocaleUpperCase()
+                          : "N/A"}
+                      </CardTitle>
 
-                    {/* Underline */}
-                    <hr className="w-fullmx-auto my-2 border-t border-gray-300" />
+                      {/* Underline */}
+                      <hr className="w-full mx-auto my-2 border-t border-gray-300" />
 
-                    <p
-                      className={`text-gray-500 text-xs sm:text-sm ${montserrat.className}`}
-                    >
-                      {project.description
-                        ? project.description.split(".")[0] + "." // Get only the first sentence
-                        : "N/A"}
-                    </p>
-                  </CardContent>
-                </Card>
+                      <p
+                        className={`text-gray-500 text-xs sm:text-sm ${montserrat.className}`}
+                      >
+                        {project.description
+                          ? project.description.split(".")[0] + "." // Get only the first sentence
+                          : "N/A"}
+                      </p>
+                    </CardContent>
+                  </Card>
+                </Link>
               </SwiperSlide>
             ))}
           </Swiper>

@@ -65,17 +65,16 @@ const PropertyParent = () => {
                   className="w-full h-full bg-cover bg-center"
                   style={{
                     backgroundImage: `url("${API_BASE_URL}${residence.image}")`,
-
                     backgroundSize: "cover",
                     backgroundPosition: "center",
                   }}
                 >
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="h-full w-full sm:w-1/4 flex flex-col justify-center p-6 sm:p-8 text-white bg-black/60 sm:bg-opacity-60">
-                      <h1 className="text-lg sm:text-5xl font-bold mb-2 sm:mb-4 text-center sm:text-left">
+                  <div className="absolute inset-0 flex items-center ">
+                    <div className="h-full w-full sm:w-1/3 md:w-5/12 xl:w-3/12 flex flex-col justify-center p-6 sm:p-8 text-white bg-black/60 sm:bg-opacity-60">
+                      <h1 className="text-lg sm:text-5xl md:text-4xl font-bold mb-2 sm:mb-4 text-center sm:text-left">
                         Properties
                       </h1>
-                      <p className="text-xs sm:text-lg leading-relaxed text-center sm:text-left p-2">
+                      <p className="text-xs sm:text-lg md:text-md leading-relaxed text-center sm:text-left p-2">
                         {residence.description}
                       </p>
                       <div className="flex justify-center sm:justify-start">
@@ -86,11 +85,11 @@ const PropertyParent = () => {
                     </div>
                   </div>
 
-                  <div className="absolute bottom-6 sm:bottom-20 right-6 sm:right-16 bg-black/60 px-4 sm:px-10 py-3 sm:py-6 rounded-lg shadow-lg text-white border border-white/20">
-                    <h2 className="text-lg sm:text-6xl font-extrabold tracking-wide uppercase text-center sm:text-left">
+                  <div className="absolute bottom-6 sm:bottom-20 right-6 sm:right-16 md:right-1 bg-black/60 px-4 sm:px-10 py-3 sm:py-6 rounded-lg shadow-lg text-white border border-white/20">
+                    <h2 className="text-lg sm:text-6xl md:text-xl xl:text-4xl font-extrabold tracking-wide uppercase text-center sm:text-left">
                       {residence.name}
                     </h2>
-                    <h3 className="text-xs sm:text-4xl font-semibold mt-1 sm:mt-2 italic text-gray-300 text-center sm:text-left">
+                    <h3 className="text-xs sm:text-md md:text-lg xl:text-2xl font-semibold mt-1 sm:mt-2 italic text-gray-300 text-center sm:text-left">
                       at {residence.location}
                     </h3>
                   </div>

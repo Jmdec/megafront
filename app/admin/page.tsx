@@ -64,7 +64,7 @@ export default function AdminPage() {
   // }, [activeTab]);
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen overflow-y-hidden overl">
       {/* Show loading screen if `isLoading` is true */}
       {isLoading && <Loading />}
 

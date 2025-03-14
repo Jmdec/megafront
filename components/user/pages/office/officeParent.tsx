@@ -43,65 +43,71 @@ const OfficeParent = () => {
 
       {/* ✅ Hero Section (Swiper with Offices) */}
       <div className="relative w-full h-screen overflow-hidden">
-        <Swiper
-          modules={[Autoplay, EffectFade]}
-          spaceBetween={0}
-          slidesPerView={1}
-          loop={true}
-          autoplay={{ delay: 3000, disableOnInteraction: false }}
-          speed={500}
-          effect="fade"
-          className="w-full h-full"
-        >
-          {officeProjects.map((office) => {
-            const imageUrl = office.image
-              ? `${API_BASE_URL}${office.image}`
-              : "/default-office.jpg";
+        {/* ✅ Handle Loading & Error States */}
+        {loading ? (
+          <div className="flex justify-center items-center h-full">
+            <div className="w-10 h-10 border-4 border-gray-300 border-t-[#B8986E] rounded-full animate-spin"></div>
+          </div>
+        ) : error ? (
+          <p className="text-center text-red-500">{error}</p>
+        ) : (
+          <Swiper
+            modules={[Autoplay, EffectFade]}
+            spaceBetween={0}
+            slidesPerView={1}
+            loop={true}
+            autoplay={{ delay: 3000, disableOnInteraction: false }}
+            speed={1000}
+            effect="fade"
+            className="w-full h-full"
+          >
+            {officeProjects.map((office, index) => {
+              const imageUrl = office.image
+                ? `${API_BASE_URL}${office.image}`
+                : "/default-office.jpg";
 
-            return (
-              <SwiperSlide
-                key={office.name}
-                className="relative w-full h-screen"
-              >
-                <div
-                  className="w-full h-full bg-cover bg-center"
-                  style={{
-                    backgroundImage: `url('${imageUrl}')`,
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
-                  }}
-                >
-                  {/* Dark Overlay & Text Content */}
-                  <div className="absolute inset-0 flex items-center z-10 w-9/12">
-                    <div className=" sm:w-1/3 flex flex-col justify-center p-6 sm:p-8 text-white bg-black/50 sm:bg-opacity-60 h-full">
-                      <h1 className="text-lg sm:text-5xl font-bold mb-2 sm:mb-4 text-center sm:text-left ">
-                        Offices
-                      </h1>
-                      <p className="text-xs sm:text-lg leading-relaxed text-center sm:text-left p-2">
-                        {office.description}
-                      </p>
-                      <div className="flex justify-center sm:justify-start">
-                        <button className="mt-3 sm:mt-4 px-4 sm:px-6 py-2 sm:py-3 border-2 border-white font-semibold rounded-lg shadow-md transition-all hover:bg-white hover:text-black">
-                          VIEW {office.name.toUpperCase()}
-                        </button>
+              return (
+                <SwiperSlide key={index} className="relative w-full h-screen">
+                  <div
+                    className="w-full h-full bg-cover bg-center"
+                    style={{
+                      backgroundImage: `url("${imageUrl}")`,
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                    }}
+                  >
+                    {/* Dark Overlay & Text Content */}
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="h-full w-full sm:w-2/3 md:w-5/12 xl:w-3/12 flex flex-col justify-center p-6 sm:p-8 text-white bg-black/60 sm:bg-opacity-70">
+                        <h1 className="text-lg sm:text-5xl md:text-4xl font-bold mb-2 sm:mb-4 text-center sm:text-left">
+                          Offices
+                        </h1>
+                        <p className="text-xs sm:text-lg md:text-md leading-relaxed text-center sm:text-left p-2">
+                          {office.description}
+                        </p>
+                        <div className="flex justify-center sm:justify-start">
+                          <button className="mt-3 sm:mt-4 px-4 sm:px-6 py-2 sm:py-3 border-2 border-white font-semibold rounded-lg shadow-md transition-all hover:bg-white hover:text-black">
+                            VIEW {office.name.toUpperCase()}
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Office Name & Location */}
-                  <div className="absolute bottom-6 sm:bottom-20 right-6 sm:right-16 bg-black/70 px-4 sm:px-10 py-3 sm:py-6 rounded-lg shadow-lg text-white border border-white/30 z-20">
-                    <h2 className="text-lg sm:text-6xl font-extrabold tracking-wide uppercase text-center sm:text-left">
-                      {office.name}
-                    </h2>
-                    <h3 className="text-xs sm:text-4xl font-semibold mt-1 sm:mt-2 italic text-gray-300 text-center sm:text-left">
-                      at {office.location}
-                    </h3>
+                    {/* Office Name & Location */}
+                    <div className="absolute bottom-6 sm:bottom-20 md:right-1 right-6 sm:right-16 bg-black/60 px-4 sm:px-10 py-3 sm:py-6 rounded-lg shadow-lg text-white border border-white/20">
+                      <h2 className="text-lg sm:text-5xl md:text-xl xl:text-4xl font-extrabold tracking-wide uppercase text-center sm:text-left">
+                        {office.name}
+                      </h2>
+                      <h3 className="text-xs sm:text-2xl md:text-sm xl:text-2xl font-semibold mt-1 sm:mt-2 italic text-gray-300 text-center sm:text-left">
+                        at {office.location}
+                      </h3>
+                    </div>
                   </div>
-                </div>
-              </SwiperSlide>
-            );
-          })}
-        </Swiper>
+                </SwiperSlide>
+              );
+            })}
+          </Swiper>
+        )}
       </div>
 
       {/* ✅ Office Section */}

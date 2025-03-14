@@ -90,27 +90,31 @@ const PropertyPage = () => {
   return (
     <div className="container mx-auto p-6">
       {/* Page Title */}
-      <h1 className="text-3xl font-bold text-gray-800 mb-8">Search Results</h1>
+      <h1 className="text-3xl font-bold text-gray-800 mb-8 text-center sm:text-left">
+        Search Results
+      </h1>
 
       {/* ✅ Property Container */}
       {searchResults.length > 0 && (
         <div>
-          <h2 className="text-2xl font-bold text-gray-700 mb-4">Properties</h2>
-          <div className="flex flex-wrap justify-start gap-8">
+          <h2 className="text-2xl font-bold text-gray-700 mb-4 text-center sm:text-left">
+            Properties
+          </h2>
+          <div className="flex flex-wrap justify-center sm:justify-start gap-8">
             {searchResults.map((property) => {
               const displayedImage =
                 hoveredImages[property.id] ||
                 `${API_BASE_URL}${property.image}`;
               const statusColor =
-                statusPropertyColors[property.status] || "bg-gray-500"; // Default color if status is not in the map
+                statusPropertyColors[property.status] || "bg-gray-500";
 
               return (
                 <div
                   key={property.id}
-                  className="flex bg-white rounded-lg shadow-lg overflow-hidden w-full"
+                  className="flex flex-col sm:flex-row bg-white rounded-lg shadow-lg overflow-hidden w-full lg:w-full"
                 >
-                  <div className="relative w-1/3">
-                    {/* ✅ Apply dynamic color based on status */}
+                  <div className="relative w-full sm:w-1/3">
+                    {/* ✅ Status Badge */}
                     <span
                       className={`absolute top-2 left-2 ${statusColor} text-white py-1 px-3 rounded-lg text-xs font-bold`}
                     >
@@ -119,36 +123,39 @@ const PropertyPage = () => {
                     <img
                       src={displayedImage}
                       alt={property.name}
-                      className="w-full h-full object-cover transition-all duration-300"
+                      className="w-full h-52 sm:h-full object-cover transition-all duration-300"
                     />
                   </div>
 
                   <div className="p-6 flex-1 relative">
-                    {/* ✅ Flex container for name and View More */}
-                    <div className="flex justify-between items-center">
-                      <h2 className="text-2xl font-semibold text-gray-800">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
+                      <h2 className="text-xl font-semibold text-gray-800">
                         {property.name}{" "}
                         <span className="text-sm font-semibold text-gray-700">
-                          ({JSON.parse(property.units).join(", ")})
+                          {Array.isArray(property.units)
+                            ? property.units.join(", ")
+                            : typeof property.units === "string"
+                            ? JSON.parse(property.units).join(", ")
+                            : "N/A"}
                         </span>
                       </h2>
 
                       <Link
                         href={`/user/property/${property.id}`}
-                        className="bg-blue-700 text-white text-sm font-semibold px-3 py-1 rounded-sm shadow-md transition-all duration-300 hover:bg-blue-800 hover:shadow-lg active:scale-95 flex items-center gap-1"
+                        className="bg-blue-700 text-white text-sm font-semibold px-3 py-1 rounded-sm shadow-md transition-all duration-300 hover:bg-blue-800"
                       >
                         View More
                       </Link>
                     </div>
 
-                    <p className="top-2 right-2 text-lg font-bold text-gray-900">
+                    <p className="text-lg font-bold text-gray-900 mt-2">
                       {formatPrice(property.priceRange)}
                     </p>
                     <p className="text-sm text-gray-500 mt-1">
                       {property.location} - {property.developmentType}
                     </p>
 
-                    <p className="text-md text-gray-700 mt-2">
+                    <p className="text-md text-gray-700 mt-2 line-clamp-2">
                       {property.description.split(".")[0]}.
                     </p>
 
@@ -156,7 +163,7 @@ const PropertyPage = () => {
                       <h3 className="text-lg font-semibold text-gray-800">
                         Amenities
                       </h3>
-                      <div className="grid grid-cols-4 gap-4 py-2">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-4 py-2">
                         {JSON.parse(property.amenities).map(
                           (amenity: any, index: any) => (
                             <div
@@ -197,24 +204,25 @@ const PropertyPage = () => {
       )}
 
       {/* ✅ Office Container */}
-
       {officeResults.length > 0 && (
         <div className="mt-12">
-          <h2 className="text-2xl font-bold text-gray-700 mb-4">Offices</h2>
-          <div className="flex flex-wrap justify-start gap-8">
+          <h2 className="text-2xl font-bold text-gray-700 mb-4 text-center sm:text-left">
+            Offices
+          </h2>
+          <div className="flex flex-wrap justify-center sm:justify-start gap-8">
             {officeResults.map((office) => {
               const displayedImage =
                 hoveredImages[office.id] || `${API_BASE_URL}${office.image}`;
               const statusColor =
-                statusOfficeColors[office.status] || "bg-gray-500"; // Default color if status is not in the map
+                statusOfficeColors[office.status] || "bg-gray-500";
 
               return (
                 <div
                   key={office.id}
-                  className="flex bg-white rounded-lg shadow-lg overflow-hidden w-full"
+                  className="flex flex-col sm:flex-row bg-white rounded-lg shadow-lg overflow-hidden w-full lg:w-full"
                 >
-                  <div className="relative w-1/3">
-                    {/* ✅ Apply dynamic color based on status */}
+                  <div className="relative w-full sm:w-1/3">
+                    {/* ✅ Status Badge */}
                     <span
                       className={`absolute top-2 left-2 ${statusColor} text-white py-1 px-3 rounded-lg text-xs font-bold`}
                     >
@@ -223,37 +231,35 @@ const PropertyPage = () => {
                     <img
                       src={displayedImage}
                       alt={office.name}
-                      className="w-full h-full object-cover transition-all duration-300"
+                      className="w-full h-52 sm:h-full object-cover transition-all duration-300"
                     />
                   </div>
+
                   <div className="p-6 flex-1 relative">
-                    {/* ✅ Name & View More Button */}
-                    <div className="flex justify-between items-center">
-                      <h2 className="text-2xl font-semibold text-gray-800">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
+                      <h2 className="text-xl font-semibold text-gray-800">
                         {office.name}
                       </h2>
+
                       <Link
                         href={`/user/office/${office.id}`}
-                        className="bg-blue-700 text-white text-sm font-semibold px-3 py-1 rounded-sm shadow-md transition-all duration-300 hover:bg-blue-800 hover:shadow-lg active:scale-95 flex items-center gap-1"
+                        className="bg-blue-700 text-white text-sm font-semibold px-3 py-1 rounded-sm shadow-md transition-all duration-300 hover:bg-blue-800"
                       >
                         View More
                       </Link>
                     </div>
 
-                    {/* ✅ Price & Location */}
-                    <p className="top-2 right-2 text-lg font-bold text-gray-900">
+                    <p className="text-lg font-bold text-gray-900 mt-2">
                       {formatPrice(office.price)}
                     </p>
                     <p className="text-sm text-gray-500 mt-1">
                       {office.location}
                     </p>
 
-                    {/* ✅ Description */}
-                    <p className="text-md text-gray-700 mt-2">
+                    <p className="text-md text-gray-700 mt-2 line-clamp-2">
                       {office.description.split(".")[0]}.
                     </p>
 
-                    {/* ✅ Amenities */}
                     <div className="mt-4">
                       <h3 className="text-lg font-semibold text-gray-800">
                         Amenities

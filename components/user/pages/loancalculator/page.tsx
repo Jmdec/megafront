@@ -244,10 +244,10 @@ const LoanCalculator = () => {
 
   return (
     <>
-      <main className="h-screen flex items-center justify-center bg-cover bg-center -my-10">
+      <main className="min-h-screen flex items-center justify-center bg-cover bg-center -my-10 mt-5 xl:-mt-5">
         <div className="absolute inset-0 bg-customBlue opacity-80"></div>
 
-        <section className="relative z-20 text-customBlue w-full max-w-7xl p-6 bg-white shadow-2xl shadow-black rounded-lg border-2 border-grau-500 ">
+        <section className="relative z-20 text-customBlue w-full max-w-7xl p-6 bg-white shadow-2xl shadow-black rounded-lg border-2 border-grau-500">
           {/* Header Section */}
           <div className="mb-10 text-center">
             <h1 className="font-semibold text-3xl text-black border-t-2 w-fit mx-auto border-white mb-4">

@@ -61,7 +61,7 @@ const SocialMediaIcons = () => {
   const transitionSettings = { duration: 0.3, ease: "easeInOut" };
 
   return (
-    <div className="fixed top-20 right-4 z-50 flex flex-col items-center w-fit">
+    <div className="fixed top-20 right-4 z-50 flex flex-col items-center w-fit md:mt-2">
       {/* Rotating & Enlarging Main Icon */}
       <motion.div
         onClick={handleToggle}

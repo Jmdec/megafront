@@ -72,20 +72,20 @@ const Office = ({ office }: OfficeProps) => {
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row justify-between items-center w-full gap-4 mb-6 mt-10">
-        <div className="flex items-center gap-4 w-full sm:w-auto">
+        <div className="flex items-center gap-4 w-full sm:w-1/2 md:w-2/3 lg:w-auto">
           <h2 className="text-xl font-semibold text-gray-700">OFFICES</h2>
           <input
             type="text"
             placeholder="Search by name or location..."
-            className="px-4 py-2 w-full sm:w-60 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#B8986E] transition"
+            className="px-4 py-2 w-full sm:w-60 md:w-full lg:w-60 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#B8986E] transition"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
 
-        <div className="flex gap-4 w-full sm:w-auto mt-4 sm:mt-0">
+        <div className="flex gap-4 w-full sm:w-1/2 md:w-1/3 lg:w-auto mt-4 sm:mt-0">
           <select
-            className="px-4 py-2 w-full sm:w-auto border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#B8986E] transition"
+            className="px-4 py-2 w-full sm:w-auto md:w-full lg:w-auto border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#B8986E] transition"
             value={locationFilter}
             onChange={(e) => setLocationFilter(e.target.value)}
           >
@@ -97,7 +97,7 @@ const Office = ({ office }: OfficeProps) => {
             ))}
           </select>
           <select
-            className="px-4 py-2 w-full sm:w-auto border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#B8986E] transition"
+            className="px-4 py-2 w-full sm:w-auto md:w-full lg:w-auto border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#B8986E] transition"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
           >
@@ -118,7 +118,7 @@ const Office = ({ office }: OfficeProps) => {
       ) : error ? (
         <p className="text-center text-red-500">{error}</p>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8">
           {filteredOffices.length > 0 ? (
             filteredOffices.map((office, index) => {
               const imageUrl = office.image

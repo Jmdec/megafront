@@ -3,25 +3,39 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState, AppDispatch } from "@/app/redux/store"; // Adjust path as needed
-import { fetchProperties, } from "@/app/redux/services/propertyService";
+import { fetchProperties } from "@/app/redux/services/propertyService";
 import { fetchLocations } from "@/app/redux/services/locationService"; // Import fetchLocations action
 import { fetchOffices } from "@/app/redux/services/officeService"; // Import fetchLocations action
 
 import { useRouter } from "next/navigation"; // Use next/navigation for navigation
-import { setSearchResults,resetSearchResults } from "@/app/redux/slice/propertyData";
-import { setOfficeSearchResults,resetOfficeSearchResults } from "@/app/redux/slice/officeData";
+import {
+  setSearchResults,
+  resetSearchResults,
+} from "@/app/redux/slice/propertyData";
+import {
+  setOfficeSearchResults,
+  resetOfficeSearchResults,
+} from "@/app/redux/slice/officeData";
 
 const Form: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter(); // Initialize the router from next/navigation
 
   const offices = useSelector((state: RootState) => state.officeData.offices);
-  const properties = useSelector((state: RootState) => state.propertyData.properties);
-  const locations = useSelector((state: RootState) => state.locationData.locations); // Add location data here
+  const properties = useSelector(
+    (state: RootState) => state.propertyData.properties
+  );
+  const locations = useSelector(
+    (state: RootState) => state.locationData.locations
+  ); // Add location data here
   const loading = useSelector((state: RootState) => state.propertyData.loading);
   const error = useSelector((state: RootState) => state.propertyData.error);
-  const locationLoading = useSelector((state: RootState) => state.locationData.loading); // Loading for locations
-  const locationError = useSelector((state: RootState) => state.locationData.error); // Error for locations
+  const locationLoading = useSelector(
+    (state: RootState) => state.locationData.loading
+  ); // Loading for locations
+  const locationError = useSelector(
+    (state: RootState) => state.locationData.error
+  ); // Error for locations
 
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
@@ -35,7 +49,7 @@ const Form: React.FC = () => {
   // ✅ Fetch properties on mount
   useEffect(() => {
     dispatch(fetchProperties());
-     dispatch(fetchOffices());
+    dispatch(fetchOffices());
     dispatch(fetchLocations()); // Fetch locations when component mounts
   }, [dispatch]);
 
@@ -63,73 +77,94 @@ const Form: React.FC = () => {
   const formatPrice = (value: string) => {
     return value.replace(/[^\d]/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   };
-const handleSearchClick = () => {
-  if (selectedType === "Office") {
-    dispatch(resetSearchResults()); // ✅ Clear property results first
-    localStorage.removeItem("searchResults"); // ✅ Ensure property results are removed
-  } else {
-    dispatch(resetOfficeSearchResults()); // ✅ Clear office results first
-    localStorage.removeItem("officeSearchResults"); // ✅ Ensure office results are removed
-  }
-
-  setTimeout(() => { // ✅ Delay setting new results to ensure reset happens
-    let filteredResults = [];
-
+  const handleSearchClick = () => {
     if (selectedType === "Office") {
-      filteredResults = offices.filter((office) => {
-        const isLocationMatch = selectedLocation ? office.location === selectedLocation : true;
-        const [min, max] = office.price.split(" - ").map((price) => parseInt(price.replace(/[^\d]/g, "")));
-        const isMinPriceMatch = minPrice ? min >= parseInt(minPrice.replace(/[^\d]/g, "")) : true;
-        const isMaxPriceMatch = maxPrice ? max <= parseInt(maxPrice.replace(/[^\d]/g, "")) : true;
-
-        return isLocationMatch && isMinPriceMatch && isMaxPriceMatch;
-      });
-
-      dispatch(setOfficeSearchResults(filteredResults));
-      localStorage.setItem("officeSearchResults", JSON.stringify(filteredResults)); // ✅ Save office results
+      dispatch(resetSearchResults()); // ✅ Clear property results first
+      localStorage.removeItem("searchResults"); // ✅ Ensure property results are removed
     } else {
-      filteredResults = properties.filter((property) => {
-        const isLocationMatch = selectedLocation ? property.location === selectedLocation : true;
-        const [min, max] = property.priceRange.split(" - ").map((price) => parseInt(price.replace(/[^\d]/g, "")));
-        const isMinPriceMatch = minPrice ? min >= parseInt(minPrice.replace(/[^\d]/g, "")) : true;
-        const isMaxPriceMatch = maxPrice ? max <= parseInt(maxPrice.replace(/[^\d]/g, "")) : true;
-        const isTypeMatch = selectedType ? property.developmentType === selectedType : true;
-
-        return isLocationMatch && isMinPriceMatch && isMaxPriceMatch && isTypeMatch;
-      });
-
-      dispatch(setSearchResults(filteredResults));
-      localStorage.setItem("searchResults", JSON.stringify(filteredResults)); // ✅ Save property results
+      dispatch(resetOfficeSearchResults()); // ✅ Clear office results first
+      localStorage.removeItem("officeSearchResults"); // ✅ Ensure office results are removed
     }
 
-    console.log("🔹 Filtered Results:", filteredResults);
-    router.push('/user/search');
-  }, 100); // ✅ Ensure reset completes before setting new values
-};
+    setTimeout(() => {
+      // ✅ Delay setting new results to ensure reset happens
+      let filteredResults = [];
 
+      if (selectedType === "Office") {
+        filteredResults = offices.filter((office) => {
+          const isLocationMatch = selectedLocation
+            ? office.location === selectedLocation
+            : true;
+          const [min, max] = office.price
+            .split(" - ")
+            .map((price) => parseInt(price.replace(/[^\d]/g, "")));
+          const isMinPriceMatch = minPrice
+            ? min >= parseInt(minPrice.replace(/[^\d]/g, ""))
+            : true;
+          const isMaxPriceMatch = maxPrice
+            ? max <= parseInt(maxPrice.replace(/[^\d]/g, ""))
+            : true;
 
+          return isLocationMatch && isMinPriceMatch && isMaxPriceMatch;
+        });
 
+        dispatch(setOfficeSearchResults(filteredResults));
+        localStorage.setItem(
+          "officeSearchResults",
+          JSON.stringify(filteredResults)
+        ); // ✅ Save office results
+      } else {
+        filteredResults = properties.filter((property) => {
+          const isLocationMatch = selectedLocation
+            ? property.location === selectedLocation
+            : true;
+          const [min, max] = property.priceRange
+            .split(" - ")
+            .map((price) => parseInt(price.replace(/[^\d]/g, "")));
+          const isMinPriceMatch = minPrice
+            ? min >= parseInt(minPrice.replace(/[^\d]/g, ""))
+            : true;
+          const isMaxPriceMatch = maxPrice
+            ? max <= parseInt(maxPrice.replace(/[^\d]/g, ""))
+            : true;
+          const isTypeMatch = selectedType
+            ? property.developmentType === selectedType
+            : true;
+
+          return (
+            isLocationMatch && isMinPriceMatch && isMaxPriceMatch && isTypeMatch
+          );
+        });
+
+        dispatch(setSearchResults(filteredResults));
+        localStorage.setItem("searchResults", JSON.stringify(filteredResults)); // ✅ Save property results
+      }
+
+      console.log("🔹 Filtered Results:", filteredResults);
+      router.push("/user/search");
+    }, 100); // ✅ Ensure reset completes before setting new values
+  };
 
   return (
-    <div className="flex flex-col sm:flex-row items-center justify-center w-full min-h-screen mx-auto p-4 sm:p-6">
+    <div className="flex flex-col sm:flex-row md:flex-row items-center justify-center w-full min-h-screen mx-auto p-4 sm:p-6 mt-6 sm:mt-0 md:p-6 md:mt-0">
       {/* ✅ Left Section: Property Display */}
-      <div className="flex items-center justify-end w-full sm:w-7/12 min-h-[450px] sm:min-h-[500px] text-center sm:text-end p-6 sm:p-12 sm:bg-black/50 rounded-lg shadow-lg transition-opacity duration-500 ease-in-out">
+      <div className="flex items-center justify-center sm:justify-end md:justify-end w-full sm:w-7/12 md:w-7/12 min-h-[450px] sm:min-h-[500px] md:min-h-[500px] text-center sm:text-end md:text-end p-6 sm:p-12 sm:bg-black/50 md:p-12 md:bg-black/50  rounded-lg shadow-lg transition-opacity duration-500 ease-in-out">
         {loading ? (
           <div className="text-white text-lg">Loading...</div>
         ) : error ? (
           <p className="text-red-500">{error}</p>
         ) : properties.length > 0 ? (
           <div className="w-full max-w-full">
-            <h1 className="text-3xl sm:text-7xl font-extrabold text-neutral-100">
+            <h1 className="text-3xl sm:text-7xl md:text-5xl lg:text-6xl font-extrabold text-neutral-100">
               {properties[currentIndex].name}
             </h1>
-            <h3 className="text-lg sm:text-xl font-extrabold text-neutral-100">
+            <h3 className="text-lg sm:text-xl md:text-lg lg:text-2xl font-extrabold text-neutral-100">
               at {properties[currentIndex].location}
             </h3>
-            <p className="mt-4 text-neutral-100 text-md sm:text-lg">
+            <p className="mt-4 text-neutral-100 text-md sm:text-lg md:text-sm lg:text-lg">
               {properties[currentIndex].description}
             </p>
-            <button className="mt-6 px-4 sm:px-6 py-3 bg-white text-black font-bold rounded-lg shadow-md hover:bg-gray-200 transition-all duration-300">
+            <button className="mt-6 px-4 sm:px-6 md:px-6 py-3 bg-white text-black font-bold rounded-lg shadow-md hover:bg-gray-200 transition-all duration-300">
               View {properties[currentIndex].name}
             </button>
           </div>
@@ -139,16 +174,20 @@ const handleSearchClick = () => {
       </div>
 
       {/* ✅ Right Section: Form */}
-      <div className="relative bg-white/20 backdrop-blur-lg border border-white/30 shadow-2xl rounded-2xl p-6 sm:p-12 w-full sm:max-w-xl min-h-[500px] text-center flex flex-col justify-center space-y-6">
-        <h2 className="text-black text-2xl sm:text-3xl font-extrabold">Find Your Dream Home</h2>
-        <p className="text-black text-md">Find the perfect home that fits your lifestyle and budget.</p>
+      <div className="relative bg-white/20 backdrop-blur-lg border border-white/30 shadow-2xl rounded-2xl p-6 sm:p-12 w-full sm:max-w-md md:p-12  md:max-w-md min-h-[500px] text-center flex flex-col justify-center space-y-6 mt-6 sm:mt-0 md:mt-0">
+        <h2 className="text-black text-2xl sm:text-3xl md:text-3xl font-extrabold">
+          Find Your Dream Home
+        </h2>
+        <p className="text-black text-md">
+          Find the perfect home that fits your lifestyle and budget.
+        </p>
 
         {/* ✅ Dropdowns */}
-        <div className="flex flex-col sm:flex-row gap-4">
+        <div className="flex flex-col sm:flex-row md:flex-row gap-4 sm:gap-6 md:gap-6">
           <select
-            className="flex-1 p-4 bg-white/90 border border-gray-300 rounded-lg text-gray-700 focus:ring-2 focus:ring-[#B8986E] focus:outline-none transition"
+            className="w-full sm:flex-1 md:flex-1 p-4 bg-white/90 border border-gray-300 rounded-lg text-gray-700 focus:ring-2 focus:ring-[#B8986E] focus:outline-none transition"
             value={selectedLocation}
-            onChange={(e) => setSelectedLocation(e.target.value)} // Handle location change
+            onChange={(e) => setSelectedLocation(e.target.value)}
           >
             <option value="">Select Location</option>
             {locationLoading ? (
@@ -165,9 +204,9 @@ const handleSearchClick = () => {
           </select>
 
           <select
-            className="flex-1 p-4 bg-white/90 border border-gray-300 rounded-lg text-gray-700 focus:ring-2 focus:ring-[#B8986E] focus:outline-none transition"
-            value={selectedType} // Bind value to selectedType state
-            onChange={(e) => setSelectedType(e.target.value)} // Handle property type change
+            className="w-full sm:flex-1 md:flex-1 p-4 bg-white/90 border border-gray-300 rounded-lg text-gray-700 focus:ring-2 focus:ring-[#B8986E] focus:outline-none transition"
+            value={selectedType}
+            onChange={(e) => setSelectedType(e.target.value)}
           >
             <option value="">Select Type</option>
             <option value="High Rise Condominium">High Rise Condominium</option>
@@ -177,7 +216,7 @@ const handleSearchClick = () => {
           </select>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-4">
+        <div className="flex flex-col sm:flex-row md:flex-row gap-4 sm:gap-6 md:gap-6">
           <div className="relative flex-1">
             <span className="absolute left-3 top-4 text-gray-500">₱</span>
             <input
@@ -234,7 +273,7 @@ const handleSearchClick = () => {
         {/* ✅ Search Button */}
         <button
           className="w-full bg-black text-white font-bold py-4 rounded-lg hover:bg-gray-800 transition-all duration-300 shadow-lg"
-          onClick={handleSearchClick} // Call the log function when clicked
+          onClick={handleSearchClick}
         >
           Search
         </button>

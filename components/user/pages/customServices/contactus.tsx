@@ -44,202 +44,175 @@ export default function ContactUs() {
   };
 
   return (
-    <div className="bg-gray-50 py-8 px-6">
-      <div className="w-[60%] mx-auto bg-white shadow-lg rounded-lg overflow-hidden border border-gray-200">
-        <div className=" text-center rounded-lg py-10 max-w-full mx-auto ">
-          <h2 className="text-lg md:text-2xl font-semibold text-gray-900 mb-2">
+    <div className="bg-gray-50 py-8 px-4 sm:px-6">
+      <div className="w-full max-w-5xl mx-auto bg-white shadow-lg rounded-lg overflow-hidden border border-gray-200">
+        {/* Header Section */}
+        <div className="text-center py-6 px-4 sm:px-10">
+          <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-2">
             Buying a Condo Online – Simple & Easy!
           </h2>
-          <p className="text-gray-700 mb-3 text-xs md:text-sm">
+          <p className="text-gray-700 text-sm sm:text-md">
             Just follow these four quick steps:
           </p>
-
-          <div className="flex flex-wrap justify-center items-center gap-2 md:gap-3">
-            {/* Step 1 */}
-            <div className="text-center w-32 md:w-40">
-              <div className="shadow rounded p-2">
-                <FaHeadset className="text-blue-600 text-2xl md:text-3xl mx-auto mb-1" />
-                <h3 className="text-sm font-semibold">Talk to an Agent</h3>
-                <p className="text-gray-600 text-xs mt-1">
-                  Message us on verified platforms.
-                </p>
-              </div>
-            </div>
-
-            {/* Arrow 1 */}
-            <motion.div
-              initial={{ opacity: 0, x: -5 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{
-                duration: 0.6,
-                repeat: Infinity,
-                repeatType: "reverse",
-              }}
-              className="text-lg md:text-xl text-gray-500"
-            >
-              ➜
-            </motion.div>
-
-            {/* Step 2 */}
-            <div className="text-center w-32 md:w-40">
-              <div className="shadow rounded p-2">
-                <FaMoneyBillWave className="text-green-500 text-2xl md:text-3xl mx-auto mb-1" />
-                <h3 className="text-sm font-semibold">Pay Online</h3>
-                <p className="text-gray-600 text-xs mt-1">
-                  Choose bank, bills payment, or PesoPay.
-                </p>
-              </div>
-            </div>
-
-            {/* Arrow 2 */}
-            <motion.div
-              initial={{ opacity: 0, x: -5 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{
-                duration: 0.6,
-                repeat: Infinity,
-                repeatType: "reverse",
-                delay: 0.2,
-              }}
-              className="text-lg md:text-xl text-gray-500"
-            >
-              ➜
-            </motion.div>
-
-            {/* Step 3 */}
-            <div className="text-center w-32 md:w-40">
-              <div className="shadow rounded p-2">
-                <FaFilePdf className="text-red-500 text-2xl md:text-3xl mx-auto mb-1" />
-                <h3 className="text-sm font-semibold">Send Documents</h3>
-                <p className="text-gray-600 text-xs mt-1">
-                  Submit documents online easily.
-                </p>
-              </div>
-            </div>
-
-            {/* Arrow 3 */}
-            <motion.div
-              initial={{ opacity: 0, x: -5 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{
-                duration: 0.6,
-                repeat: Infinity,
-                repeatType: "reverse",
-                delay: 0.4,
-              }}
-              className="text-lg md:text-xl text-gray-500"
-            >
-              ➜
-            </motion.div>
-
-            {/* Step 4 */}
-            <div className="text-center w-32 md:w-40">
-              <div className="shadow rounded p-2">
-                <FaCheckCircle className="text-purple-500 text-2xl md:text-3xl mx-auto mb-1" />
-                <h3 className="text-sm font-semibold">Seal the Deal</h3>
-                <p className="text-gray-600 text-xs mt-1">
-                  Email proof of payment & docs.
-                </p>
-              </div>
-            </div>
-          </div>
         </div>
 
-        <div className="container mx-auto px-6 py-2">
+        {/* Steps Section */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 px-4 sm:px-6 items-center">
+          {[
+            {
+              icon: FaHeadset,
+              title: "Talk to an Agent",
+              desc: "Message us on verified platforms.",
+              color: "text-blue-600",
+            },
+            {
+              icon: FaMoneyBillWave,
+              title: "Pay Online",
+              desc: "Choose bank, bills payment, or PesoPay.",
+              color: "text-green-500",
+            },
+            {
+              icon: FaFilePdf,
+              title: "Send Documents",
+              desc: "Submit documents online easily.",
+              color: "text-red-500",
+            },
+            {
+              icon: FaCheckCircle,
+              title: "Seal the Deal",
+              desc: "Email proof of payment & docs.",
+              color: "text-purple-500",
+            },
+          ].map((step, index, array) => (
+            <div key={index} className="flex items-center">
+              {/* ✅ Step Card */}
+              <div className="text-center w-28 sm:w-36 md:w-40 mx-auto">
+                <div className="shadow-md rounded-md p-3 bg-white md:h-44 md:w-32">
+                  <step.icon
+                    className={`${step.color} text-2xl sm:text-3xl mx-auto mb-2`}
+                  />
+                  <h3 className="text-sm sm:text-md font-semibold">
+                    {step.title}
+                  </h3>
+                  <p className="text-gray-600 text-xs sm:text-sm">
+                    {step.desc}
+                  </p>
+                </div>
+              </div>
+
+              {/* ✅ Animated Arrow (Only between steps) */}
+              {index < array.length - 1 && (
+                <motion.div
+                  initial={{ opacity: 0, x: -5 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{
+                    duration: 0.6,
+                    repeat: Infinity,
+                    repeatType: "reverse",
+                  }}
+                  className="text-lg sm:text-xl md:text-2xl text-gray-500 mx-1 sm:mx-3"
+                >
+                  ➜
+                </motion.div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Contact Form Section */}
+        <div className="container mx-auto px-4 py-6">
           {/* Title Section */}
           <div className="text-center">
-            <h1 className="text-xl md:text-2xl font-semibold text-gray-900 leading-tight">
+            <h1 className="text-lg sm:text-xl font-semibold text-gray-900">
               Get in Touch With Us
               <span className="block text-neutral-700 text-sm mt-1">
                 We’re Here to Assist You
               </span>
             </h1>
-            <p className="text-gray-700 w-7/12 mx-auto mt-2 text-sm md:text-xm mb-3">
-              Have questions or need assistance? Our team is ready to help with
-              your inquiries, partnerships, or service requests. Contact us
-              today, and let’s start the conversation.
+            <p className="text-gray-700 max-w-lg mx-auto text-sm sm:text-md mt-2">
+              Have questions or need assistance? Contact us today, and let’s
+              start the conversation.
             </p>
           </div>
 
-          <div className="container mx-auto px-4 flex justify-center">
-            <div className="w-full md:w-6/12 flex bg-white shadow-lg border border-gray-200 rounded-lg overflow-hidden relative">
-              {/* Form Section (Left) */}
-              <div className="w-full md:w-7/12 p-4 md:p-6 bg-white absolute md:relative z-10">
-                <h2 className="text-lg md:text-xl font-semibold text-gray-900 text-start mb-3">
+          {/* Contact Form & Image Container */}
+          <div className="bg-gray-50 py-8 px-4 sm:px-6">
+            <div className="w-full max-w-3xl mx-auto bg-white shadow-lg rounded-lg overflow-hidden border border-gray-200 flex flex-col md:flex-row">
+              {/* Form Section (Left Side) */}
+              <div className="w-full md:w-6/12 p-6 bg-white relative">
+                <h2 className="text-md sm:text-lg font-semibold text-gray-900 mb-3">
                   Get in Touch
                 </h2>
-
-                <form className="space-y-2 w-full">
-                  <div className="grid grid-cols-1 gap-2">
-                    {/* Full Name */}
-                    <label className="text-gray-700 text-xs md:text-sm font-medium">
+                <form className="space-y-3">
+                  {/* Full Name */}
+                  <div>
+                    <label className="text-gray-700 text-sm font-medium">
                       Full Name
                     </label>
                     <input
                       type="text"
-                      name="name"
                       placeholder="Enter your name"
-                      className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 text-gray-700 shadow-sm text-xs md:text-sm"
+                      className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 text-gray-700 text-sm"
                       required
                     />
+                  </div>
 
-                    {/* Email Address */}
-                    <label className="text-gray-700 text-xs md:text-sm font-medium">
+                  {/* Email Address */}
+                  <div>
+                    <label className="text-gray-700 text-sm font-medium">
                       Email Address
                     </label>
                     <input
                       type="email"
-                      name="email"
                       placeholder="Enter your email"
-                      className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 text-gray-700 shadow-sm text-xs md:text-sm"
+                      className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 text-gray-700 text-sm"
                       required
                     />
+                  </div>
 
-                    {/* Phone Number */}
-                    <label className="text-gray-700 text-xs md:text-sm font-medium">
+                  {/* Phone Number */}
+                  <div>
+                    <label className="text-gray-700 text-sm font-medium">
                       Phone Number
                     </label>
                     <input
                       type="text"
-                      name="contact"
                       placeholder="Enter your phone number"
-                      className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 text-gray-700 shadow-sm text-xs md:text-sm"
+                      className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 text-gray-700 text-sm"
                       required
                     />
                   </div>
 
                   {/* Message */}
-                  <label className="text-gray-700 text-xs md:text-sm font-medium">
-                    Message
-                  </label>
-                  <textarea
-                    name="message"
-                    placeholder="Write your message..."
-                    rows={2}
-                    className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 text-gray-700 resize-none shadow-sm text-xs md:text-sm"
-                    required
-                  ></textarea>
+                  <div>
+                    <label className="text-gray-700 text-sm font-medium">
+                      Message
+                    </label>
+                    <textarea
+                      placeholder="Write your message..."
+                      rows={3}
+                      className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 text-gray-700 resize-none text-sm"
+                      required
+                    ></textarea>
+                  </div>
 
                   {/* Submit Button */}
                   <div className="flex justify-center">
                     <button
                       type="submit"
-                      className="bg-blue-600 hover:bg-blue-700 transition py-2 px-3 md:px-4 text-white font-semibold text-xs md:text-sm rounded-md flex items-center shadow-md border border-transparent hover:border-blue-800"
+                      className="bg-blue-600 hover:bg-blue-700 transition py-2 px-4 text-white font-semibold text-sm rounded-md flex items-center shadow-md"
                     >
-                      <FaPaperPlane className="inline mr-2" /> Send Message
+                      <FaPaperPlane className="mr-2" /> Send Message
                     </button>
                   </div>
                 </form>
               </div>
 
-              {/* Image Section (Right) */}
-              <div className="w-8/12 hidden md:block relative">
-                <img
-                  src="/ContactUs.webp"
-                  alt="Contact Support"
-                  className="w-full h-full object-cover object-left rounded-l-full"
-                />
-              </div>
+              {/* Image Section (Right Side - Background) */}
+              <div
+                className="hidden md:block w-full md:w-6/12 bg-cover bg-left rounded-l-full"
+                style={{ backgroundImage: "url('/ContactUs.webp')" }}
+              ></div>
             </div>
           </div>
         </div>

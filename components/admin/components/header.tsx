@@ -16,7 +16,10 @@ export default function Header({ activeTab, user = "Admin" }: HeaderProps) {
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (logoutRef.current && !logoutRef.current.contains(event.target as Node)) {
+      if (
+        logoutRef.current &&
+        !logoutRef.current.contains(event.target as Node)
+      ) {
         setShowLogout(false);
       }
     }
@@ -38,23 +41,28 @@ export default function Header({ activeTab, user = "Admin" }: HeaderProps) {
       <div className="flex items-center space-x-3">
         {/* You can add your logo or active tab here */}
       </div>
-      
+
       {/* User Profile */}
       <div className="relative flex items-center space-x-3" ref={logoutRef}>
-        <span className="text-gray-600 hidden sm:block">Welcome, {user}</span>
+        {/* Display username only on medium screens and above */}
+        <span className="text-gray-600 hidden sm:block text-base md:text-lg lg:text-xl">
+          Welcome, {user}
+        </span>
+
         <div className="relative">
-          <FaUserCircle 
-            className="text-2xl text-gray-600 cursor-pointer hover:text-gray-800" 
+          <FaUserCircle
+            className="text-2xl text-gray-600 cursor-pointer hover:text-gray-800 transition-all duration-300"
             onClick={() => setShowLogout((prev) => !prev)}
           />
-          
+
           {/* Logout Button */}
           {showLogout && (
-            <button 
+            <button
               onClick={handleLogout} // ✅ Call the logout function
-              className="absolute right-0 mt-2 flex items-center space-x-2 bg-red-500 text-white px-3 py-1 rounded-md shadow-md hover:bg-red-600 transition"
+              className="absolute right-0 mt-2 flex items-center space-x-2 bg-red-500 text-white px-3 py-1 rounded-md shadow-md hover:bg-red-600 transition duration-300"
             >
-              <FaSignOutAlt /> <span>Logout</span>
+              <FaSignOutAlt />{" "}
+              <span className="text-sm sm:text-base">Logout</span>
             </button>
           )}
         </div>

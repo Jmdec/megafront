@@ -146,7 +146,7 @@ const PropertyInquiry: React.FC<{ type: string; onClose: () => void }> = ({
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
       <div
-        className={`bg-white rounded-lg shadow-xl p-6 w-[90%] transition-all duration-300 ease-in-out ${
+        className={`bg-white rounded-lg shadow-xl p-6 w-[90%] max-h-[80vh] overflow-y-auto transition-all duration-300 ease-in-out ${
           formData.property ? "max-w-4xl flex flex-col sm:flex-row" : "max-w-md"
         } relative`}
       >

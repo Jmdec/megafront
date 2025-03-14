@@ -48,14 +48,36 @@ const propertySlice = createSlice({
   name: "properties",
   initialState,
   reducers: {
-    setSearchResults: (state, action) => {
-      state.searchResults = action.payload;
-      localStorage.setItem("searchResults", JSON.stringify(action.payload)); // ✅ Save to localStorage
-    },
-    resetSearchResults: (state) => {
-      state.searchResults = [];
-      localStorage.removeItem("searchResults"); // ✅ Clear previous search results
-    },
+   setSearchResults: (state, action) => {
+  console.log("🚀 Updating Search Results:", action.payload);
+
+  if (!Array.isArray(action.payload)) {
+    console.error("❌ Expected an array but received:", action.payload);
+    return;
+  }
+
+  state.searchResults = action.payload;
+
+  try {
+    localStorage.setItem("searchResults", JSON.stringify(action.payload));
+    console.log("✅ Search results saved to localStorage!");
+  } catch (error) {
+    console.error("❌ Error saving to localStorage:", error);
+  }
+},
+
+   resetSearchResults: (state) => {
+  console.log("🔄 Resetting search results...");
+  state.searchResults = [];
+  
+  try {
+    localStorage.removeItem("searchResults");
+    console.log("✅ Cleared search results from localStorage!");
+  } catch (error) {
+    console.error("❌ Error clearing localStorage:", error);
+  }
+},
+
   },
   extraReducers: (builder) => {
     // ✅ Fetch All Properties
