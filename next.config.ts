@@ -8,7 +8,7 @@ const nextConfig: NextConfig = {
   
   reactStrictMode: true, // Enable React strict mode for development
   images: {
-    domains: ['localhost'], // Allow images from localhost (if needed for your app)
+    domains: ['localhost','infinitech-testing4.online'], // Allow images from localhost (if needed for your app)
   },
   // Additional Next.js config options here if needed
 };

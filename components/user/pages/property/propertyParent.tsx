@@ -30,8 +30,7 @@ const PropertyParent = () => {
     dispatch(fetchProperties()); // Fetch properties on mount
   }, [dispatch]);
 
-  useEffect(() => {
-  }, [properties]); // Logs properties whenever it updates
+  useEffect(() => {}, [properties]); // Logs properties whenever it updates
 
   const filteredProperties = properties.filter(
     (prop) => prop.status !== "Under Construction"
