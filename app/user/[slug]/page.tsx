@@ -42,7 +42,6 @@ export default function DynamicUserPage() {
     fetchParams();
   }, [paramsPromise]);
 
-  console.log("Slug:", slug);
 
   return (
     <>

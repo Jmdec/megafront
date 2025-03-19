@@ -17,7 +17,7 @@ export const fetchRealEstateNews = createAsyncThunk(
       if (!response.ok) throw new Error("Failed to fetch real estate news");
 
       const data = await response.json();
-      console.log("📌 Fetched Real Estate News:", data);
+    
       return data || []; // Ensure fallback to an empty array
     } catch (error: any) {
       showToast(error.message, "error");
@@ -58,7 +58,7 @@ export const fetchRealEstateNewsById = createAsyncThunk(
       if (!response.ok) throw new Error("Failed to fetch real estate news item");
 
       const data = await response.json();
-      console.log(`📌 Fetched Real Estate News Item with ID ${id}:`, data);
+ 
       return data;
     } catch (error: any) {
       showToast(error.message, "error");

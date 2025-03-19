@@ -31,7 +31,6 @@ const PropertyParent = () => {
   }, [dispatch]);
 
   useEffect(() => {
-    console.log("✅ Fetched Properties:", properties);
   }, [properties]); // Logs properties whenever it updates
 
   const filteredProperties = properties.filter(

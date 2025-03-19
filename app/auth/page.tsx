@@ -36,8 +36,6 @@ export default function AuthModal() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    console.log("Submitting form data:", formData);
-
     const endpoint = isSignup
       ? `${API_BASE_URL}/api/register`
       : `${API_BASE_URL}/api/login`;
@@ -50,8 +48,7 @@ export default function AuthModal() {
       });
 
       const data = await response.json();
-      console.log("Server response:", data);
-
+ 
       if (response.ok) {
         if (!isSignup) {
           Cookies.set("auth_token", data.token, {

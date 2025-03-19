@@ -236,11 +236,7 @@ const AddModal: React.FC<AddModalProps> = ({
       formData.append(`features[${index}][name]`, feature.name);
     });
 
-    // ✅ Log all form data before sending
-    console.log("Form Data:");
-    for (let [key, value] of formData.entries()) {
-      console.log(`${key}:`, value);
-    }
+
 
     try {
       // Dispatch Redux action to add the property
@@ -311,12 +307,7 @@ const AddModal: React.FC<AddModalProps> = ({
             if (values.masterPlan)
               formData.append("masterPlan", values.masterPlan);
 
-            // ✅ Debugging: Check if FormData is populated
-            console.log("Form Data:");
-            for (let [key, value] of formData.entries()) {
-              console.log(`${key}:`, value);
-            }
-
+     
             // Send formData to backend (Replace with Redux action or fetch request)
             dispatch(addProperty(formData));
             closeModal();

@@ -43,7 +43,7 @@ const ongoingInfrastructureSlice = createSlice({
       state.error = null;
     });
     builder.addCase(fetchOngoingInfrastructure.fulfilled, (state, action) => {
-      console.log("🛠 Redux: Updated Infrastructure List:", action.payload);
+  
       state.loading = false;
       state.projects = Array.isArray(action.payload) ? action.payload : [];
     });

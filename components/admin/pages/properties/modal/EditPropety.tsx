@@ -47,7 +47,7 @@ export default function EditPropertyModal({
 
   useEffect(() => {
     dispatch(fetchLocations());
-    console.log(property);
+
   }, [dispatch]);
 
   if (!property) return null; // Prevent rendering if no property is selected
@@ -97,10 +97,7 @@ export default function EditPropertyModal({
                   formData.append("masterPlan", values.masterPlan);
                 }
 
-                // ✅ Debugging: Log all FormData values before sending
-                for (let [key, value] of formData.entries()) {
-                  console.log(`${key}:`, value);
-                }
+         
 
                 // ✅ Dispatch the update action
                 const responseAction = await dispatch(

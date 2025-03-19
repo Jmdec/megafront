@@ -24,8 +24,7 @@ export const fetchProperties = createAsyncThunk("properties/fetchAll", async (_,
 // 🔹 Add a new property (Requires authentication)
 export const addProperty = createAsyncThunk("properties/add", async (newProperty: FormData, { rejectWithValue }) => {
   try {
-    console.log("Sending FormData to server:", newProperty);
-
+ 
     const response = await fetch(`${API_BASE_URL}/api/property`, {
       method: "POST",
       headers: {
@@ -37,7 +36,6 @@ export const addProperty = createAsyncThunk("properties/add", async (newProperty
     if (!response.ok) throw new Error("Failed to add property");
 
     const result = await response.json();
-    console.log("Property added successfully:", result);
 
     showToast("Property added successfully", "success");
     return result;
@@ -53,14 +51,12 @@ export const fetchPropertyById = createAsyncThunk(
   "properties/fetchById",
   async (id: number, { rejectWithValue }) => {
     try {
-      console.log(`🔍 Fetching property with ID: ${id}`); // ✅ Log the ID being fetched
 
       const response = await fetch(`${API_BASE_URL}/api/property/${id}`);
 
       if (!response.ok) throw new Error("Failed to fetch property");
 
       const data = await response.json();
-      console.log("✅ Fetched Property Data:", data); // ✅ Log the fetched data
 
       return data;
     } catch (error: any) {

@@ -28,8 +28,6 @@ export default function RealEstateTips() {
 
   
   useEffect(() => {
-
-    console.log(tips)
     dispatch(fetchRealEstateTips());
   }, [dispatch]);
 

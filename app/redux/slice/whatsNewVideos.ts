@@ -45,7 +45,7 @@ const videoSlice = createSlice({
       state.error = null;
     });
     builder.addCase(fetchVideos.fulfilled, (state, action) => {
-      console.log("🛠 Redux: Updated Videos List:", action.payload);
+   
       state.loading = false;
       state.videos = Array.isArray(action.payload) ? action.payload : [];
     });

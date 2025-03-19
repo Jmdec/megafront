@@ -44,8 +44,6 @@ export const addScheduledVisit = createAsyncThunk(
     status: string; // Added status field
   }, { rejectWithValue }) => {
     try {
-      // Log the data being sent to the backend
-      console.log("🔹 Sending request to add scheduled visit:", newVisit);
 
       const response = await fetch(`${API_BASE_URL}/api/schedulevisit`, {
         method: "POST",
@@ -105,8 +103,6 @@ export const updateScheduledVisitStatus = createAsyncThunk(
   "scheduledVisits/updateStatus",
   async ({ id, status }: { id: number, status: string }, { rejectWithValue }) => {
     try {
-      // Log the data before sending it to the backend
-      console.log("Sending update for scheduled visit:", { id, status });
 
       const response = await fetch(`${API_BASE_URL}/api/schedulevisit/status`, {
         method: "PUT", // Use PUT to update status
@@ -122,10 +118,6 @@ export const updateScheduledVisitStatus = createAsyncThunk(
       }
 
       const data = await response.json();
-
-      // Log the response data to the console after receiving it
-      console.log("Scheduled visit status updated:", data);
-
       showToast("Scheduled visit status updated successfully", "success");
       return data; // Return the response data
     } catch (error: any) {

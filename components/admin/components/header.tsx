@@ -43,11 +43,14 @@ export default function Header({ activeTab, user = "Admin" }: HeaderProps) {
       </div>
 
       {/* User Profile */}
-      <div className="relative flex items-center space-x-3" ref={logoutRef}>
+      <div
+        className="relative flex items-center space-x-3 justify-end text-end ml-auto"
+        ref={logoutRef}
+      >
         {/* Display username only on medium screens and above */}
         <span className="text-gray-600 hidden sm:block text-base md:text-lg lg:text-xl">
           Welcome, {user}
-        </span>
+        </span> 
 
         <div className="relative">
           <FaUserCircle
@@ -58,10 +61,10 @@ export default function Header({ activeTab, user = "Admin" }: HeaderProps) {
           {/* Logout Button */}
           {showLogout && (
             <button
-              onClick={handleLogout} // ✅ Call the logout function
+              onClick={handleLogout}
               className="absolute right-0 mt-2 flex items-center space-x-2 bg-red-500 text-white px-3 py-1 rounded-md shadow-md hover:bg-red-600 transition duration-300"
             >
-              <FaSignOutAlt />{" "}
+              <FaSignOutAlt />
               <span className="text-sm sm:text-base">Logout</span>
             </button>
           )}

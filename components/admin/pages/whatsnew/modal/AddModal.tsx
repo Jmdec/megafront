@@ -157,9 +157,7 @@ const AddModal: React.FC<AddModalProps> = ({
       // Validate the form data
       // await validationSchema.validate(values, { abortEarly: false });
 
-      console.log("Submitted values:", values);
-      console.log("Item Type:", itemType);
-
+  
       // if (!values.title.trim() || !values.date.trim()) {
       //   showToast("Title and Date are required.", "error");
       //   return;
@@ -189,11 +187,7 @@ const AddModal: React.FC<AddModalProps> = ({
         if (values.url) formData.append("url", values.url);
         if (values.file) {
           formData.append("file", values.file);
-          console.log(
-            "✅ Video File Added:",
-            values.file.name,
-            values.file.size
-          );
+      
         }
         if (values.thumbnail) formData.append("thumbnail", values.thumbnail);
       } else if (itemType === "event") {
@@ -202,34 +196,23 @@ const AddModal: React.FC<AddModalProps> = ({
 
         if (values.mediaType === "image" && values.image) {
           formData.append("image", values.image);
-          console.log("✅ Image Added:", values.image.name, values.image.size);
+        
         }
 
         if (values.mediaType === "video" && values.file) {
           formData.append("file", values.file);
-          console.log(
-            "✅ Event Video File Added:",
-            values.file.name,
-            values.file.size
-          );
+     
         }
       } else {
         formData.append("description", values.description || "");
         if (values.image) {
           formData.append("image", values.image);
-          console.log(
-            "✅ Default Image Added:",
-            values.image.name,
-            values.image.size
-          );
+     
         }
       }
 
       // **Log FormData Contents**
-      console.log("🚀 Final FormData:");
-      for (let [key, value] of formData.entries()) {
-        console.log(`${key}:`, value);
-      }
+
 
       const reduxAction = getReduxAction();
       if (reduxAction) {
@@ -273,7 +256,7 @@ const AddModal: React.FC<AddModalProps> = ({
           }}
           validationSchema={getValidationSchema(itemType)}
           onSubmit={(values, { setSubmitting }) => {
-            console.log("Submitting...", values); // ✅ Debugging
+      
             handleAddItem(values);
             setSubmitting(false);
             closeModal();

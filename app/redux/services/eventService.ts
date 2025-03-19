@@ -17,7 +17,7 @@ export const fetchEvents = createAsyncThunk("events/fetchAll", async (_, { rejec
     if (!response.ok) throw new Error("Failed to fetch events");
 
     const data = await response.json();
-    console.log("📌 Events Fetched:", data);
+
     return data || []; // Ensure fallback to an empty array
   } catch (error: any) {
     showToast(error.message, "error");

@@ -49,7 +49,6 @@ const propertySlice = createSlice({
   initialState,
   reducers: {
    setSearchResults: (state, action) => {
-  console.log("🚀 Updating Search Results:", action.payload);
 
   if (!Array.isArray(action.payload)) {
     console.error("❌ Expected an array but received:", action.payload);
@@ -60,19 +59,19 @@ const propertySlice = createSlice({
 
   try {
     localStorage.setItem("searchResults", JSON.stringify(action.payload));
-    console.log("✅ Search results saved to localStorage!");
+ 
   } catch (error) {
     console.error("❌ Error saving to localStorage:", error);
   }
 },
 
    resetSearchResults: (state) => {
-  console.log("🔄 Resetting search results...");
+
   state.searchResults = [];
   
   try {
     localStorage.removeItem("searchResults");
-    console.log("✅ Cleared search results from localStorage!");
+
   } catch (error) {
     console.error("❌ Error clearing localStorage:", error);
   }

@@ -21,10 +21,6 @@ export default function Office({ id }: { id: string }) {
     }
   }, [dispatch, id]);
 
-  // ✅ Log office data whenever it updates
-  useEffect(() => {
-    console.log("Fetched Office Data:", office);
-  }, [office]); // 🔹 Runs whenever office data updates
 
   if (loading)
     return <p className="text-center text-lg">Loading office details...</p>;

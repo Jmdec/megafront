@@ -14,8 +14,8 @@ export const fetchTestimonials = createAsyncThunk("testimonials/fetchAll", async
     if (!response.ok) throw new Error("Failed to fetch testimonials");
 
     const data = await response.json();
-    showToast("Testimonials loaded successfully!", "success");
-    console.log("✅ Fetched Testimonials:", data);
+   
+
     return data || [];
   } catch (error: any) {
     showToast(error.message || "Error fetching testimonials", "error");

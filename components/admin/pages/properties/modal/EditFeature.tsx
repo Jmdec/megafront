@@ -61,8 +61,6 @@ export default function EditFeaturesModal({
     formData.append("propertyId", propertyId.toString());
     formData.append("features", JSON.stringify(updatedFeatures));
 
-    // Log the FormData for debugging
-    console.log("Submitting FormData:", Object.fromEntries(formData.entries()));
 
     try {
       // Dispatch Redux action to update features

@@ -32,12 +32,7 @@ export default function Meetings() {
     dispatch(fetchMeetings()); // Dispatch fetchMeetings action
   }, [dispatch]);
 
-  // Log to check the meetings state
-  useEffect(() => {
- 
-    console.log('Meetings State:', meetings); // Debugging log
-  }, [meetings]);
- 
+
   return (
     <div className="container mx-auto px-6 py-12">
       {/* Breadcrumb Navigation */}

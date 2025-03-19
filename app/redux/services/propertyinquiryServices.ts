@@ -10,7 +10,6 @@ export const updatePropertyInquiryStatus = createAsyncThunk(
   "propertyInquiries/updateStatus",
   async ({ id, status }: { id: number; status: string }, { rejectWithValue }) => {
     try {
-      console.log("📡 Data being sent to API:", { id, status });
 
       const response = await fetch(`${API_BASE_URL}/api/propertyinquiry/status`, {
         method: "PUT", // Use PUT to update status
@@ -26,8 +25,7 @@ export const updatePropertyInquiryStatus = createAsyncThunk(
       }
 
       const data = await response.json();
-      console.log("✅ Response Data from API:", data);
-
+ 
       showToast("Property inquiry status updated successfully", "success");
 
       return data; // Return the updated data
@@ -90,7 +88,6 @@ export const addPropertyInquiry = createAsyncThunk(
         status: newInquiry.status,  // Include status in the inquiry data
       };
 
-      console.log("🔹 Sending request to add property inquiry:", inquiryData);
 
       const response = await fetch(`${API_BASE_URL}/api/propertyinquiry`, {
         method: "POST",

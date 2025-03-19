@@ -91,7 +91,6 @@ const SetAppointment: React.FC = () => {
     { setSubmitting, resetForm }: FormikHelpers<FormValues>
   ) => {
     const formData = new FormData();
-    console.log("clicked");
 
     Object.entries(values).forEach(([key, value]) => {
       if (key === "unit_type" && Array.isArray(value)) {
@@ -112,11 +111,7 @@ const SetAppointment: React.FC = () => {
       formData.append("status", initialValues.status);
     }
 
-    console.log("Raw Form Values:", values);
-    console.log("FormData Entries:");
-    for (let [key, value] of formData.entries()) {
-      console.log(key, value);
-    }
+
 
     try {
       await dispatch(addClientProperty(formData)).unwrap();

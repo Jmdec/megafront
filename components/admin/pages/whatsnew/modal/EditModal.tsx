@@ -170,13 +170,7 @@ const EditItemModal: React.FC<EditItemModalProps> = ({
       }
     }
 
-    console.log(
-      "Sending FormData:",
-      [...formData.entries()].map(([key, value]) => [
-        key,
-        value instanceof File ? value.name : value,
-      ])
-    );
+
 
     try {
       let updateAction;

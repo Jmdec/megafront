@@ -140,7 +140,7 @@ const Form: React.FC = () => {
         localStorage.setItem("searchResults", JSON.stringify(filteredResults)); // ✅ Save property results
       }
 
-      console.log("🔹 Filtered Results:", filteredResults);
+
       router.push("/user/search");
     }, 100); // ✅ Ensure reset completes before setting new values
   };

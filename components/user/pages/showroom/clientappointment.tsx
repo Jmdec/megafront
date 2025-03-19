@@ -14,9 +14,7 @@ const PropertyInquiry: React.FC<{ type: string; onClose: () => void }> = ({
   type,
   onClose,
 }) => {
-  useEffect(() => {
-    console.log("Property Inquiry Type:", type); // ✅ Log the type when the component mounts
-  }, [type]);
+
 
   const dispatch = useDispatch<AppDispatch>();
 
@@ -84,7 +82,6 @@ const PropertyInquiry: React.FC<{ type: string; onClose: () => void }> = ({
           ? projects.find((p) => p.name === value)
           : offices.find((o) => o.name === value);
 
-      console.log("Selected Item:", selectedItem);
 
       setFormData({
         ...formData,
@@ -130,7 +127,7 @@ const PropertyInquiry: React.FC<{ type: string; onClose: () => void }> = ({
       const result = await dispatch(addClientAppointment(appointmentData));
 
       if (result.type === "clientAppointments/add/fulfilled") {
-        console.log("✅ Appointment Submitted Successfully:", result);
+    
         onClose(); // ✅ Close modal after successful submission
       }
     } catch (error) {
@@ -139,7 +136,7 @@ const PropertyInquiry: React.FC<{ type: string; onClose: () => void }> = ({
   };
 
   const handleClose = () => {
-    console.log("Closing popup");
+
     onClose();
   };
 

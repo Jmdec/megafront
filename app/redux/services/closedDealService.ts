@@ -17,7 +17,7 @@ export const fetchClosedDeals = createAsyncThunk("closedDeals/fetchAll", async (
     if (!response.ok) throw new Error("Failed to fetch closed deals");
 
     const data = await response.json();
-    console.log("📌 Closed Deals Fetched:", data);
+  
     return data || []; // Ensure fallback to an empty array
   } catch (error: any) {
     showToast(error.message, "error");
@@ -30,9 +30,7 @@ export const addClosedDeal = createAsyncThunk(
   "closedDeals/add",
   async (newClosedDeal: FormData, { rejectWithValue }) => {
     try {
-      for (let [key, value] of newClosedDeal.entries()) {
-        console.log(`${key}:`, value);
-      }
+
 
       const response = await fetch(`${API_BASE_URL}/api/closedDeal`, {
         method: "POST",

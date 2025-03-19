@@ -57,7 +57,7 @@ export default function ClientPropertyPage() {
   };
 
   const handleUpdateStatus = async (newStatus: string) => {
-    console.log(propertyToUpdate);
+
     if (propertyToUpdate) {
       try {
         await dispatch(

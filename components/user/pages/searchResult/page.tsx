@@ -54,8 +54,7 @@ const PropertyPage = () => {
   const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
   useEffect(() => {
-    console.log("🔹 Search Results:", searchResults);
-    console.log("🔹 Office Results:", officeResults);
+
   }, [searchResults, officeResults]);
 
   // ✅ Manage hover state for images

@@ -87,7 +87,7 @@ export default function EditModal({
           validationSchema={validationSchema}
           onSubmit={async (values, { setSubmitting }) => {
             const formData = new FormData();
-            console.log(values);
+         
             formData.append("name", values.name);
             formData.append("role", values.role);
             formData.append("description", values.description);

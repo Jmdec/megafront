@@ -17,7 +17,7 @@ export const fetchOngoingInfrastructure = createAsyncThunk(
       if (!response.ok) throw new Error("Failed to fetch ongoing infrastructure projects");
 
       const data = await response.json();
-      console.log("📌 Ongoing Infrastructure Fetched:", data);
+
       return data || []; // Ensure fallback to an empty array
     } catch (error: any) {
       showToast(error.message, "error");
@@ -58,7 +58,7 @@ export const fetchOngoingInfrastructureById = createAsyncThunk(
       if (!response.ok) throw new Error("Failed to fetch infrastructure project");
 
       const data = await response.json();
-      console.log(`📌 Fetched Infrastructure Project with ID ${id}:`, data);
+ 
       return data;
     } catch (error: any) {
       showToast(error.message, "error");

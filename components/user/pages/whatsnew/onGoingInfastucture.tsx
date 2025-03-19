@@ -26,12 +26,12 @@ export default function OngoingInfrastructure() {
   const { projects = [], loading, error } = useSelector((state: RootState) => state.ongoingInfrastructureData);
 
   useEffect(() => {
-    console.log("🔄 Fetching ongoing infrastructure...");
+ 
     dispatch(fetchOngoingInfrastructure());
   }, [dispatch]);
 
   useEffect(() => {
-    console.log("📌 Updated Projects in Component:", projects);
+
   }, [projects]);
 
   return (

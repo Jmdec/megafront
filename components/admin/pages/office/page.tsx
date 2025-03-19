@@ -104,8 +104,7 @@ export default function OfficePage() {
     {
       name: "Amenities",
       cell: (row: Office) => {
-        console.log("Amenities for row:", row.name, row.amenities); // ✅ Debugging
-
+   
         const isExpanded = expandedRows[row.id] || false;
 
         // ✅ Ensure amenities is an array and filter out empty strings
@@ -194,7 +193,7 @@ export default function OfficePage() {
         <h1 className="text-2xl font-semibold">Office Management</h1>
         <button
           onClick={() => {
-            console.log("Opening Add Modal"); // ✅ Debugging
+         
             setIsAddModalOpen(true);
           }}
           className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"

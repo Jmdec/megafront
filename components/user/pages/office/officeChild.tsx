@@ -27,7 +27,7 @@ const Office = ({ office }: OfficeProps) => {
   }, [dispatch]);
 
   useEffect(() => {
-    console.log(office);
+ 
     if (office) {
       setStatusFilter(office);
     }
