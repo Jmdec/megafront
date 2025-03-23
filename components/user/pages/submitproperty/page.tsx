@@ -263,87 +263,92 @@ const SetAppointment: React.FC = () => {
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-gray-700">Property Name</label>
-                  <Field
-                    type="text"
-                    name="property_name"
-                    className="w-full mt-1 p-2 border border-gray-300 rounded-md focus:ring focus:ring-blue-300"
-                  />
-                  <ErrorMessage
-                    name="property_name"
-                    component="div"
-                    className="text-red-500 text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-gray-700">Price</label>
-                  <Field
-                    type="text"
-                    name="price"
-                    className="w-full mt-1 p-2 border border-gray-300 rounded-md focus:ring focus:ring-blue-300"
-                  />
-                  <ErrorMessage
-                    name="price"
-                    component="div"
-                    className="text-red-500 text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-gray-700">Location</label>
-                  <Field
-                    type="text"
-                    name="location"
-                    className="w-full mt-1 p-2 border border-gray-300 rounded-md focus:ring focus:ring-blue-300"
-                  />
-                  <ErrorMessage
-                    name="location"
-                    component="div"
-                    className="text-red-500 text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-gray-700">
-                    Development Type
-                  </label>
-                  <Field
-                    as="select"
-                    name="development_type"
-                    className="w-full mt-1 p-2 border border-gray-300 rounded-md focus:ring focus:ring-blue-300"
-                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
-                      const selectedValue = e.target.value;
-                      setFieldValue("development_type", selectedValue);
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+  {/* Property Name */}
+  <div>
+    <label className="block text-gray-700">Property Name</label>
+    <Field
+      type="text"
+      name="property_name"
+      className="w-full mt-1 p-2 border border-gray-300 rounded-md focus:ring focus:ring-blue-300"
+    />
+    <ErrorMessage
+      name="property_name"
+      component="div"
+      className="text-red-500 text-sm"
+    />
+  </div>
 
-                      // Reset unit_type if a condominium type is selected
-                      if (
-                        [
-                          "High Rise Condominium",
-                          "Mid Rise Condominium",
-                          "Low Rise Condominium",
-                        ].includes(selectedValue)
-                      ) {
-                        setFieldValue("unit_type", []);
-                      }
-                    }}
-                  >
-                    <option value="">Select type</option>
-                    <option value="High Rise Condominium">
-                      High Rise Condominium
-                    </option>
-                    <option value="Mid Rise Condominium">
-                      Mid Rise Condominium
-                    </option>
-                    <option value="Low Rise Condominium">
-                      Low Rise Condominium
-                    </option>
-                    <option value="Office">Office</option>
-                  </Field>
-                  <ErrorMessage
-                    name="development_type"
-                    component="div"
-                    className="text-red-500 text-sm"
-                  />
-                </div>
+  {/* Price */}
+  <div>
+  <label className="block text-gray-700">Price</label>
+  <div className="flex items-center">
+    <span className="p-2 border border-gray-300 rounded-l-md bg-gray-100">PHP</span>
+    <Field
+      type="text"
+      name="price"
+      className="w-full p-2 border border-gray-300 rounded-r-md focus:ring focus:ring-blue-300"
+    />
+  </div>
+  <ErrorMessage
+    name="price"
+    component="div"
+    className="text-red-500 text-sm"
+  />
+</div>
+
+</div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+  {/* Location Field */}
+  <div>
+    <label className="block text-gray-700 mb-1">Location</label>
+    <Field
+      type="text"
+      name="location"
+      className="w-full p-2 border border-gray-300 rounded-md focus:ring focus:ring-blue-300"
+    />
+    <ErrorMessage
+      name="location"
+      component="div"
+      className="text-red-500 text-sm mt-1"
+    />
+  </div>
+
+  {/* Development Type Field */}
+  <div>
+    <label className="block text-gray-700 mb-1">Development Type</label>
+    <Field
+      as="select"
+      name="development_type"
+      className="w-full p-2 border border-gray-300 rounded-md focus:ring focus:ring-blue-300"
+      onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+        const selectedValue = e.target.value;
+        setFieldValue("development_type", selectedValue);
+
+        if ([
+          "High Rise Condominium",
+          "Mid Rise Condominium",
+          "Low Rise Condominium",
+        ].includes(selectedValue)) {
+          setFieldValue("unit_type", []);
+        }
+      }}
+    >
+      <option value="">Select type</option>
+      <option value="High Rise Condominium">High Rise Condominium</option>
+      <option value="Mid Rise Condominium">Mid Rise Condominium</option>
+      <option value="Low Rise Condominium">Low Rise Condominium</option>
+      <option value="Office">Office</option>
+    </Field>
+    <ErrorMessage
+      name="development_type"
+      component="div"
+      className="text-red-500 text-sm mt-1"
+    />
+  </div>
+</div>
+
                 {/* Unit Type (Checkbox) - Only for Condominiums */}
                 {[
                   "High Rise Condominium",
@@ -406,55 +411,67 @@ const SetAppointment: React.FC = () => {
                   </div>
                 )}
 
-                <div>
-                  <label className="block text-gray-700">Upload Images</label>
+              <div>
+  <label className="block text-gray-700 font-semibold">Upload Images</label>
 
-                  {/* Choose File Button */}
-                  <input
-                    type="file"
-                    name="images"
-                    multiple
-                    accept="image/*"
-                    className="mt-2 block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer focus:outline-none"
-                    onChange={(event) =>
-                      handleImageChange(event, setFieldValue)
-                    }
-                  />
+  {/* Styled File Input */}
+  <label className="mt-2 flex items-center justify-center w-full h-40 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition duration-300 ease-in-out">
+    <div className="text-center">
+      <svg
+        className="w-10 h-10 text-gray-400 mx-auto"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="2"
+          d="M12 4v16m8-8H4"
+        ></path>
+      </svg>
+      <p className="text-gray-600">Click to upload or drag and drop</p>
+      <p className="text-xs text-gray-500">PNG, JPG, JPEG (Max 5MB)</p>
+    </div>
+    <input
+      type="file"
+      name="images"
+      multiple
+      accept="image/*"
+      className="hidden"
+      onChange={(event) => handleImageChange(event, setFieldValue)}
+    />
+  </label>
 
-                  <ErrorMessage
-                    name="images"
-                    component="div"
-                    className="text-red-500 text-xs mt-1"
-                  />
+  <ErrorMessage name="images" component="div" className="text-red-500 text-xs mt-1" />
 
-                  {/* Preview Images with Close Button */}
-                  {imagesPreview.length > 0 && (
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      {imagesPreview.map((preview, index) => (
-                        <div
-                          key={index}
-                          className="relative w-36 h-36 bg-gray-200 rounded-md overflow-hidden"
-                        >
-                          {/* Close Button */}
-                          <button
-                            type="button"
-                            className="absolute top-1 right-1 bg-red-500 text-white w-4 h-4 rounded-full flex items-center justify-center text-xs"
-                            onClick={() => removeImage(index, setFieldValue)}
-                          >
-                            ✕
-                          </button>
+  {/* Preview Section */}
+  {imagesPreview.length > 0 && (
+    <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
+      {imagesPreview.map((preview, index) => (
+        <div key={index} className="relative w-full h-36 bg-gray-200 rounded-lg overflow-hidden shadow-lg">
+          {/* Close Button */}
+          <button
+            type="button"
+            className="absolute top-1 right-1 bg-red-500 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs shadow-md hover:bg-red-600 transition"
+            onClick={() => removeImage(index, setFieldValue)}
+          >
+            ✕
+          </button>
 
-                          {/* Image Preview */}
-                          <img
-                            src={preview}
-                            alt={`preview-${index}`}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+          {/* Image Preview */}
+          <img
+            src={preview}
+            alt={`preview-${index}`}
+            className="w-full h-full object-cover rounded-lg"
+          />
+        </div>
+      ))}
+    </div>
+  )}
+</div>
+
 
                 {/* Submit Button */}
                 <div className="flex justify-between items-center">
